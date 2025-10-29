@@ -1,0 +1,5 @@
+# 셸 스크립트인 gradlew는 무조건 LF로 고정
+/gradlew text eol=lf
+# 윈도우 배치 파일(*.bat)은 무조건 CRLF로 고정
+*.bat text eol=crlf
+*.jar binary

@@ -1,0 +1,6 @@
+rootProject.name = '3355-backend'
+
+include 'common-lib'
+include 'api-server'
+include 'chat-server'
+include 'batch-server'

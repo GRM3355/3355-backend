@@ -1,0 +1,7 @@
+# 테스트 환경 설정
+spring:
+  data:
+    mongodb:
+      uri: de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
+    redis:
+      embedded: true # Embedded Redis 사용 (의존성 추가 필요)

@@ -1,0 +1,13 @@
+# 운영 환경 설정
+spring:
+  data:
+    mongodb:
+      uri: ${PROD_MONGO_URI} # 환경 변수 또는 외부 설정 파일에서 주입
+    redis:
+      host: ${PROD_REDIS_HOST}
+      port: ${PROD_REDIS_PORT}
+
+logging:
+  level:
+    root: INFO
+    com.grm3355.zonie: INFO

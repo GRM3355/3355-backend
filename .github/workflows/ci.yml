@@ -1,0 +1,71 @@
+# .github/workflows/ci.yml
+# "Zonie Backend CI" - GitHub Actions에 표시될 워크플로우 이름
+name: Zonie Backend CI (Build & Test)
+
+# 1. 트리거 (Trigger)
+# 'main' 브랜치에 push 되거나,
+# 'main' 브랜치로 향하는 Pull Request가 생성/수정될 때 실행
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+# 2. 작업 (Jobs)
+jobs:
+  build-and-test:
+    # 실행 환경: 최신 Ubuntu
+    runs-on: ubuntu-latest
+    env:
+      SPRING_PROFILES_ACTIVE: test
+
+    # 3. 단계 (Steps)
+    steps:
+      # 1단계: Git 레포지토리 코드 체크아웃
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2단계: Java 21 (Temurin) 환경 설정
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin' # Eclipse Temurin (구 AdoptOpenJDK)
+
+      # 3단계: Gradle 캐시 설정 (빌드 속도 향상)
+      # gradle-wrapper.properties나 build.gradle 파일이 바뀔 때만 캐시를 새로 만듦
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # 4단계: gradlew 실행 권한 부여
+      - name: Grant execute permission for gradlew
+        run: chmod +x ./gradlew
+
+      # 5단계: Gradle로 빌드 및 테스트 실행
+      # --no-daemon: CI 환경에서는 데몬을 사용하지 않는 것이 좋음
+      - name: Build and Test with Gradle
+        run: ./gradlew build --no-daemon
+
+      # 6단계: API 서버 Docker 이미지 빌드 테스트
+      - name: Build Docker Image (API Server)
+        run: docker build -t zonie/api-server:latest . -f api-server/Dockerfile
+
+      # 7단계: Chat 서버 Docker 이미지 빌드 테스트
+      - name: Build Docker Image (Chat Server)
+        run: docker build -t zonie/chat-server:latest . -f chat-server/Dockerfile
+
+      # 8단계: 테스트 실패 시 리포트 업로드
+      # 'failure()'를 사용하여 이전 단계가 실패했을 때만 실행
+      - name: Upload Test Reports on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: '**/build/reports/tests/test'

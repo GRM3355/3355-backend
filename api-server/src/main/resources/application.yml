@@ -1,0 +1,9 @@
+# 공통 설정
+spring:
+  application:
+    name: api-server
+  profiles:
+    active: dev # 기본 활성 프로필을 dev로 지정
+    group:
+      "dev": "dev,local"
+      "prod": "prod,local"

@@ -1,0 +1,15 @@
+// chat-server/build.gradle
+plugins {
+    id 'java'
+    id 'org.springframework.boot'
+}
+
+description = 'chat-server'
+
+dependencies {
+    // 모듈별 의존성
+    implementation project(':common-lib')
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    testImplementation 'io.projectreactor:reactor-test'
+}

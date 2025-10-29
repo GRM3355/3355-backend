@@ -1,0 +1,5 @@
+# COPY THIS FILE AND PASTE IT TO YOUR application-local File.
+spring:
+  data:
+    mongodb:
+      uri: mongodb://my-local-user:my-local-password@localhost:27017/zonie-chat-dev

@@ -1,0 +1,21 @@
+// common-lib/build.gradle
+plugins {
+    id 'java-library'
+    id 'org.springframework.boot'
+}
+
+description = 'common-lib'
+
+bootJar {
+    enabled = false
+}
+jar {
+    enabled = true
+}
+
+dependencies {
+    // 모듈별 의존성
+//    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+//    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+//    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+}

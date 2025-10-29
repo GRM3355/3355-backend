@@ -1,0 +1,91 @@
+version: '3.8'
+
+# Docker 네트워크 정의
+networks:
+  zonie-net:
+    driver: bridge
+
+services:
+  # --- 1. Database (PostgreSQL) ---
+  postgres_db:
+    image: postgres:16-alpine
+    container_name: zonie_postgres_db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=zonie_main
+      - POSTGRES_USER=zonie
+      - POSTGRES_PASSWORD=zonie_pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - zonie-net
+
+  # --- 2. Cache (Redis) ---
+  redis_cache:
+    image: redis:7-alpine
+    container_name: zonie_redis_cache
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - zonie-net
+
+  # --- 3. Chat DB (MongoDB) ---
+  mongo_db:
+    image: mongo:7.0
+    container_name: zonie_mongo_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - zonie-net
+
+  # --- 4. Zonie API Server ---
+  api-server:
+    build:
+      # (중요!) context는 이 파일 위치(infra)에서 한 단계 위(루트)
+      context: ..
+      dockerfile: ./api-server/Dockerfile # context 기준 경로
+    container_name: zonie_api_server
+    ports:
+      - "8080:8080"
+    environment:
+      # Spring이 Docker 내부의 DB/Redis를 찾도록 설정
+      - SPRING_PROFILES_ACTIVE=local
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/zonie_main
+      - SPRING_DATA_REDIS_HOST=redis_cache
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo_db:27017/zonie_chat
+    depends_on: # DB/Redis가 먼저 뜨도록 설정
+      - postgres_db
+      - redis_cache
+      - mongo_db
+    networks:
+      - zonie-net
+
+  # --- 5. Zonie Chat Server ---
+  chat-server:
+    build:
+      context: ..
+      dockerfile: ./chat-server/Dockerfile
+    container_name: zonie_chat_server
+    ports:
+      - "8081:8081" # Dockerfile의 EXPOSE와 맞춰줌
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+      - SERVER_PORT=8081 # Spring Boot 포트 변경
+      - SPRING_DATA_REDIS_HOST=redis_cache
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo_db:27017/zonie_chat
+    depends_on:
+      - redis_cache
+      - mongo_db
+    networks:
+      - zonie-net
+
+# --- 데이터 보존을 위한 볼륨 정의 ---
+volumes:
+  postgres_data:
+  redis_data:
+  mongo_data:

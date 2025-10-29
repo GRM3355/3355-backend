@@ -1,0 +1,74 @@
+// build.gradle (Root Project)
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.7' apply false
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+repositories {
+    mavenCentral()
+}
+
+subprojects {
+    group = 'com.grm3355.zonie'
+    version = '0.0.1-SNAPSHOT'
+
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'checkstyle'
+
+    checkstyle {
+        toolVersion = '10.12.4'
+        configFile = rootProject.file('config/checkstyle/Naver-CheckStyle-Rules.xml')
+        ignoreFailures = false
+        showViolations = true
+    }
+
+    tasks.withType(Checkstyle).configureEach {
+        reports {
+            html.required = true
+            xml.required = false
+            html.outputLocation = layout.buildDirectory.file("reports/checkstyle/${name}.html").get().asFile
+        }
+    }
+
+    java {
+        toolchain { languageVersion = JavaLanguageVersion.of(21) }
+        sourceCompatibility = '21'
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    // 이 블록은 각 하위 모듈의 build.gradle 파일이 모두 평가된(읽힌) 후에 실행됩니다.
+    afterEvaluate { project ->
+        // 하위 모듈이 'java' 또는 'java-library' 플러그인을 가지고 있는지 확인
+        if (project.plugins.hasPlugin('java-base')) {
+
+            // 1. 공통 의존성 설정
+            dependencies {
+                // Lombok
+                compileOnly 'org.projectlombok:lombok'
+                annotationProcessor 'org.projectlombok:lombok'
+
+                // 공통
+                implementation 'org.springframework.boot:spring-boot-starter'
+                testImplementation 'org.springframework.boot:spring-boot-starter-test'
+                testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+            }
+
+            // 2. annotationProcessor 설정
+            configurations {
+                compileOnly {
+                    extendsFrom annotationProcessor
+                }
+            }
+
+            // 3. test 블록 설정
+            test {
+                useJUnitPlatform()
+            }
+        }
+    }
+}
