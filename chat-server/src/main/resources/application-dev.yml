@@ -1,11 +1,19 @@
 # 개발 환경 설정
+# Redis, Mongo 접속 정보. RDS는 필요 없음
 spring:
   data:
     mongodb:
-      uri: mongodb://localhost:27017/zonie-chat-dev
+      uri: placeholder-mongo-uri
     redis:
-      host: localhost
+      host: placeholder-dev-host.com
       port: 6379
+      username: your-username
+      password: your-password
+
+  datasource:
+    url: placeholder-postgresql-rds-uri
+    username: your-username
+    password: your-password
 
 logging:
   level:

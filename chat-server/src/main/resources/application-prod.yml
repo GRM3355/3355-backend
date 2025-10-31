@@ -1,13 +1,32 @@
 # 운영 환경 설정
+# 환경 변수 참조
 spring:
+  # --- MongoDB Atlas (운영용) ---
   data:
     mongodb:
       uri: ${PROD_MONGO_URI} # 환경 변수 또는 외부 설정 파일에서 주입
+    # --- ElastiCache (Redis) (운영용) ---
     redis:
       host: ${PROD_REDIS_HOST}
-      port: ${PROD_REDIS_PORT}
+      port: 6379 # port: ${PROD_REDIS_PORT}
+
+  # --- RDS (PostgreSQL) (운영용) ---
+  # chat-server도 방 입장 시 user_chat_rooms 테이블 접근을 위해 DB 연결이 필요.
+  datasource:
+    url: ${DB_PROD_URL}
+    username: ${DB_PROD_USERNAME}
+    password: ${DB_PROD_PASSWORD}
+
+  # --- JPA (운영용) ---
+  jpa:
+    hibernate:
+      # 운영에서는 DB 스키마를 절대 자동으로 변경/생성하지 않도록 'none'으로 설정
+      ddl-auto: none
+    # 운영 환경에서는 SQL 로그를 꺼서 성능 확보
+    show-sql: false
 
 logging:
   level:
+    # 운영 환경에서는 INFO 레벨만 로깅 (DEBUG는 너무 많음)
     root: INFO
     com.grm3355.zonie: INFO
