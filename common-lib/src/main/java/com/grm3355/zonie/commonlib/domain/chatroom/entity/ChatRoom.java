@@ -8,7 +8,7 @@ import jakarta.persistence.Table;
 
 import org.springframework.data.geo.Point;
 
-import com.grm3355.zonie.commonlib.global.dto.BaseTimeEntity;
+import com.grm3355.zonie.commonlib.global.entity.BaseTimeEntity;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

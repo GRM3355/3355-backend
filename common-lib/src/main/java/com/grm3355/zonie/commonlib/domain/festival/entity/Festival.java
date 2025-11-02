@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 
 import org.springframework.data.geo.Point;
 
-import com.grm3355.zonie.commonlib.global.dto.BaseTimeEntity;
+import com.grm3355.zonie.commonlib.global.entity.BaseTimeEntity;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -56,9 +56,6 @@ public class Festival extends BaseTimeEntity {
 
 	@Column(name = "area_code")
 	private int areaCode;
-
-	@Column(name = "si_gun_gu_code")
-	private int siGunGuCode;
 
 	@Column(name = "tel", length = 50)
 	private String tel;

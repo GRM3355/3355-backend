@@ -1,106 +1,218 @@
 package com.grm3355.zonie.batchserver.festival.service;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
+import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.geo.Point;
-import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.batchserver.festival.dto.FestivalDto;
-import com.grm3355.zonie.batchserver.festival.dto.FestivalResponseWrapper;
+import com.grm3355.zonie.commonlib.domain.batch.dto.BatchDto;
+import com.grm3355.zonie.commonlib.domain.batch.entity.BatchJobStatus;
+import com.grm3355.zonie.commonlib.domain.batch.repository.BatchJobStatusRepository;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
 import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository;
 import com.grm3355.zonie.commonlib.global.enums.Region;
+import com.grm3355.zonie.commonlib.global.exception.BusinessException;
+import com.grm3355.zonie.commonlib.global.exception.CustomErrorCode;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FestivalBatchService {
 
 	private final FestivalRepository festivalRepository;
+	private final BatchJobStatusRepository batchJobStatusRepository;
+	private final WebClient webClient = WebClient.create();
 
-	@Scheduled(cron = "0 0 3 * * *") // 매일 새벽 3시 실행
-	public void autoFetchAndSaveFestivalData() throws Exception {
-		fetchAndSaveFestivalData(1);
-	}
+	@Value("${openapi.serviceKey}")
+	private String serviceKey;
 
-	public JsonNode readFestivalJson() throws IOException {
-		// resources/data/festivals.json 파일 로딩
-		ClassPathResource resource = new ClassPathResource("data/festivals.json");
-		File file = resource.getFile();
+	public BatchDto runBatch() {
+		try {
+			//시작시간 저장
+			LocalDateTime startTime = LocalDateTime.now();
+			int totalSavedCount;
 
-		// Jackson ObjectMapper로 JSON 파싱
-		ObjectMapper objectMapper = new ObjectMapper();
-		JsonNode rootNode = objectMapper.readTree(file);
+			//open api
+			//관공공사에서 api 승인 허락이 나면 실행, 데이터 저장
+			//int apiSavedCount = getJsonDataOpenApi(1, 0);
+			//totalSavedCount =  apiSavedCount;
 
-		return rootNode;
-	}
+			// json file
+			// 임시로 json 파일 실행, 데이터 저장
+			int fileSavedCount = getJsonDataFile("data/festival/festivals_01.json", 0);
+			int fileSavedCount2 = getJsonDataFile("data/festival/festivals_02.json", 0);
+			totalSavedCount = fileSavedCount + fileSavedCount2;
 
-	public void fetchAndSaveFestivalData(int page) throws Exception {
-
-		//String apiUrl = "https://apis.data.go.kr/B551011/KorService1/searchFestival1" +
-		//	"?serviceKey=${serviceKey}" +
-		//	"&numOfRows=200&pageNo=" + page + "&MobileOS=ETC&MobileApp=Zonie&_type=json";
-
-		LocalDate now = LocalDate.now();
-		LocalDate preDate = now.minusMonths(1);
-		LocalDate nextDate = now.plusMonths(1);
-
-		String apiUrl = "https://apis.data.go.kr/B551011/KorService2/searchFestival2" +
-			"?serviceKey=${serviceKey}" +
-			"&numOfRows=10&pageNo=" + page + "&MobileOS=ETC&MobileApp=AppTest&_type=json&arrange=C" +
-			"&eventStartDate=" + preDate + "&eventEndDate=" + nextDate;
-
-		RestTemplate restTemplate = new RestTemplate();
-		ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
-
-		ObjectMapper objectMapper = new ObjectMapper();
-		FestivalResponseWrapper wrapper =
-			objectMapper.readValue(response.getBody(), FestivalResponseWrapper.class);
-
-		//총갯수
-		int totalCount = wrapper.getResponse().getBody().getTotalCount();
-		//총 페이지수
-		int totalPage = (int)Math.ceil((double)totalCount / page);
-
-		//축제목록
-		List<FestivalDto> items = wrapper.getResponse().getBody().getItems().getItem();
-
-		for (FestivalDto dto : items) {
-
-			Point point = new Point(Double.parseDouble(dto.getMapx()),
-				Double.parseDouble(dto.getMapy())); // x = 경도, y = 위도
-			Festival festival = Festival.builder()
-				.addr1(dto.getAddr1())
-				.addr2(dto.getAddr2())
-				.contentId(Integer.parseInt(dto.getContentid()))
-				.eventStartDate(parseDate(dto.getEventstartdate()))
-				.eventEndDate(parseDate(dto.getEventenddate()))
-				.firstImage(dto.getFirstimage())
-				.position(point)
-				.areaCode(parseIntOrZero(dto.getAreacode()))
-				.siGunGuCode(parseIntOrZero(dto.getSigungucode()))
-				.tel(dto.getTel())
-				.title(dto.getTitle())
-				.region(getRegionCode(dto.getAreacode()))
-				.status("ACTIVE")
-				.targetType("OPENAPI")
+			//배치파일 로그 저장
+			LocalDateTime endTime = LocalDateTime.now();
+			String targetType = "festival";
+			BatchJobStatus batchJobStatus = BatchJobStatus.builder()
+				.targetType(targetType)
+				.startTime(startTime)
+				.endTime(endTime)
+				.totalCount(totalSavedCount)
 				.build();
-			festivalRepository.save(festival);
+			BatchJobStatus savedBatch = batchJobStatusRepository.save(batchJobStatus);
+			System.out.println("========>savedBatch=" + savedBatch);
+
+			//dto로 변환
+			BatchDto dto = BatchDto.builder()
+				.id(savedBatch.getId())
+				.targetType(savedBatch.getTargetType())
+				.startTime(savedBatch.getStartTime())
+				.endTime(savedBatch.getEndTime())
+				.totalCount(savedBatch.getTotalCount())
+				.build();
+			return dto;
+
+		} catch (Exception e) {
+			log.warn("batch 처리중 오류 발생");
+			e.printStackTrace();
+			return null;
 		}
-		//마지막 페이지까지 읽기
-		if (totalPage != page)
-			fetchAndSaveFestivalData(page + 1);
+	}
+
+	//OPEN API  호출
+	//관공공사 승인나면 호출하기로 함.
+	public int getJsonDataOpenApi(int page, int savedCount) {
+		try {
+			// 1개월 전 ~ 1개월 후 날짜 계산
+			String preDate = LocalDate.now().minusMonths(1)
+				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+			String nextDate = LocalDate.now().plusMonths(1)
+				.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+			//int page = 1;
+			int numOfRows = 200;
+
+			String apiUrl = "https://apis.data.go.kr/B551011/KorService2/searchFestival2"
+				+ "?serviceKey=" + serviceKey
+				+ "&numOfRows=" + numOfRows
+				+ "&pageNo=" + page
+				+ "&MobileOS=ETC&MobileApp=Zonie&_type=json&arrange=C"
+				+ "&eventStartDate=" + preDate
+				+ "&eventEndDate=" + nextDate;
+
+			String response = webClient.get()
+				.uri(apiUrl)
+				.retrieve()
+				.bodyToMono(String.class)
+				.block();
+
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode root = objectMapper.readTree(response);
+			JsonNode items = root.path("response").path("body").path("items").path("item");
+
+			int totalCount = root.path("response").path("body").path("totalCount").asInt();
+			int totalPage = (int)Math.ceil((double)totalCount / numOfRows);
+
+			//데이터 db에 저장
+			savedCount += setFestivalSave(items);
+
+			//마지막페이지여부체크, 아니면 다시 불러오기
+			if (totalPage != page)
+				getJsonDataOpenApi(page + 1, savedCount);
+
+			log.info("총 {}건 중 {}건 저장 완료", totalCount, savedCount);
+			return savedCount;
+
+		} catch (Exception e) {
+			log.warn("getJsonDataOpenApi 처리중 오류 발생");
+			e.printStackTrace();
+			return savedCount;
+		}
+
+	}
+
+	//파일데이터 가져오기
+	public int getJsonDataFile(String fileName, int savedCount) {
+		try {
+			// /resources/data/festivals.json 파일 읽기
+			File file = new ClassPathResource(fileName).getFile();
+
+			ObjectMapper objectMapper = new ObjectMapper();
+			JsonNode root = objectMapper.readTree(file);
+			JsonNode items = root.path("response").path("body").path("items").path("item");
+			int totalCount = root.path("response").path("body").path("totalCount").asInt();
+
+			//데이터 db에 저장
+			savedCount += setFestivalSave(items);
+
+			log.info("총 {}건 중 {}건 저장 완료", totalCount, savedCount);
+			return savedCount;
+
+		} catch (Exception e) {
+			log.warn("getJsonDataFile 처리중 오류 발생");
+			e.printStackTrace();
+			return savedCount;
+		}
+	}
+
+	public int setFestivalSave(JsonNode items) {
+
+		int savedCount = 0;
+		for (JsonNode item : items) {
+			double mapx = item.path("mapx").asDouble();    //경도 : 127.7625159968
+			double mapy = item.path("mapy").asDouble();    //위도 : 35.0594575822
+
+			Point point = new Point(Double.parseDouble(String.valueOf(mapx)),
+				Double.parseDouble(String.valueOf(mapy))); // x = 경도, y = 위도
+
+			int areacode = item.path("areacode").asInt();
+			int contentid = item.path("contentid").asInt();
+			String targetType = "OPENAPI";
+
+			//데이터가 db에 없없으면 등록
+			Festival festival = Festival.builder()
+				.addr1(item.path("addr1").asText(null))
+				.addr2(item.path("addr2").asText(null))
+				.contentId(contentid)
+				.eventStartDate(parseDate(item.path("eventstartdate").asText()))
+				.eventEndDate(parseDate(item.path("eventenddate").asText()))
+				.firstImage(item.path("firstimage").asText(null))
+				.position(point)
+				.areaCode(areacode)
+				.tel(item.path("tel").asText(null))
+				.title(item.path("title").asText(null))
+				.region(getRegionCode(String.valueOf(areacode)))
+				.url(item.path("url").asText(null))
+				.targetType(targetType)
+				.status(null)
+				.build();
+
+			//contentid로 데이터 등록확인후
+			Festival festival_db = festivalRepository.findAllByContentIdAndTargetType(contentid, targetType)
+				.orElseThrow(() -> new BusinessException(CustomErrorCode.NOT_FOUND, "관련 정보가 없습니다."));
+
+			//데이터가 db에 들어 있으면 업데이트
+			if (festival_db != null) {
+				//내용복사
+				BeanUtils.copyProperties(festival, festival_db,
+					"festivalId", "contentId", "targetType", "status", "createdAt");
+				//수정
+				festivalRepository.save(festival_db);
+				log.info("Festival 수정: {}", festival);
+			} else {
+				festivalRepository.save(festival);
+				log.info("새로운 Festival 저장: {}", festival);
+			}
+			savedCount++;
+
+		}
+		return savedCount;
+
 	}
 
 	//시도코드를 분류별로 재코드 정의
@@ -150,14 +262,6 @@ public class FestivalBatchService {
 	private LocalDate parseDate(String date) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		return LocalDate.parse(date, formatter);
-	}
-
-	private int parseIntOrZero(String val) {
-		try {
-			return Integer.parseInt(val);
-		} catch (Exception e) {
-			return 0;
-		}
 	}
 
 }

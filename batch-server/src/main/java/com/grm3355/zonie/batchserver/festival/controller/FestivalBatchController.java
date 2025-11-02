@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.grm3355.zonie.batchserver.festival.service.FestivalBatchService;
+import com.grm3355.zonie.commonlib.domain.batch.dto.BatchDto;
 import com.grm3355.zonie.commonlib.global.response.CustomApiResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -20,11 +21,10 @@ public class FestivalBatchController {
 	@PostMapping("/festival")
 	public ResponseEntity<?> fetchFestivalData() {
 		try {
-			festivalBatchService.fetchAndSaveFestivalData(1);
+			BatchDto dto = festivalBatchService.runBatch();
 			//return ResponseEntity.ok("Festival batch completed successfully!");
+			return CustomApiResponse.ok(dto).toResponseEntity();
 
-			return CustomApiResponse.ok("").toResponseEntity();
-			
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.internalServerError().body("Batch failed: " + e.getMessage());

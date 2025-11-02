@@ -8,7 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import com.grm3355.zonie.commonlib.global.dto.BaseTimeEntity;
+import com.grm3355.zonie.commonlib.global.entity.BaseTimeEntity;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

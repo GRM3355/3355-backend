@@ -4,6 +4,7 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -12,11 +13,13 @@ import lombok.Getter;
 public class LocationDto {
 
 	@NotNull(message = "위치정보가 필요합니다.")
+	@Schema(description = "위도정보", example = "23.23443")
 	@DecimalMin(value = "-90.0", message = "Latitude must be >= -90")
 	@DecimalMax(value = "90.0", message = "Latitude must be <= 90")
 	private Double lat;
 
 	@NotNull(message = "위치정보가 필요합니다.")
+	@Schema(description = "경도정보", example = "128.23443")
 	@DecimalMin(value = "-180.0", message = "Longitude must be >= -180")
 	@DecimalMax(value = "180.0", message = "Longitude must be <= 180")
 	private Double lon;

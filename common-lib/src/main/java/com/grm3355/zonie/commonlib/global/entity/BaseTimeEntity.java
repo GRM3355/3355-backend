@@ -1,4 +1,4 @@
-package com.grm3355.zonie.commonlib.global.dto;
+package com.grm3355.zonie.commonlib.global.entity;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;

@@ -10,7 +10,7 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-import com.grm3355.zonie.commonlib.global.dto.BaseTimeEntity;
+import com.grm3355.zonie.commonlib.global.entity.BaseTimeEntity;
 import com.grm3355.zonie.commonlib.global.enums.Role;
 
 import lombok.AccessLevel;
