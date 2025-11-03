@@ -11,7 +11,14 @@ spring:
     redis:
       host: redis_cache
       port: 6379
-
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 #  batch:
 #    jdbc:
 #      #initialize-schema: always
@@ -40,3 +47,8 @@ batch:
   json:
     file:
       path: data/json/festival
+#logging 레벨
+logging:
+  level:
+    org.springframework.orm.jpa: DEBUG
+    org.springframework.beans.factory: DEBUG
