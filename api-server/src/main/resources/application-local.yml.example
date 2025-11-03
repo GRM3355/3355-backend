@@ -1,5 +1,42 @@
 # COPY THIS FILE AND PASTE IT TO YOUR application-local File.
 spring:
   datasource:
-    username: my-local-username
-    password: my-local-password
+    url: jdbc:postgresql://zonie_postgres_db:5432/zonie_main?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
+    username: [postgres 아이디]
+    password: [postgres 비밀번호]
+    driver-class-name: org.postgresql.Driver
+  data:
+    mongodb:
+      uri: mongodb://[mongo 아이디]:[mongo 비밀번호]@mongo_db:27017/zonie_chat
+    redis:
+      host: redis_cache
+      port: 6379
+
+#  batch:
+#    jdbc:
+#      #initialize-schema: always
+#      initialize-schema: embedded
+#      schema: classpath:org/springframework/batch/core/schema-postgresql.sql
+#    job:
+#      enabled: false
+#  sql:
+#    init:
+#      mode: always
+#      schema-locations: classpath:org/springframework/batch/core/schema-postgresql.sql
+
+#jwt
+jwt:
+  secret: [JWT 시크릿키]
+  access-token-expiration-time: 86400000 # 24시간
+  location-token-expiration-time: 600000 # 10분
+#cors
+cors:
+  allowed-origins: "http://localhost:8082,http://example.com"
+#공공데이터 api
+openapi:
+  serviceKey: [서비스키]
+#batch 파일 경로
+batch:
+  json:
+    file:
+      path: data/json/festival
