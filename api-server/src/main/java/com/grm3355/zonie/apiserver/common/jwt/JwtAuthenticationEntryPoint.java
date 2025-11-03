@@ -11,8 +11,8 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.commonlib.global.exception.CustomErrorCode;
-import com.grm3355.zonie.commonlib.global.response.CustomApiResponse;
+import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
+import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		response.setCharacterEncoding("UTF-8");
 
-		CustomApiResponse<Object> apiResponse = CustomApiResponse.error(CustomErrorCode.ACCESS_DENIED.status(), "인증이 필요합니다.");
+		ApiResponse<Object> apiResponse = ApiResponse.failure(ErrorCode.ACCESS_DENIED.getCode(), "인증이 필요합니다.");
 		String jsonResponse = objectMapper.writeValueAsString(apiResponse);
 
 		response.getWriter().write(jsonResponse);

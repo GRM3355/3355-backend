@@ -8,28 +8,28 @@ public class CustomValidationException extends RuntimeException {
 	//	super(message);
 	//}
 
-	private final CustomErrorCode errorCode;
+	private final ErrorCode errorCode;
 	private final Map<String, Object> details;
 
-	public CustomValidationException(CustomErrorCode errorCode) {
-		super(errorCode.defaultMessage());
+	public CustomValidationException(ErrorCode errorCode) {
+		super(errorCode.getMessage());
 		this.errorCode = errorCode;
 		this.details = null;
 	}
 
-	public CustomValidationException(CustomErrorCode errorCode, String message) {
+	public CustomValidationException(ErrorCode errorCode, String message) {
 		super(message);
 		this.errorCode = errorCode;
 		this.details = null;
 	}
 
-	public CustomValidationException(CustomErrorCode errorCode, String message, Map<String, Object> details) {
+	public CustomValidationException(ErrorCode errorCode, String message, Map<String, Object> details) {
 		super(message);
 		this.errorCode = errorCode;
 		this.details = details;
 	}
 
-	public CustomErrorCode errorCode() {
+	public ErrorCode errorCode() {
 		return errorCode;
 	}
 

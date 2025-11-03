@@ -16,9 +16,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.commonlib.global.exception.CustomErrorCode;
 import com.grm3355.zonie.apiserver.common.service.RateLimitingService;
-import com.grm3355.zonie.commonlib.global.response.CustomApiResponse;
+import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
+import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -75,8 +75,8 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 		response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 		response.setCharacterEncoding("UTF-8");
 
-		CustomApiResponse<Object> apiResponse = CustomApiResponse.error(
-			CustomErrorCode.TOO_MANY_REQUESTS.status().value(),
+		ApiResponse<Object> apiResponse = ApiResponse.failure(
+			ErrorCode.TOO_MANY_REQUESTS.toString(),
 			"요청 횟수가 너무 많습니다. 잠시 후 다시 시도해주세요."
 		);
 		String jsonResponse = objectMapper.writeValueAsString(apiResponse);

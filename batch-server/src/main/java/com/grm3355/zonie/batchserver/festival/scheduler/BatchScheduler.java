@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import com.grm3355.zonie.batchserver.festival.service.FestivalBatchService;
+import com.grm3355.zonie.apiserver.domain.batch.service.FestivalBatchService;
 
 import lombok.RequiredArgsConstructor;
 

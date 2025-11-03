@@ -1,4 +1,4 @@
-package com.grm3355.zonie.batchserver.festival.dto;
+package com.grm3355.zonie.commonlib.domain.batch.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class FestivalDto {
+public class ApiFestivalDto {
 	private String addr1;
 	private String addr2;
 	private String zipcode;

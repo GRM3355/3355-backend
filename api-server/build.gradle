@@ -9,12 +9,13 @@ description = 'api-server'
 dependencies {
     // 모듈별 의존성
     implementation project(':common-lib')
+    //implementation project(':batch-server')
+
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'com.h2database:h2'
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    //runtimeOnly 'org.postgresql:postgresql:42.6.0'
     //implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
     //implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
@@ -34,5 +35,8 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-jackson:0.13.0'
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
 
+    // Spring Batch 의존성 추가
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.batch:spring-batch-core:5.0.0'
 
 }

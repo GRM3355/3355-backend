@@ -25,7 +25,7 @@ import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;
 import com.grm3355.zonie.commonlib.global.enums.Role;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
-import com.grm3355.zonie.commonlib.global.exception.CustomErrorCode;
+import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -98,7 +98,7 @@ public class AuthService {
 
 	@Transactional
 	public boolean login(LocationDto locationDto, String savedToken) {
-		return  redisTokenService.updateLocationInfo(locationDto, savedToken);
+		return redisTokenService.updateLocationInfo(locationDto, savedToken);
 	}
 
 	public AuthResponse generateTokens(UserDetailsImpl userDetails, UserTokenDto userTokenDto) {
@@ -108,7 +108,7 @@ public class AuthService {
 		String roleName = userDetails.getAuthorities().stream()
 			.findFirst()
 			.map(GrantedAuthority::getAuthority)
-			.orElseThrow(() -> new BusinessException(CustomErrorCode.INTERNAL_ERROR, "사용자 권한 정보를 찾을 수 없습니다."));
+			.orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "사용자 권한 정보를 찾을 수 없습니다."));
 
 		// "ROLE_GUEST" -> "GUEST"
 		String roleEnumName = roleName.startsWith("ROLE_") ? roleName.substring(5) : roleName;
@@ -319,6 +319,5 @@ public class AuthService {
 	//  */
 
 	//-----------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 }

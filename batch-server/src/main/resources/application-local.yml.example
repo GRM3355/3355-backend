@@ -1,5 +1,0 @@
-# COPY THIS FILE AND PASTE IT TO YOUR application-local File.
-spring:
-  datasource:
-    username: my-local-username
-    password: my-local-password

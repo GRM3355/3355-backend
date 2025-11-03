@@ -11,10 +11,6 @@ import jakarta.persistence.PreUpdate;
 
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-/**
- * @author rua
- */
-
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 public abstract class BaseTimeEntity {

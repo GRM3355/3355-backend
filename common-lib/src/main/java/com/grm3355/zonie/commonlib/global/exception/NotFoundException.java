@@ -7,28 +7,28 @@ public class NotFoundException extends RuntimeException {
 	//	super(message);
 	//}
 
-	private final CustomErrorCode errorCode;
+	private final ErrorCode errorCode;
 	private final Map<String, Object> details;
 
-	public NotFoundException(CustomErrorCode errorCode) {
-		super(errorCode.defaultMessage());
+	public NotFoundException(ErrorCode errorCode) {
+		super(errorCode.getMessage());
 		this.errorCode = errorCode;
 		this.details = null;
 	}
 
-	public NotFoundException(CustomErrorCode errorCode, String message) {
+	public NotFoundException(ErrorCode errorCode, String message) {
 		super(message);
 		this.errorCode = errorCode;
 		this.details = null;
 	}
 
-	public NotFoundException(CustomErrorCode errorCode, String message, Map<String, Object> details) {
+	public NotFoundException(ErrorCode errorCode, String message, Map<String, Object> details) {
 		super(message);
 		this.errorCode = errorCode;
 		this.details = details;
 	}
 
-	public CustomErrorCode errorCode() {
+	public ErrorCode errorCode() {
 		return errorCode;
 	}
 

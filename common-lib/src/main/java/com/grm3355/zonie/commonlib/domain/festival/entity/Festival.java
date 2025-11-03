@@ -8,7 +8,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-import org.springframework.data.geo.Point;
+import org.locationtech.jts.geom.Point;
 
 import com.grm3355.zonie.commonlib.global.entity.BaseTimeEntity;
 
@@ -36,9 +36,6 @@ public class Festival extends BaseTimeEntity {
 	@Column(name = "addr1", nullable = false, length = 100)
 	private String addr1;
 
-	@Column(name = "addr2", nullable = false, length = 100)
-	private String addr2;
-
 	@Column(name = "content_id", nullable = false)
 	private int contentId;
 
@@ -51,7 +48,8 @@ public class Festival extends BaseTimeEntity {
 	@Column(name = "first_image", length = 100)
 	private String firstImage;
 
-	@Column(name = "position", columnDefinition = "geography(Point, 4326)")
+	//@Column(name = "position", columnDefinition = "geography(Point, 4326)")
+	@Column(name = "position", columnDefinition = "geometry(Point,4326)")
 	private Point position;
 
 	@Column(name = "area_code")

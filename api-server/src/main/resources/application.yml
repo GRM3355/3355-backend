@@ -7,3 +7,26 @@ spring:
     group:
       "dev": "dev,local"
       "prod": "prod,local"
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000 # 10분 (밀리초)
+  data:
+    batch:
+      job:
+        enabled: false   # 모든 프로파일의 기본값을 '자동실행 OFF'로
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  batch:
+    job:
+      enabled: false # 애플리케이션 시작 시 자동 배치 실행 비활성화
+    jdbc:
+      initialize-schema: always
+

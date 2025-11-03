@@ -12,4 +12,6 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 
 	Optional<Festival> findAllByContentIdAndTargetType(int contentId, String targetType);
 
+	Festival findByContentId(int contentId);
+
 }

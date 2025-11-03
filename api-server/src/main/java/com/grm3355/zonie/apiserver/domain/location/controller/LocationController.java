@@ -14,13 +14,12 @@ import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
-import com.grm3355.zonie.commonlib.global.response.CustomApiResponse;
+import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -36,19 +35,19 @@ public class LocationController {
 
 	@Operation(summary = "토큰 정보 업데이트", description = "위도, 경도 정보를 받아서 Redis에서 수정한다.")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "업데이트 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "업데이트 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 			examples = @ExampleObject(
 				name = "OK",
 				value = "{\"success\":true,\"status\":200,\"message\":\"OK\",\"data\":{\"grantType\":\"Bearer\",\"accessToken\":\"...\",\"refreshToken\":\"...\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
 			)
 		)),
-		@ApiResponse(responseCode = "400", description = "입력값 유효성 검증 실패", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 유효성 검증 실패", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 			examples = @ExampleObject(
 				name = "VALIDATION_FAILED",
 				value = "{\"success\":false,\"status\":400,\"message\":\"VALIDATION_FAILED\",\"data\":{\"code\":\"VALIDATION_FAILED\",\"message\":\"요청 본문 검증 실패\",\"traceId\":null,\"path\":\"/api/v1/auth/login\",\"errors\":{\"password\":\"비밀번호는 필수 입력 값입니다.\"}},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 			)
 		)),
-		@ApiResponse(responseCode = "429", description = "요청 횟수 초과", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "429", description = "요청 횟수 초과", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 			examples = @ExampleObject(
 				name = "TOO_MANY_REQUESTS",
 				value = "{\"success\":false,\"status\":429,\"message\":\"요청 횟수가 너무 많습니다. 잠시 후 다시 시도해주세요.\",\"data\":null,\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
@@ -60,24 +59,25 @@ public class LocationController {
 		@Valid @RequestBody LocationDto locationDto) {
 		//10분 단위로 호출함.
 		boolean response = redisTokenService.updateLocationInfo(locationDto, user.getUsername());
-		return CustomApiResponse.ok(response).toResponseEntity();
+		return ResponseEntity.ok(ApiResponse.success(response));
+
 	}
 
 	@Operation(summary = "축제 영역 체크", description = "위도, 경도 정보를 받아서 Redis에서 수정한다.")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 			examples = @ExampleObject(
 				name = "OK",
 				value = "{\"success\":true,\"status\":200,\"message\":\"OK\",\"data\":{\"grantType\":\"Bearer\",\"accessToken\":\"...\",\"refreshToken\":\"...\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
 			)
 		)),
-		@ApiResponse(responseCode = "400", description = "입력값 유효성 검증 실패", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 유효성 검증 실패", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 			examples = @ExampleObject(
 				name = "VALIDATION_FAILED",
 				value = "{\"success\":false,\"status\":400,\"message\":\"VALIDATION_FAILED\",\"data\":{\"code\":\"VALIDATION_FAILED\",\"message\":\"요청 본문 검증 실패\",\"traceId\":null,\"path\":\"/api/v1/auth/login\",\"errors\":{\"password\":\"비밀번호는 필수 입력 값입니다.\"}},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 			)
 		)),
-		@ApiResponse(responseCode = "429", description = "요청 횟수 초과", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "429", description = "요청 횟수 초과", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 			examples = @ExampleObject(
 				name = "TOO_MANY_REQUESTS",
 				value = "{\"success\":false,\"status\":429,\"message\":\"요청 횟수가 너무 많습니다. 잠시 후 다시 시도해주세요.\",\"data\":null,\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
@@ -87,24 +87,25 @@ public class LocationController {
 	@GetMapping("/festivalVerify")
 	public ResponseEntity<?> getfestivalVerify(String token, String festivalId) {
 		boolean response = locationService.getFestivalVerify(token, festivalId);
-		return CustomApiResponse.ok(response).toResponseEntity();
+		return ResponseEntity.ok(ApiResponse.success(response));
+
 	}
 
 	@Operation(summary = "채팅방 영역 체크", description = "위도, 경도 정보를 받아서 Redis에서 수정한다.")
 	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 			examples = @ExampleObject(
 				name = "OK",
 				value = "{\"success\":true,\"status\":200,\"message\":\"OK\",\"data\":{\"grantType\":\"Bearer\",\"accessToken\":\"...\",\"refreshToken\":\"...\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
 			)
 		)),
-		@ApiResponse(responseCode = "400", description = "입력값 유효성 검증 실패", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 유효성 검증 실패", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 			examples = @ExampleObject(
 				name = "VALIDATION_FAILED",
 				value = "{\"success\":false,\"status\":400,\"message\":\"VALIDATION_FAILED\",\"data\":{\"code\":\"VALIDATION_FAILED\",\"message\":\"요청 본문 검증 실패\",\"traceId\":null,\"path\":\"/api/v1/auth/login\",\"errors\":{\"password\":\"비밀번호는 필수 입력 값입니다.\"}},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 			)
 		)),
-		@ApiResponse(responseCode = "429", description = "요청 횟수 초과", content = @Content(mediaType = "application/json", schema = @Schema(implementation = CustomApiResponse.class),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "429", description = "요청 횟수 초과", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 			examples = @ExampleObject(
 				name = "TOO_MANY_REQUESTS",
 				value = "{\"success\":false,\"status\":429,\"message\":\"요청 횟수가 너무 많습니다. 잠시 후 다시 시도해주세요.\",\"data\":null,\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
@@ -115,6 +116,6 @@ public class LocationController {
 	@GetMapping("/chatroomVerify")
 	public ResponseEntity<?> getchatroomVerify(String token, String chatroomId) {
 		boolean response = locationService.getChatroomVerify(token, chatroomId);
-		return CustomApiResponse.ok(response).toResponseEntity();
+		return ResponseEntity.ok(ApiResponse.success(response));
 	}
 }

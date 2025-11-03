@@ -9,28 +9,28 @@ import java.util.Map;
  */
 public class BusinessException extends RuntimeException {
 
-	private final CustomErrorCode errorCode;
+	private final ErrorCode errorCode;
 	private final Map<String, Object> details;
 
-	public BusinessException(CustomErrorCode errorCode) {
-		super(errorCode.defaultMessage());
+	public BusinessException(ErrorCode errorCode) {
+		super(errorCode.getMessage());
 		this.errorCode = errorCode;
 		this.details = null;
 	}
 
-	public BusinessException(CustomErrorCode errorCode, String message) {
+	public BusinessException(ErrorCode errorCode, String message) {
 		super(message);
 		this.errorCode = errorCode;
 		this.details = null;
 	}
 
-	public BusinessException(CustomErrorCode errorCode, String message, Map<String, Object> details) {
+	public BusinessException(ErrorCode errorCode, String message, Map<String, Object> details) {
 		super(message);
 		this.errorCode = errorCode;
 		this.details = details;
 	}
 
-	public CustomErrorCode errorCode() {
+	public ErrorCode errorCode() {
 		return errorCode;
 	}
 

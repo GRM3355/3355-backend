@@ -7,7 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication(scanBasePackages = {
-	"com.grm3355.zonie.batchserver",
+	"com.grm3355.zonie",
 	"com.grm3355.zonie.commonlib"
 })
 @EnableJpaRepositories(basePackages = {

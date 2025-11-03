@@ -1,92 +1,71 @@
-package com.grm3355.zonie.batchserver.festival.service;
+package com.grm3355.zonie.apiserver.domain.batch.service;
 
 import java.io.File;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.io.WKTReader;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.geo.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.commonlib.domain.batch.dto.BatchDto;
-import com.grm3355.zonie.commonlib.domain.batch.entity.BatchJobStatus;
-import com.grm3355.zonie.commonlib.domain.batch.repository.BatchJobStatusRepository;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
 import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository;
 import com.grm3355.zonie.commonlib.global.enums.Region;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
-import com.grm3355.zonie.commonlib.global.exception.CustomErrorCode;
+import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
-public class FestivalBatchService {
+public class FestivalBatchServiceImpl implements FestivalBatchService {
 
 	private final FestivalRepository festivalRepository;
-	private final BatchJobStatusRepository batchJobStatusRepository;
 	private final WebClient webClient = WebClient.create();
 
 	@Value("${openapi.serviceKey}")
 	private String serviceKey;
 
-	public BatchDto runBatch() {
+	public FestivalBatchServiceImpl(FestivalRepository festivalRepository) {
+		this.festivalRepository = festivalRepository;
+	}
+
+	@Override
+	public void runBatch() {
 		try {
 			//시작시간 저장
-			LocalDateTime startTime = LocalDateTime.now();
-			int totalSavedCount;
+			//LocalDateTime startTime = LocalDateTime.now();
+			//int totalSavedCount;
+
+			log.info("=======> runBatch 1");
 
 			//open api
 			//관공공사에서 api 승인 허락이 나면 실행, 데이터 저장
-			//int apiSavedCount = getJsonDataOpenApi(1, 0);
-			//totalSavedCount =  apiSavedCount;
+			//getJsonDataOpenApi(1, 0);
 
 			// json file
 			// 임시로 json 파일 실행, 데이터 저장
-			int fileSavedCount = getJsonDataFile("data/festival/festivals_01.json", 0);
-			int fileSavedCount2 = getJsonDataFile("data/festival/festivals_02.json", 0);
-			totalSavedCount = fileSavedCount + fileSavedCount2;
+			getJsonDataFile("data/festival/festivals_01.json");
+			getJsonDataFile("data/festival/festivals_02.json");
 
-			//배치파일 로그 저장
-			LocalDateTime endTime = LocalDateTime.now();
-			String targetType = "festival";
-			BatchJobStatus batchJobStatus = BatchJobStatus.builder()
-				.targetType(targetType)
-				.startTime(startTime)
-				.endTime(endTime)
-				.totalCount(totalSavedCount)
-				.build();
-			BatchJobStatus savedBatch = batchJobStatusRepository.save(batchJobStatus);
-			System.out.println("========>savedBatch=" + savedBatch);
-
-			//dto로 변환
-			BatchDto dto = BatchDto.builder()
-				.id(savedBatch.getId())
-				.targetType(savedBatch.getTargetType())
-				.startTime(savedBatch.getStartTime())
-				.endTime(savedBatch.getEndTime())
-				.totalCount(savedBatch.getTotalCount())
-				.build();
-			return dto;
+			//log.info("=======> runBatch totalSavedCount=" + totalSavedCount);
 
 		} catch (Exception e) {
 			log.warn("batch 처리중 오류 발생");
 			e.printStackTrace();
-			return null;
 		}
 	}
 
 	//OPEN API  호출
 	//관공공사 승인나면 호출하기로 함.
-	public int getJsonDataOpenApi(int page, int savedCount) {
+	@Override
+	public void getJsonDataOpenApi(int page) {
 		try {
 			// 1개월 전 ~ 1개월 후 날짜 계산
 			String preDate = LocalDate.now().minusMonths(1)
@@ -118,105 +97,130 @@ public class FestivalBatchService {
 			int totalCount = root.path("response").path("body").path("totalCount").asInt();
 			int totalPage = (int)Math.ceil((double)totalCount / numOfRows);
 
-			//데이터 db에 저장
-			savedCount += setFestivalSave(items);
-
 			//마지막페이지여부체크, 아니면 다시 불러오기
 			if (totalPage != page)
-				getJsonDataOpenApi(page + 1, savedCount);
+				getJsonDataOpenApi(page + 1);
 
-			log.info("총 {}건 중 {}건 저장 완료", totalCount, savedCount);
-			return savedCount;
+			log.info("총 {}건 중 {}건 저장 완료", totalCount);
 
 		} catch (Exception e) {
 			log.warn("getJsonDataOpenApi 처리중 오류 발생");
 			e.printStackTrace();
-			return savedCount;
 		}
-
 	}
 
 	//파일데이터 가져오기
-	public int getJsonDataFile(String fileName, int savedCount) {
+	@Override
+	public void getJsonDataFile(String fileName) {
 		try {
 			// /resources/data/festivals.json 파일 읽기
 			File file = new ClassPathResource(fileName).getFile();
 
+			log.info("===> getJsonDataFile 11");
+			log.info("===> getJsonDataFile 22");
+			if (!file.exists()) {
+				log.info("===> getJsonDataFile 33");
+				new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "파일을 찾을수 없습니다.");
+			}
+			log.info("===> getJsonDataFile 44");
+
 			ObjectMapper objectMapper = new ObjectMapper();
+			log.info("===> getJsonDataFile 55");
+			log.info("===> getJsonDataFile file=" + file);
 			JsonNode root = objectMapper.readTree(file);
+			log.info("===> getJsonDataFile root=" + root);
+
 			JsonNode items = root.path("response").path("body").path("items").path("item");
 			int totalCount = root.path("response").path("body").path("totalCount").asInt();
 
-			//데이터 db에 저장
-			savedCount += setFestivalSave(items);
+			log.info("===> getJsonDataFile 2");
+			log.info("===> getJsonDataFile totalCount=" + totalCount);
 
-			log.info("총 {}건 중 {}건 저장 완료", totalCount, savedCount);
-			return savedCount;
+			log.info("총 {}건 중 {}건 저장 완료", totalCount);
 
 		} catch (Exception e) {
 			log.warn("getJsonDataFile 처리중 오류 발생");
 			e.printStackTrace();
-			return savedCount;
 		}
 	}
 
+	@Override
 	public int setFestivalSave(JsonNode items) {
 
-		int savedCount = 0;
-		for (JsonNode item : items) {
-			double mapx = item.path("mapx").asDouble();    //경도 : 127.7625159968
-			double mapy = item.path("mapy").asDouble();    //위도 : 35.0594575822
+		log.info("======> setFestivalSave 1");
 
-			Point point = new Point(Double.parseDouble(String.valueOf(mapx)),
-				Double.parseDouble(String.valueOf(mapy))); // x = 경도, y = 위도
+		try {
+			int savedCount = 0;
+			for (JsonNode item : items) {
 
-			int areacode = item.path("areacode").asInt();
-			int contentid = item.path("contentid").asInt();
-			String targetType = "OPENAPI";
+				//double mapx = item.path("mapx").asDouble();    //경도 : 127.7625159968
+				//double mapy = item.path("mapy").asDouble();    //위도 : 35.0594575822
+				//Point point = new Point(Double.parseDouble(String.valueOf(mapx)),
+				//Double.parseDouble(String.valueOf(mapy))); // x = 경도, y = 위도
 
-			//데이터가 db에 없없으면 등록
-			Festival festival = Festival.builder()
-				.addr1(item.path("addr1").asText(null))
-				.addr2(item.path("addr2").asText(null))
-				.contentId(contentid)
-				.eventStartDate(parseDate(item.path("eventstartdate").asText()))
-				.eventEndDate(parseDate(item.path("eventenddate").asText()))
-				.firstImage(item.path("firstimage").asText(null))
-				.position(point)
-				.areaCode(areacode)
-				.tel(item.path("tel").asText(null))
-				.title(item.path("title").asText(null))
-				.region(getRegionCode(String.valueOf(areacode)))
-				.url(item.path("url").asText(null))
-				.targetType(targetType)
-				.status(null)
-				.build();
+				//geometry 방식
+				GeometryFactory geometryFactory = new GeometryFactory();
+				WKTReader wktReader = new WKTReader(geometryFactory);
+				org.locationtech.jts.geom.Point point = null;
+				if (item.path("mapx") != null && item.path("mapy") != null) {
+					String wktPoint = String.format("POINT (%s %s)", item.path("mapx"), item.path("mapy"));
+					point = (org.locationtech.jts.geom.Point)wktReader.read(wktPoint);
+					point.setSRID(4326);
+				}
 
-			//contentid로 데이터 등록확인후
-			Festival festival_db = festivalRepository.findAllByContentIdAndTargetType(contentid, targetType)
-				.orElseThrow(() -> new BusinessException(CustomErrorCode.NOT_FOUND, "관련 정보가 없습니다."));
+				int areacode = item.path("areacode").asInt();
+				int contentid = item.path("contentid").asInt();
+				String targetType = "OPENAPI";
 
-			//데이터가 db에 들어 있으면 업데이트
-			if (festival_db != null) {
-				//내용복사
-				BeanUtils.copyProperties(festival, festival_db,
-					"festivalId", "contentId", "targetType", "status", "createdAt");
-				//수정
-				festivalRepository.save(festival_db);
-				log.info("Festival 수정: {}", festival);
-			} else {
-				festivalRepository.save(festival);
-				log.info("새로운 Festival 저장: {}", festival);
+				log.info("======> setFestivalSave 2");
+
+				//데이터가 db에 없없으면 등록
+				Festival festival = Festival.builder()
+					.addr1(item.path("addr1").asText(null))
+					.contentId(contentid)
+					.eventStartDate(parseDate(item.path("eventstartdate").asText()))
+					.eventEndDate(parseDate(item.path("eventenddate").asText()))
+					.firstImage(item.path("firstimage").asText(null))
+					.position(point)
+					.areaCode(areacode)
+					.tel(item.path("tel").asText(null))
+					.title(item.path("title").asText(null))
+					.region(getRegionCode(String.valueOf(areacode)))
+					.url(null)
+					.targetType(targetType)
+					.status(null)
+					.build();
+
+				//contentid로 데이터 등록확인후
+				Festival festival_db = festivalRepository.findAllByContentIdAndTargetType(contentid, targetType)
+					.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 정보가 없습니다."));
+
+				log.info("======> setFestivalSave festival_db=" + festival_db);
+
+				//데이터가 db에 들어 있으면 업데이트
+				if (festival_db != null) {
+					//내용복사
+					BeanUtils.copyProperties(festival, festival_db,
+						"festivalId", "contentId", "targetType", "status", "createdAt");
+					//수정
+					festivalRepository.save(festival_db);
+					log.info("Festival 수정: {}", festival);
+				} else {
+					festivalRepository.save(festival);
+					log.info("새로운 Festival 저장: {}", festival);
+				}
+				savedCount++;
 			}
-			savedCount++;
-
+			return savedCount;
+		} catch (Exception e) {
+			log.error("JSON -> Entity 변환 중 오류 발생");
 		}
-		return savedCount;
-
+		return 0;
 	}
 
 	//시도코드를 분류별로 재코드 정의
-	private String getRegionCode(String areaCode) {
+	@Override
+	public String getRegionCode(String areaCode) {
 
 		// 1-서울
 		// 2-인천
@@ -259,7 +263,8 @@ public class FestivalBatchService {
 		return regionCode;
 	}
 
-	private LocalDate parseDate(String date) {
+	@Override
+	public LocalDate parseDate(String date) {
 		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 		return LocalDate.parse(date, formatter);
 	}
