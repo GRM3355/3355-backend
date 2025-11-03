@@ -1,11 +1,17 @@
-# 테스트 환경 설정
-spring:
-  datasource:
-    url: jdbc:h2:mem:testdb # 인메모리 H2 데이터베이스 사용
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-  jpa:
-    hibernate:
-      ddl-auto: create-drop # 테스트 종료 후 스키마 삭제
-    show-sql: false
+# api-server/src/test/resources/application-test.yml
+
+# Testcontainers의 @DynamicPropertySource가 설정을 주입
+# spring:
+#  datasource:
+#    url: jdbc:h2:mem:testdb
+#    driver-class-name: org.h2.Driver
+#    username: sa
+#    password:
+#  jpa:
+#    hibernate:
+#      ddl-auto: create-drop
+#    show-sql: false
+
+logging:
+  level:
+    com.grm3355.zonie: DEBUG

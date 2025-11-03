@@ -9,7 +9,7 @@ on:
   push:
     branches: [ "main", "dev" ]
   pull_request:
-    branches: [ "main", "dev"  ]
+    branches: [ "main", "dev" ]
 
 # 2. 작업 (Jobs)
 jobs:
