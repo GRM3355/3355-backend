@@ -1,4 +1,6 @@
 # 공통 설정
+server:
+  port: 8080
 spring:
   application:
     name: api-server
@@ -7,3 +9,12 @@ spring:
     group:
       "dev": "dev,local"
       "prod": "prod,local"
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000 # 10분 (밀리초)
+  batch:
+    job:
+      enabled: false # 애플리케이션 시작 시 자동 배치 실행 비활성화
+    jdbc:
+      initialize-schema: always

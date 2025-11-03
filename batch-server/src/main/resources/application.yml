@@ -1,0 +1,6 @@
+# 공통 설정
+spring:
+  application:
+    name: batch-server
+  main:
+    web-application-type: none
