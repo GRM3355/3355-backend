@@ -3,8 +3,8 @@ package com.grm3355.zonie.chatserver;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
-@SpringBootTest()
-class ChatServerApplicationTests {
+@SpringBootTest
+class ChatServerApplicationTests extends BaseIntegrationTest {
 
 	@Test
 	void contextLoads() {

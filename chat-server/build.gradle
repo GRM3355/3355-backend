@@ -23,4 +23,8 @@ dependencies {
         exclude group: 'org.slf4j', module: 'slf4j-simple'
     }
 
+    testImplementation 'org.testcontainers:junit-jupiter:1.20.0' // Testcontainers JUnit 5 지원
+    testImplementation 'org.testcontainers:postgresql:1.20.0'   // PostgreSQL 컨테이너
+    testImplementation 'org.testcontainers:mongodb:1.20.0'      // MongoDB 컨테이너
+
 }
