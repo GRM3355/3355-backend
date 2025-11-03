@@ -11,11 +11,6 @@ spring:
     type: redis
     redis:
       time-to-live: 600000 # 10분 (밀리초)
-  data:
-    batch:
-      job:
-        enabled: false   # 모든 프로파일의 기본값을 '자동실행 OFF'로
-
   jpa:
     hibernate:
       ddl-auto: update
