@@ -6,6 +6,12 @@ plugins {
 
 description = 'api-server'
 
+configurations {
+    implementation {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-web'
+    }
+}
+
 dependencies {
     // 모듈별 의존성
     implementation project(':common-lib')
