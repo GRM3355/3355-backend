@@ -74,6 +74,7 @@ public class Festival extends BaseTimeEntity {
 	@Column(name = "status", length = 20)
 	private String status;
 
+	@Builder.Default
 	@Column(name = "chat_room_count", nullable = false)
 	private int chatRoomCount = 0;
 }
