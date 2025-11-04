@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
@@ -29,14 +30,14 @@ import lombok.Setter;
 public class Festival extends BaseTimeEntity {
 
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "festival_id", nullable = false, unique = true, updatable = false)
 	private Long festivalId;
 
 	@Column(name = "addr1", nullable = false, length = 100)
 	private String addr1;
 
-	@Column(name = "content_id", nullable = false)
+	@Column(name = "content_id", nullable = false, unique = true, updatable = false)
 	private int contentId;
 
 	@Column(name = "event_start_date", nullable = false)
@@ -48,8 +49,8 @@ public class Festival extends BaseTimeEntity {
 	@Column(name = "first_image", length = 100)
 	private String firstImage;
 
-	//@Column(name = "position", columnDefinition = "geography(Point, 4326)")
-	@Column(name = "position", columnDefinition = "geometry(Point,4326)")
+	@Column(name = "position", columnDefinition = "geography(Point, 4326)")
+	//@Column(name = "position", columnDefinition = "geometry(Point,4326)")
 	private Point position;
 
 	@Column(name = "area_code")
@@ -73,4 +74,6 @@ public class Festival extends BaseTimeEntity {
 	@Column(name = "status", length = 20)
 	private String status;
 
+	@Column(name = "chat_room_count", nullable = false)
+	private int chatRoomCount = 0;
 }

@@ -7,7 +7,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 @JsonInclude(Include.NON_NULL)
 public record AuthResponse(
-	@Schema(description = "Access Token", example = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1...")
+	@Schema(description = "액세스 토큰", example = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1...")
 	String accessToken
 	//,
 	//@Schema(description = "Location Token", example = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ...")

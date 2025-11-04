@@ -27,6 +27,9 @@ public class FestivalBatchController {
 	private final JobLauncher jobLauncher;
 	private final Job festivalJsonJob;
 
+	/**
+	 * 현재 콘트롤러 배치처리는 일시 보류 그래서 실행안됨.
+	 */
 	@PostMapping("/festival")
 	public ResponseEntity<?> fetchFestivalData() {
 		try {

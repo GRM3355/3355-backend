@@ -1,38 +1,55 @@
 // api-server/build.gradle
 plugins {
     id 'java'
-    id 'org.springframework.boot'
+    id 'org.springframework.boot' version '3.5.7'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 description = 'api-server'
 
-configurations {
-    implementation {
-        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-web'
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
     }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+configurations {
+    //implementation {
+     //   exclude group: 'org.springframework.boot', module: 'spring-boot-starter-web'
+    //}
+}
+
+repositories {
+    mavenCentral()
 }
 
 dependencies {
     // 모듈별 의존성
     implementation project(':common-lib')
-    //implementation project(':batch-server')
-
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
+//    runtimeOnly 'org.postgresql:postgresql'
     testImplementation 'io.projectreactor:reactor-test'
     testImplementation 'com.h2database:h2'
 
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    //implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
-    //implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
-    implementation 'org.springframework.boot:spring-boot-starter-web'   //HttpServletRequest
 
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis' //redis
+
+    // Redis 캐싱 의존성
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
 
     // PostGIS 의존성, PostgreSQL 드라이버 추가
-    implementation 'org.hibernate.orm:hibernate-spatial:6.5.2.Final'
+    implementation 'org.hibernate:hibernate-spatial:6.2.7.Final'
     implementation 'org.locationtech.jts:jts-core:1.19.0' // JTS Core Library
     runtimeOnly 'org.postgresql:postgresql'
 
@@ -43,6 +60,6 @@ dependencies {
 
     // Spring Batch 의존성 추가
     implementation 'org.springframework.boot:spring-boot-starter-batch'
-    implementation 'org.springframework.batch:spring-batch-core:5.0.0'
+    implementation 'org.springframework.batch:spring-batch-core:5.0.3'
 
 }

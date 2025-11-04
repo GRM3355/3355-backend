@@ -245,7 +245,7 @@ public class FestivalBatchServiceImpl implements FestivalBatchService {
 			//SEOUL
 			regionCode = String.valueOf(Region.SEOUL);
 		} else if (areaCode.equals("2") || areaCode.equals("31")) {    //인천, 경기도
-			regionCode = String.valueOf(Region.GYEONGGI_INCHEON);
+			regionCode = String.valueOf(Region.GYEONGGI);
 		} else if (areaCode.equals("3") || areaCode.equals("8") || areaCode.equals("33") || areaCode.equals(
 			"34")) { //대전, 세종, 충북, 충남
 			regionCode = String.valueOf(Region.CHUNGCHEONG);
@@ -256,9 +256,9 @@ public class FestivalBatchServiceImpl implements FestivalBatchService {
 		} else if (areaCode.equals("36") || areaCode.equals("6")) {  // 경남, 부산
 			regionCode = String.valueOf(Region.GANGWON);
 		} else if (areaCode.equals("38") || areaCode.equals("37") || areaCode.equals("5")) {  //전남, 전북, 광주
-			regionCode = String.valueOf(Region.JEOLLA_GWANGJU);
+			regionCode = String.valueOf(Region.JEOLLA);
 		} else if (areaCode.equals("39")) {  //제주
-			regionCode = String.valueOf(Region.JEOLLA_GWANGJU);
+			regionCode = String.valueOf(Region.JEOLLA);
 		}
 		return regionCode;
 	}

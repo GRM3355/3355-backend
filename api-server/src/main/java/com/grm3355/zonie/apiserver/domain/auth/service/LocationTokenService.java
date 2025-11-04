@@ -1,16 +1,16 @@
 package com.grm3355.zonie.apiserver.domain.auth.service;
 
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Service;
-
 import java.time.Duration;
 import java.util.UUID;
+
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Service;
 
 @Service
 public class LocationTokenService {
 
+	private static final Duration TOKEN_TTL = Duration.ofMinutes(10); // TTL 10분
 	private final StringRedisTemplate redisTemplate;
-	private static final Duration TOKEN_TTL = Duration.ofMinutes(10); // TTL 5분
 
 	public LocationTokenService(StringRedisTemplate redisTemplate) {
 		this.redisTemplate = redisTemplate;
@@ -86,7 +86,8 @@ public class LocationTokenService {
 	private String extractValue(String json, String field) {
 		String search = "\"" + field + "\":\"";
 		int start = json.indexOf(search);
-		if (start == -1) return null;
+		if (start == -1)
+			return null;
 		start += search.length();
 		int end = json.indexOf("\"", start);
 		return json.substring(start, end);

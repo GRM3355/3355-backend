@@ -9,12 +9,23 @@ spring:
     group:
       "dev": "dev,local"
       "prod": "prod,local"
-  cache:
-    type: redis
-    redis:
-      time-to-live: 600000 # 10분 (밀리초)
-  batch:
-    job:
-      enabled: false # 애플리케이션 시작 시 자동 배치 실행 비활성화
-    jdbc:
-      initialize-schema: always
+#  cache:
+#    type: redis
+#    redis:
+#      time-to-live: 600000 # 10분 (밀리초)
+#  jpa:
+#    hibernate:
+#      ddl-auto: update # 개발 초기에는 create 또는 update 사용
+#    show-sql: true
+#    properties:
+#      hibernate:
+#        format_sql: true
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
+#  batch:
+#    jdbc:
+#      initialize-schema: always  # never, always 외부 DB에서는 Batch 스키마 수동 초기화 추천
+#    job:
+#      enabled: false
+#  sql:
+#    init:
+#      mode: always

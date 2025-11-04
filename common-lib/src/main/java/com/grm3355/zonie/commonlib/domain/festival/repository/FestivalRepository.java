@@ -14,4 +14,6 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 
 	Festival findByContentId(int contentId);
 
+	Optional<Festival> findByFestivalId(long festivalId);
+
 }

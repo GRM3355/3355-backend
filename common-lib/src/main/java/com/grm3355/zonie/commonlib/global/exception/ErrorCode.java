@@ -1,5 +1,7 @@
 package com.grm3355.zonie.commonlib.global.exception;
 
+import org.springframework.http.HttpStatus;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -11,7 +13,7 @@ import lombok.RequiredArgsConstructor;
 public enum ErrorCode {
 
 	// Common Errors (400)
-	BAD_REQUEST("COMMON_BAD_REQUEST", "잘못된 요청입니다."),
+	BAD_REQUEST("BAD_REQUEST", "잘못된 요청입니다."),
 	INVALID_INPUT("INVALID_INPUT", "잘못된 입력입니다."),
 	INVALID_INPUT_VALUE("INVALID_INPUT_VALUE", "입력값이 유효하지 않습니다."),
 	INVALID_REQUEST_PARAM("INVALID_REQUEST_PARAM", "요청 파라미터가 잘못되었습니다."),

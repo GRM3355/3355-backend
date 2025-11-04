@@ -3,9 +3,13 @@ package com.grm3355.zonie.commonlib.domain.chatroom.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.global.entity.BaseTimeEntity;
 
 import lombok.AccessLevel;
@@ -23,15 +27,17 @@ import lombok.NoArgsConstructor;
 public class ChatRoomUser extends BaseTimeEntity {
 
 	@Id
-	@GeneratedValue
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "chat_room_user_id", nullable = false, unique = true, updatable = false)
-	private String chatRoomUserId;
+	private Long chatRoomUserId;
 
-	@Column(name = "chat_room_id", nullable = false, length = 50)
-	private String chatRoomId;
+	@JoinColumn(name = "chat_room_id", nullable = false)
+	@ManyToOne
+	private ChatRoom chatRoomId;
 
-	@Column(name = "user_id", nullable = false, length = 50)
-	private String userId;
+	@JoinColumn(name = "user_id", nullable = false)
+	@ManyToOne
+	private User user;
 
 	@Column(name = "nick_name", nullable = false, length = 50)
 	private String nickName;

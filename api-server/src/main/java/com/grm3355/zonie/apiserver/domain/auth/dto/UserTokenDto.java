@@ -14,12 +14,12 @@ public class UserTokenDto {
 	@Schema(description = "아이피정보", example = "123.456.789.123")
 	String clientIp;
 
-	@Schema(description = "기기정보", example = "Device")
+	@Schema(description = "기기정보", example = "iphone ... ")
 	String device;
 
-	@Schema(description = "위도", example = "23.23443")
+	@Schema(description = "위도", example = "37.5894939323")
 	double lat;
 
-	@Schema(description = "경도", example = "128.23443")
+	@Schema(description = "경도", example = "127.0167863252")
 	double lon;
 }

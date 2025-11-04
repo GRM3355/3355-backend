@@ -28,12 +28,18 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class RateLimitingFilter extends OncePerRequestFilter {
 
+	//스프링시큐리티에서 과도한 요청회수 필터링
 	private static final List<String> AUTH_ENDPOINTS = Arrays.asList(
-		"/api/v1/auth/login",
-		"/api/v1/auth/token"
+		"/api/v1/auth/token-register",
+		"/api/v1/auth/location-token",
+		"/api/v1/location/update",
+		"/api/v1/location/festivalVerify",
+		"/api/v1/location/chatroomVerify"
 	);
-	private static final int MAX_REQUESTS = 5; // 예: 1분당 5회 요청
+
+	private static final int MAX_REQUESTS = 5; // 예: 5회 요청
 	private static final int WINDOW_SECONDS = 60; // 윈도우 시간 (초)
+	//private static final int WINDOW_SECONDS = 300; // 5분
 	private final RateLimitingService rateLimitingService;
 	private final ObjectMapper objectMapper;
 

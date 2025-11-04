@@ -14,7 +14,7 @@ import lombok.Getter;
 
 public class UserDetailsImpl implements UserDetails {
 	@Getter
-	private final Long id;
+	private final String id;
 	private final String username; // email
 
 	@JsonIgnore
@@ -26,7 +26,7 @@ public class UserDetailsImpl implements UserDetails {
 	private final boolean isAccountNonLocked;
 
 
-	public UserDetailsImpl(Long id, String username, String password,
+	public UserDetailsImpl(String id, String username, String password,
 		Collection<? extends GrantedAuthority> authorities,
 		boolean isEnabled, boolean isAccountNonLocked) {
 		this.id = id;
@@ -45,7 +45,7 @@ public class UserDetailsImpl implements UserDetails {
 		List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()));
 
 		return new UserDetailsImpl(
-			user.getUuid(),
+			user.getUserId(),
 			user.getUserId(),
 			user.getPassword(),
 			authorities,

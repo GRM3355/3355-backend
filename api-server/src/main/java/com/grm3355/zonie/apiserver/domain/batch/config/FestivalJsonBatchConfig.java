@@ -91,13 +91,17 @@ public class FestivalJsonBatchConfig {
 		try {
 			log.info("==============> multiJsonItemReader");
 			Resource[] resources = resourcePatternResolver.getResources("file:" + jsonFilePath + "/*.json");
-			log.info("Resolved JSON path: {}", jsonFilePath);
-			log.info("Number of JSON resources found: {}", resources.length);
+			log.info("==============> Resolved JSON path: {}", jsonFilePath);
+			log.info("==============> Number of JSON resources found: {}", resources.length);
 
 			List<ItemReader<ApiFestivalDto>> readers = new ArrayList<>();
+			log.info("==============> multiJsonItemReader 2222");
 			for (Resource resource : resources) {
+				log.info("==============> multiJsonItemReader 333");
 				readers.add(singleJsonFileReader(resource.getFile()));
 			}
+
+			log.info("==============> multiJsonItemReader 444");
 
 			// 여러 개의 ItemReader 순차적으로 실행
 			//return new CompositeItemReaderBuilder<ApiFestivalDto>()
@@ -108,8 +112,8 @@ public class FestivalJsonBatchConfig {
 			return new MultiJsonItemReader<>(readers);
 
 		} catch (IOException e) {
-			log.error("JSON 리소스 경로에서 파일을 로드하는 중 오류 발생: {}", jsonFilePath, e);
-			throw new RuntimeException("JSON 리소스 로드 실패", e);
+			log.error("==============> JSON 리소스 경로에서 파일을 로드하는 중 오류 발생: {}", jsonFilePath, e);
+			throw new RuntimeException("==============> JSON 리소스 로드 실패", e);
 		}
 	}
 
@@ -158,38 +162,41 @@ public class FestivalJsonBatchConfig {
 
 		return defaultLineMapper;
 	}
-
 */
 
 	/**
 	 * 개별 JSON 파일을 읽는 Reader
 	 */
 	private ItemReader<ApiFestivalDto> singleJsonFileReader(File file) {
+
+		log.info("==============> singleJsonFileReader 111");
 		try {
-			log.info("==============> singleJsonFileReader");
+			log.info("==============> singleJsonFileReader 2222");
 			JsonNode root = objectMapper.readTree(file);
 			JsonNode items = root.path("response").path("body").path("items").path("item");
+
+			log.info("==============> singleJsonFileReader 333");
 
 			List<ApiFestivalDto> list = new ArrayList<>();
 			for (JsonNode node : items) {
 				ApiFestivalDto dto = objectMapper.treeToValue(node, ApiFestivalDto.class);
 				list.add(dto);
 			}
-
 			return new IteratorItemReader<>(list);
-
 		} catch (Exception e) {
-			log.error("JSON 파일 읽기 실패: {}", file.getAbsolutePath(), e);
-			throw new RuntimeException("JSON 파일 읽기 실패", e);
+			log.error("==============> JSON 파일 읽기 실패: {}", file.getAbsolutePath(), e);
+			throw new RuntimeException("==============> JSON 파일 읽기 실패", e);
 		}
 	}
 
 	@Bean
 	@StepScope
 	public ItemProcessor<ApiFestivalDto, Festival> festivalJsonProcessor() {
+
+		log.info("==============> festivalJsonProcessor 111");
 		return item -> {
 			try {
-				log.info("==============> festivalJsonProcessor");
+				log.info("==============> festivalJsonProcessor 222");
 
 				//geometry 방식
 				GeometryFactory geometryFactory = new GeometryFactory();
@@ -201,11 +208,13 @@ public class FestivalJsonBatchConfig {
 					point.setSRID(4326);
 				}
 
+				log.info("==============> festivalJsonProcessor 333");
 				//geographic 방식
 				org.springframework.data.geo.Point point2 = new org.springframework.data.geo.Point(
 					Double.parseDouble(String.valueOf(item.getMapx())),
 					Double.parseDouble(String.valueOf(item.getMapy()))); // x = 경도, y = 위도
 
+				log.info("==============> festivalJsonProcessor 444");
 				String targetType = "OPENAPI";
 				Festival festival = Festival.builder()
 					.addr1(item.getAddr1())
@@ -243,7 +252,7 @@ public class FestivalJsonBatchConfig {
 				// 	.build();
 
 			} catch (Exception e) {
-				log.error("JSON -> Entity 변환 중 오류 발생 (contentid: {})", item.getContentid(), e);
+				log.error("==============> JSON -> Entity 변환 중 오류 발생 (contentid: {})", item.getContentid(), e);
 				return null;
 			}
 		};
@@ -260,8 +269,9 @@ public class FestivalJsonBatchConfig {
 	//update & save
 	@Bean
 	public ItemWriter<Festival> festivalJsonWriter() {
+		log.info("==============> festivalJsonWriter 111");
 		return items -> {
-			log.info("==============> festivalJsonWriter");
+			log.info("==============> festivalJsonWriter 222");
 			for (Festival item : items) {
 				Festival existing = festivalRepository.findByContentId(item.getContentId());
 				if (existing != null) {
@@ -273,6 +283,7 @@ public class FestivalJsonBatchConfig {
 					item.setStatus(existing.getStatus());
 					item.setRegion(existing.getRegion());
 
+					log.info("==============> festivalJsonWriter 333");
 					// 기존 데이터 업데이트
 					existing.setAddr1(item.getAddr1());
 					existing.setEventStartDate(item.getEventStartDate());
@@ -283,11 +294,11 @@ public class FestivalJsonBatchConfig {
 					existing.setTitle(item.getTitle());
 					festivalRepository.save(existing);
 
-					log.info("=====> festivalRepository update");
+					log.info("==============> festivalRepository update");
 				} else {
 					// 새 데이터 저장
 					festivalRepository.save(item);
-					log.info("=====> festivalRepository register");
+					log.info("==============> festivalRepository register");
 				}
 			}
 		};
@@ -315,12 +326,13 @@ public class FestivalJsonBatchConfig {
 		// 38-전라남도
 		// 39-제주특별자치도
 
+		log.info("==============> getRegionCode 111");
 		String regionCode = null;
 		if (areaCode.equals("1")) {    //서울
 			//SEOUL
 			regionCode = String.valueOf(Region.SEOUL);
 		} else if (areaCode.equals("2") || areaCode.equals("31")) {    //인천, 경기도
-			regionCode = String.valueOf(Region.GYEONGGI_INCHEON);
+			regionCode = String.valueOf(Region.GYEONGGI);
 		} else if (areaCode.equals("3") || areaCode.equals("8") || areaCode.equals("33") || areaCode.equals(
 			"34")) { //대전, 세종, 충북, 충남
 			regionCode = String.valueOf(Region.CHUNGCHEONG);
@@ -331,10 +343,11 @@ public class FestivalJsonBatchConfig {
 		} else if (areaCode.equals("36") || areaCode.equals("6")) {  // 경남, 부산
 			regionCode = String.valueOf(Region.GANGWON);
 		} else if (areaCode.equals("38") || areaCode.equals("37") || areaCode.equals("5")) {  //전남, 전북, 광주
-			regionCode = String.valueOf(Region.JEOLLA_GWANGJU);
+			regionCode = String.valueOf(Region.JEOLLA);
 		} else if (areaCode.equals("39")) {  //제주
-			regionCode = String.valueOf(Region.JEOLLA_GWANGJU);
+			regionCode = String.valueOf(Region.JEOLLA);
 		}
+		log.info("==============> getRegionCode 2222");
 		return regionCode;
 	}
 

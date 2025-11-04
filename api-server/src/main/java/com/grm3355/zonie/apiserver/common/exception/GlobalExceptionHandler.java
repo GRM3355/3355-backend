@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(BusinessException.class)
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleBusiness(
 		BusinessException ex, HttpServletRequest req) {
-
+		log.error("=================================> BusinessException.class 에러로드 찍기", ex); // 예외 로그 찍기
 		ErrorCode code = ex.errorCode();
 		return build(code, ex.getMessage(), ex.details(), req);
 	}
@@ -72,7 +72,7 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleMethodArgumentNotValid(
 		MethodArgumentNotValidException ex, HttpServletRequest req) {
-
+		log.error("=================================> MethodArgumentNotValidException.class 에러로드 찍기", ex); // 예외 로그 찍기
 		Map<String, String> fieldErrors = new LinkedHashMap<>();
 		ex.getBindingResult().getFieldErrors()
 			.forEach(fe -> fieldErrors.put(fe.getField(), fe.getDefaultMessage()));
@@ -83,18 +83,30 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(ConstraintViolationException.class)
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleConstraintViolation(
 		ConstraintViolationException ex, HttpServletRequest req) {
+		log.error("=================================> ConstraintViolationException.class 에러로드 찍기", ex); // 예외 로그 찍기
 
-		Map<String, String> paramErrors = new LinkedHashMap<>();
-		for (ConstraintViolation<?> v : ex.getConstraintViolations()) {
-			paramErrors.put(v.getPropertyPath().toString(), v.getMessage());
-		}
-		return build(ErrorCode.BAD_REQUEST, "요청 파라미터 검증 실패", paramErrors, req);
+		// Map<String, String> paramErrors = new LinkedHashMap<>();
+		// for (ConstraintViolation<?> v : ex.getConstraintViolations()) {
+		// 	paramErrors.put(v.getPropertyPath().toString(), v.getMessage());
+		// }
+		// return build(ErrorCode.BAD_REQUEST, "요청 파라미터 검증 실패", paramErrors, req);
+
+		// 검증 메시지 추출
+		String message = ex.getConstraintViolations().stream()
+			.map(violation -> violation.getMessage())
+			.findFirst()
+			.orElse("잘못된 요청입니다.");
+
+		return ResponseEntity.badRequest().body(ApiResponse.failure("BAD_REQUEST", message));
+
+
 	}
 
 	/* ======= HTTP 스펙 관련 ======= */
 	@ExceptionHandler(MissingServletRequestParameterException.class)
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleMissingParam(
 		MissingServletRequestParameterException ex, HttpServletRequest req) {
+		log.error("=================================> MissingServletRequestParameterException.class 에러로드 찍기", ex); // 예외 로그 찍기
 
 		Map<String, String> detail = Map.of(ex.getParameterName(), "required");
 		return build(ErrorCode.BAD_REQUEST, ex.getMessage(), detail, req);
@@ -104,6 +116,8 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleNotReadable(
 		HttpMessageNotReadableException ex, HttpServletRequest req) {
 
+		log.error("=================================> HttpMessageNotReadableException.class 에러로드 찍기", ex); // 예외 로그 찍기
+
 		return build(ErrorCode.BAD_REQUEST, "유효하지 않은 JSON 본문입니다.", null, req);
 	}
 
@@ -111,12 +125,16 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleMethodNotAllowed(
 		HttpRequestMethodNotSupportedException ex, HttpServletRequest req) {
 
+		log.error("=================================> HttpRequestMethodNotSupportedException.class 에러로드 찍기", ex); // 예외 로그 찍기
+
 		return build(ErrorCode.METHOD_NOT_ALLOWED, ex.getMessage(), null, req);
 	}
 
 	@ExceptionHandler(HttpMediaTypeNotSupportedException.class)
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleUnsupportedMediaType(
 		HttpMediaTypeNotSupportedException ex, HttpServletRequest req) {
+
+		log.error("=================================> HttpMediaTypeNotSupportedException.class 에러로드 찍기", ex); // 예외 로그 찍기
 
 		return build(ErrorCode.UNSUPPORTED_MEDIA_TYPE, ex.getMessage(), null, req);
 	}
@@ -126,6 +144,8 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleAccessDenied(
 		AccessDeniedException ex, HttpServletRequest req) {
 
+		log.error("=================================> handleAccessDenied.class 에러로드 찍기", ex); // 예외 로그 찍기
+
 		return build(ErrorCode.FORBIDDEN, ex.getMessage(), null, req);
 	}
 
@@ -133,12 +153,16 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleAuthentication(
 		org.springframework.security.core.AuthenticationException ex, HttpServletRequest req) {
 
+		log.error("=================================> handleAuthentication.class 에러로드 찍기", ex); // 예외 로그 찍기
+
 		return build(ErrorCode.UNAUTHORIZED, "인증에 실패했습니다.", null, req);
 	}
 
 	@ExceptionHandler(io.jsonwebtoken.ExpiredJwtException.class)
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleExpiredJwt(
 		io.jsonwebtoken.ExpiredJwtException ex, HttpServletRequest req) {
+
+		log.error("=================================> ExpiredJwtException.class 에러로드 찍기", ex); // 예외 로그 찍기
 
 		return build(ErrorCode.UNAUTHORIZED, "인증 토큰이 만료되었습니다.", null, req);
 	}
@@ -148,12 +172,16 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleNotFound(
 		RuntimeException ex, HttpServletRequest req) {
 
+		log.error("=================================> NoSuchElementException.class 에러로드 찍기", ex); // 예외 로그 찍기
+
 		return build(ErrorCode.NOT_FOUND, ex.getMessage(), null, req);
 	}
 
 	@ExceptionHandler(DataIntegrityViolationException.class)
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleDataIntegrity(
 		DataIntegrityViolationException ex, HttpServletRequest req) {
+
+		log.error("=================================> DataIntegrityViolationException.class 에러로드 찍기", ex); // 예외 로그 찍기
 
 		// "idx_member_email" 문자열을 포함하는 경우, 이메일 중복으로 간주
 		if (ex.getMessage() != null && ex.getMessage().contains("idx_member_email")) {
@@ -167,6 +195,8 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleUnknown(
 		Exception ex, HttpServletRequest req) {
+
+		log.error("=================================> Exception.class 에러로드 찍기", ex); // 예외 로그 찍기
 
 		// 전체 스택을 ERROR로 기록하여 커밋 실패 등 근본 원인 파악
 		log.error("Unhandled exception occurred", ex);
@@ -195,7 +225,7 @@ public class GlobalExceptionHandler {
 
 		// 상위 ApiResponse의 message에는 "표준 에러 코드"를 올려 클라이언트 분기를 단순화
 		ApiResponse<ApiErrorPayload> body =
-			ApiResponse.of(false, code.getCode(), code.getMessage(), payload);
+			ApiResponse.of(false, code.getCode(), code.getMessage(), null);
 
 		return body.toResponseEntity(HttpStatus.valueOf(code.getCode()));
 	}
@@ -206,6 +236,8 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(CustomValidationException.class)
 	public ResponseEntity<ApiResponse<Object>> CustomValidationException(CustomValidationException ex,
 		HttpServletRequest req) {
+		log.error("=================================> CustomValidationException.class 에러로드 찍기", ex); // 예외 로그 찍기
+
 
 		ApiResponse<Object> error = ApiResponse.failure(
 			ErrorCode.BAD_REQUEST.getCode(),
@@ -222,6 +254,7 @@ public class GlobalExceptionHandler {
 		NotFoundException.class})
 	public ResponseEntity<ApiResponse<Object>> handlerNotFoundException(NotFoundException ex,
 		HttpServletRequest req) {
+		log.error("=================================> handlerNotFoundException.class 에러로드 찍기", ex); // 예외 로그 찍기
 
 		ApiResponse<Object> error = ApiResponse.failure(
 			ErrorCode.NOT_FOUND.getCode(),
