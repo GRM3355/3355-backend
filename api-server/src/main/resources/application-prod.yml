@@ -37,7 +37,7 @@ jwt:
   location-token-expiration-time: 600000 # 10분
 #cors
 cors:
-  allowed-origins: "http://localhost:8082,http://zony.kro.kr, http://www.zony.kro.kr,http2://zony.kro.kr, http2://www.zony.kro.kr"
+  allowed-origins: "http://localhost:8082,http://zony.kro.kr, http://www.zony.kro.kr,https://zony.kro.kr, https://www.zony.kro.kr"
 #공공데이터 api
 openapi:
   serviceKey: ${OPENAPI_SERVICE_KEY}
