@@ -1,4 +1,4 @@
-package com.grm3355.zonie.chatserver.controller;
+package com.grm3355.zonie.chatserver.websocket;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
