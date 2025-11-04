@@ -70,9 +70,6 @@ public class AuthController {
 	})
 	@PostMapping("/token-register")
 	public ResponseEntity<?> register(@Valid @RequestBody LocationDto locationDto, HttpServletRequest request) {
-		System.out.println("====> token-register 111");
-		//return ResponseEntity.ok().body(locationDto);
-
 		String path = request != null ? request.getRequestURI() : null;
 		URI location = URI.create(path);
 

@@ -1,6 +1,9 @@
 # 개발 환경 설정
 # docker jdbc:postgresql://zonie_postgres_db:5432
+# docker redis_cache
 # 인텔리제이 jdbc:postgresql://localhost:5432/
+# 인텔리제이 localhost
+
 spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/zonie_main?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
@@ -40,8 +43,7 @@ spring:
       schema-locations: classpath:batch/schema-postgresql.sql
       #continue-on-error: true                         # 이미 데이터가 있으면 무시 (중복 방지)
       #encoding: UTF-8
-#
-#
+
 #logging:
 #  level:
 #    root: TRACE

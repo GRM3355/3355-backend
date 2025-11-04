@@ -142,10 +142,8 @@ public class LocationController {
 	})
 	@GetMapping("/chatroomVerify")
 	public ResponseEntity<?> getChatRoomVerify(@AuthenticationPrincipal UserDetailsImpl user, String chatroomId) {
-		System.out.println("1111");
 		ChatRoomZoneVarifyResponse response = locationService
 			.getChatroomVerify(user.getUsername(), chatroomId);
-		System.out.println("222");
 		return ResponseEntity.ok(ApiResponse.success(response));
 	}
 }

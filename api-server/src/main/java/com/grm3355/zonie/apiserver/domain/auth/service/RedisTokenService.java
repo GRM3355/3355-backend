@@ -37,30 +37,18 @@ public class RedisTokenService {
 	public void generateLocationToken(UserTokenDto info) {
 		String redisKey = buildKey(info.getUserId());
 
-		System.out.println("==========> generateLocationToken 1");
 		try {
-			System.out.println("==========> generateLocationToken 2");
 			String infoJson = objectMapper.writeValueAsString(info);
 			// Redis에 10분 TTL로 저장
 			redisTemplate.opsForValue().set(redisKey, infoJson, TOKEN_TTL);
 
-			System.out.println("==========> generateLocationToken getUserId=" + info.getUserId());
 			UserTokenDto userTokenDto = getLocationInfo(info.getUserId());
-			System.out.println("==========> generateLocationToken saved getClientIp.=" + userTokenDto.getClientIp());
-			System.out.println("==========> generateLocationToken saved getClientIp.=" + userTokenDto.getClientIp());
-			System.out.println("==========> generateLocationToken saved getDevice.=" + userTokenDto.getDevice());
-			System.out.println("==========> generateLocationToken saved getLon.=" + userTokenDto.getLon());
-			System.out.println("==========> generateLocationToken saved getLat.=" + userTokenDto.getLat());
-
-			System.out.println("==========> generateLocationToken 3");
 
 		} catch (JsonProcessingException e) {
-			System.out.println("==========> generateLocationToken 4");
 			throw new RuntimeException("Redis 저장 중 오류 발생", e);
 		}
-		System.out.println("==========> generateLocationToken 5");
 
-		// JWT에는 userId만 포함
+		// JWT에는 userId만 포함 //나중에 사용예정
 		//return jwtProvider.generateLocationToken(info.getUserId(), null);
 	}
 

@@ -50,13 +50,6 @@ public class AuthService {
 		double lat = locationDto.getLat();
 		double lon = locationDto.getLon();
 
-		System.out.println("====> token-register clientIp=" + clientIp);
-		System.out.println("====> token-register device=" + device);
-		System.out.println("====> token-register lat=" + lat);
-		System.out.println("====> token-register lon=" + lon);
-		System.out.println("====> token-register 555");
-		System.out.println("====> token-register userId=" + userId);
-
 		//아이디저장
 		String password = passwordEncoder.encode(userId);
 		User user = User.builder()
@@ -85,15 +78,6 @@ public class AuthService {
 		//토큰 생성
 		return generateTokens(userDetails, userTokenDto);
 	}
-
-/*
-	@Transactional
-	public LocationTokenResponse login(LocationDto locationDto, String savedToken) {
-		boolean value = redisTokenService.updateLocationInfo(locationDto, savedToken);
-		String message = value==true? "갱신되었습니다" : "갱신에 실패하였습니다.";
-		return new LocationTokenResponse(message);
-	}
-*/
 
 	public AuthResponse generateTokens(UserDetailsImpl userDetails, UserTokenDto userTokenDto) {
 		// 현재 시스템은 사용자당 단일 권한을 가정하므로, 첫 번째 권한을 가져와 사용합니다.

@@ -30,7 +30,6 @@ public class User extends BaseTimeEntity {
 
 	//@GeneratedValue(strategy = GenerationType.IDENTITY)
 	//private Long uuid;
-
 	@Id
 	@NotBlank
 	@Size(max = 100)
