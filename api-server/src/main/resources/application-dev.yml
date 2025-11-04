@@ -27,12 +27,6 @@ spring:
     type: redis
     redis:
       time-to-live: 600000 # 10분 (밀리초)
-  sql:
-    init:
-      mode: always
-      schema-locations: classpath:batch/schema-postgresql.sql
-      #continue-on-error: true                         # 이미 데이터가 있으면 무시 (중복 방지)
-      #encoding: UTF-8
 
 #logging:
 #  level:
