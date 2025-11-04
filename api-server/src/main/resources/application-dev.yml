@@ -3,16 +3,15 @@
 # docker redis_cache
 # 인텔리제이 jdbc:postgresql://localhost:5432/
 # 인텔리제이 localhost
-
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/zonie_main?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
+    url: jdbc:postgresql://zonie_postgres_db:5432/zonie_main?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
     username: zonie
     password: zonie_pass
     driver-class-name: org.postgresql.Driver
   data:
     redis:
-      host: localhost
+      host: redis_cache
       port: 6379
   jpa:
     hibernate:
@@ -24,19 +23,10 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
     #defer-datasource-initialization: true
-
   cache:
     type: redis
     redis:
       time-to-live: 600000 # 10분 (밀리초)
-
-  batch:
-    jdbc:
-      initialize-schema: always  # never, always 외부 DB에서는 Batch 스키마 수동 초기화 추천
-      #schema:
-      #  locations: classpath:batch/schema-postgresql.sql
-    job:
-      enabled: false
   sql:
     init:
       mode: always
