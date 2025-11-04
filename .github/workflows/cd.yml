@@ -5,7 +5,7 @@ on:
   push:
     branches:
       - dev
-      # - main # 나중에 해제
+      - main
 
 env:
   ECR_REGISTRY: 548182874697.dkr.ecr.ap-northeast-2.amazonaws.com
