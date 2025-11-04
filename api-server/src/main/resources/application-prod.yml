@@ -20,9 +20,6 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   # --- JPA (운영용) ---
-  batch:
-    jdbc:
-      initialize-schema: always # 배치 테이블 자동 생성
   jpa:
     hibernate:
       ddl-auto: validate # 운영 환경에서는 validate 또는 none 사용
@@ -43,4 +40,4 @@ cors:
   allowed-origins: "http://localhost:8082,http://example.com"
 #공공데이터 api
 openapi:
-  serviceKey: ${JWT_SECRET_KEY}
+  serviceKey: ${OPENAPI_SERVICE_KEY}
