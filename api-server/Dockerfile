@@ -1,32 +1,30 @@
-# --- STAGE 1: Build (빌드 환경) ---
-# Java 21과 호환되는 Gradle 8.7+ 버전 사용
+# api-server/Dockerfile
+# 1. 빌드(Build) 단계
 FROM gradle:8.7-jdk21-alpine AS builder
-
-# 작업 디렉토리 설정
 WORKDIR /app
 
-# 모노레포 전체 코드를 복사해야 common-lib와 함께 빌드 가능 (*)
+# (chat-server와 동일: Gradle 캐시 최적화)
+COPY build.gradle settings.gradle ./
+COPY gradlew ./gradlew
+COPY gradle ./gradle
+COPY common-lib/build.gradle ./common-lib/
+COPY api-server/build.gradle ./api-server/
+COPY chat-server/build.gradle ./chat-server/
+COPY batch-server/build.gradle ./batch-server/
+RUN ./gradlew dependencies
 COPY . .
 
-# gradlew 실행 권한 부여
-RUN chmod +x ./gradlew
-
-# 'api-server' 모듈의 bootJar만 빌드 (시간 절약)
+# api-server 모듈을 빌드
 RUN ./gradlew :api-server:bootJar --no-daemon
 
-
-# --- STAGE 2: Run (실행 환경) ---
-# Java 21 JRE(Java 실행 환경)만 포함된 가벼운 이미지 사용
+# 2. 실행(Runtime) 단계
 FROM eclipse-temurin:21-jre-jammy
-
 WORKDIR /app
 
-# builder 스테이지에서 빌드한 jar 파일만 복사
-# (경로 주의: api-server-0.0.1-SNAPSHOT.jar 같은 파일을 찾음)
-COPY --from=builder /app/api-server/build/libs/api-server-*.jar app.jar
+# api-server의 .jar 파일을 복사
+COPY --from=builder /app/api-server/build/libs/*.jar app.jar
 
-# 8080 포트 개방 (Spring Boot 기본 포트)
+# api-server는 8080 포트 사용
 EXPOSE 8080
 
-# 컨테이너 시작 시 실행할 명령어
 ENTRYPOINT ["java", "-jar", "app.jar"]

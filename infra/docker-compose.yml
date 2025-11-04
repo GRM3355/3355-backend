@@ -1,3 +1,5 @@
+# docker-compose.yml (root)
+# local dev/test용
 version: '3.8'
 
 # Docker 네트워크 정의

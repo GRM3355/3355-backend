@@ -1,14 +1,16 @@
+# chat-server/.../application-prod.yml
 # 운영 환경 설정
 # 환경 변수 참조
 spring:
   # --- MongoDB Atlas (운영용) ---
   data:
     mongodb:
-      uri: ${PROD_MONGO_URI} # 환경 변수 또는 외부 설정 파일에서 주입
+      uri: ${MONGO_PROD_URI} # 환경 변수 또는 외부 설정 파일에서 주입
     # --- ElastiCache (Redis) (운영용) ---
     redis:
-      host: ${PROD_REDIS_HOST}
-      port: 6379 # port: ${PROD_REDIS_PORT}
+      host: ${REDIS_PROD_HOST}
+      port: 6379 # port: ${PROD_REDIS_PORT} # || REDIS_PROD_PORT
+      password: ${REDIS_PROD_PASSWORD}
 
   # --- RDS (PostgreSQL) (운영용) ---
   # chat-server도 방 입장 시 user_chat_rooms 테이블 접근을 위해 DB 연결이 필요.
@@ -16,6 +18,7 @@ spring:
     url: ${DB_PROD_URL}
     username: ${DB_PROD_USERNAME}
     password: ${DB_PROD_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
   # --- JPA (운영용) ---
   jpa:

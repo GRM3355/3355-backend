@@ -1,4 +1,4 @@
-# /src/test/resources/application-test.yml
+# chat-server/src/test/resources/application-test.yml
 
 #spring:
 #  # --- 1. RDS(JPA) 설정: H2 (in-memory) DB 사용 ---

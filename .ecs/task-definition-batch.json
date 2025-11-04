@@ -1,0 +1,35 @@
+{
+  "family": "zonie-batch-server-task-def",
+  "executionRoleArn": "arn:aws:iam::548182874697:role/ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "containerDefinitions": [
+    {
+      "name": "zonie-batch-server",
+      "image": "<IMAGE_URI>",
+      "portMappings": [],
+      "essential": true,
+      "environment": [
+        { "name": "SPRING_PROFILES_ACTIVE", "value": "prod" }
+      ],
+      "secrets": [
+        { "name": "DB_PROD_URL", "valueFrom": "DB_PROD_URL" },
+        { "name": "DB_PROD_USERNAME", "valueFrom": "DB_PROD_USERNAME" },
+        { "name": "DB_PROD_PASSWORD", "valueFrom": "DB_PROD_PASSWORD" },
+        { "name": "REDIS_PROD_HOST", "valueFrom": "REDIS_PROD_HOST" },
+        { "name": "REDIS_PROD_PASSWORD", "valueFrom": "REDIS_PROD_PASSWORD" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/zonie-batch-server",
+          "awslogs-region": "ap-northeast-2",
+          "awslogs-create-group": "true",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

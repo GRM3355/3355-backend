@@ -1,5 +1,42 @@
-# COPY THIS FILE AND PASTE IT TO YOUR application-local File.
+# -----------------------------------------------------------------------------
+# application-local.yml.example
+# ? ??? 'application-local.yml'? ??? ?, <PLACEHOLDER>? ?? ??? ?????.
+# (.gitignore? ?? Git? ???? ??)
+# -----------------------------------------------------------------------------
+
 spring:
-  datasource:
-    username: my-local-username
-    password: my-local-password
+# =========================================================================
+# 1. MongoDB Atlas ?? (API ?? & Chat ?? ?? ??)
+# =========================================================================
+data:
+mongodb:
+uri: '{MongoDB Atlas? ?? ???}'
+
+# =========================================================================
+# 2. ElastiCache (Redis) ?? (API ?? & Chat ?? ?? ??)
+# =========================================================================
+redis:
+# ElastiCache Redis ????? ?? ?? (?? Redis ??)
+host: <ELASTICACHE_HOST_ENDPOINT> 
+port: 6379
+username: default
+password: <ELASTICACHE_PASSWORD>
+
+# =========================================================================
+# 3. RDS (PostgreSQL) ?? (API ?? & Chat ?? ?? ??)
+# =========================================================================
+datasource:
+# RDS ????? ??
+url: jdbc:postgresql://<RDS_HOST_ENDPOINT>:5432/zonie # ?: zonie.cb2y68gm0mwl.ap-northeast-2.rds.amazonaws.com
+# username, password? ?? ?? ? ??, driver-class-name? ?? ? ?? ?? ? ??
+# username: <RDS_USERNAME>
+# password: <RDS_PASSWORD>
+# driver-class-name: org.postgresql.Driver
+
+# =========================================================================
+# 4. ?? ?? (??)
+# =========================================================================
+logging:
+level:
+root: INFO  
+com.grm3355.zonie: DEBUG 
