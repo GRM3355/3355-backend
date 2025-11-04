@@ -1,5 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.auth.dto;
 
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
@@ -55,4 +56,10 @@ public class LocationDto {
 			", lon=" + lon +
 			'}';
 	}
+
+	@AssertTrue(message = "위도, 경도 값이 0일 수 없습니다.")
+	public boolean isValidCoordinates() {
+		return !(lat == 0.0 && lon == 0.0);
+	}
+
 }

@@ -43,7 +43,6 @@ public class AuthService {
 	@Transactional
 	public AuthResponse register(LocationDto locationDto, HttpServletRequest request) {
 
-		System.out.println("====> token-register 444");
 		//uuid 생성
 		userId = PRE_FIX + UUID.randomUUID();
 		String clientIp = getClientIp(request);
@@ -73,8 +72,6 @@ public class AuthService {
 			.userId(userId)
 			.clientIp(clientIp)
 			.lon(lon).build();
-
-		System.out.println("====> token-register 999");
 
 		//아이디 저장후 인증정보 authentication  정보 가져오기
 		Authentication authentication = authenticationManager.authenticate(
