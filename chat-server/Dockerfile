@@ -1,28 +1,37 @@
-# --- STAGE 1: Build (빌드 환경) ---
+# chat-server/Dockerfile
+# 1. 빌드(Build) 단계
 FROM gradle:8.7-jdk21-alpine AS builder
-
 WORKDIR /app
 
-# (중요) 모노레포 전체 코드를 복사
+# 빌드 속도 향상을 위해 Gradle 설정 파일만 먼저 복사
+COPY build.gradle settings.gradle ./
+COPY gradlew ./gradlew
+COPY gradle ./gradle
+
+# 각 모듈의 build.gradle 복사 (의존성 캐시용)
+COPY common-lib/build.gradle ./common-lib/
+COPY api-server/build.gradle ./api-server/
+COPY chat-server/build.gradle ./chat-server/
+COPY batch-server/build.gradle ./batch-server/
+
+# 의존성을 먼저 다운로드 (소스 코드가 바뀌어도 이 단계는 캐시 재사용)
+RUN ./gradlew dependencies
+
+# 전체 소스 코드 복사
 COPY . .
 
-# gradlew 실행 권한 부여
-RUN chmod +x ./gradlew
-
-# (변경) 'chat-server' 모듈의 bootJar를 빌드
+# chat-server 모듈의 bootJar를 빌드
 RUN ./gradlew :chat-server:bootJar --no-daemon
 
-
-# --- STAGE 2: Run (실행 환경) ---
+# 2. 실행(Runtime) 단계
 FROM eclipse-temurin:21-jre-jammy
-
 WORKDIR /app
 
-# (변경) chat-server의 build/libs에서 jar 파일을 복사
-COPY --from=builder /app/chat-server/build/libs/chat-server-*.jar app.jar
+# 빌드 단계(builder)에서 만든 .jar 파일만 복사
+COPY --from=builder /app/chat-server/build/libs/*.jar app.jar
 
-# (변경) chat-server는 다른 포트(예: 8081) 사용 권장
+# chat-server는 8081 포트 사용
 EXPOSE 8081
 
-# 컨테이너 시작 시 실행할 명령어
+# 컨테이너 시작 시 실행
 ENTRYPOINT ["java", "-jar", "app.jar"]
