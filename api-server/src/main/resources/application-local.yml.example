@@ -1,42 +1,39 @@
-# -----------------------------------------------------------------------------
-# application-local.yml.example
-# ? ??? 'application-local.yml'? ??? ?, <PLACEHOLDER>? ?? ??? ?????.
-# (.gitignore? ?? Git? ???? ??)
-# -----------------------------------------------------------------------------
-
+# COPY THIS FILE AND PASTE IT TO YOUR application-local File.
+#docker jdbc:postgresql://zonie_postgres_db:5432/zonie_main?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
+#localhost jdbc:postgresql://localhost:5432/zonie_main?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
 spring:
-# =========================================================================
-# 1. MongoDB Atlas ?? (API ?? & Chat ?? ?? ??)
-# =========================================================================
-data:
-mongodb:
-uri: '{MongoDB Atlas? ?? ???}'
-
-# =========================================================================
-# 2. ElastiCache (Redis) ?? (API ?? & Chat ?? ?? ??)
-# =========================================================================
-redis:
-# ElastiCache Redis ????? ?? ?? (?? Redis ??)
-host: <ELASTICACHE_HOST_ENDPOINT> 
-port: 6379
-username: default
-password: <ELASTICACHE_PASSWORD>
-
-# =========================================================================
-# 3. RDS (PostgreSQL) ?? (API ?? & Chat ?? ?? ??)
-# =========================================================================
-datasource:
-# RDS ????? ??
-url: jdbc:postgresql://<RDS_HOST_ENDPOINT>:5432/zonie # ?: zonie.cb2y68gm0mwl.ap-northeast-2.rds.amazonaws.com
-# username, password? ?? ?? ? ??, driver-class-name? ?? ? ?? ?? ? ??
-# username: <RDS_USERNAME>
-# password: <RDS_PASSWORD>
-# driver-class-name: org.postgresql.Driver
-
-# =========================================================================
-# 4. ?? ?? (??)
-# =========================================================================
+  datasource:
+    url: jdbc:postgresql://zonie_postgres_db:5432/zonie_main?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
+    username: [postgres 아이디]
+    password: [postgres 비밀번호]
+    driver-class-name: org.postgresql.Driver
+  data:
+    mongodb:
+      uri: mongodb://[mongo 아이디]:[mongo 비밀번호]@mongo_db:27017/zonie_chat
+    redis:
+      host: redis_cache
+      port: 6379
+#jwt
+jwt:
+  secret: [JWT 시크릿키]
+  access-token-expiration-time: 86400000 # 24시간
+  location-token-expiration-time: 600000 # 10분
+#cors
+cors:
+  allowed-origins: "http://localhost:8082,http://example.com"
+#공공데이터 api
+openapi:
+  serviceKey: [공공데이터 서비스키]
+#batch 파일 경로
+batch:
+  json:
+    file:
+      path: data/json/festival
+#logging 레벨
 logging:
-level:
-root: INFO  
-com.grm3355.zonie: DEBUG 
+  level:
+    #org.springframework.orm.jpa: DEBUG
+    #org.springframework.beans.factory: DEBUG
+    org.hibernate.SQL: DEBUG       # 실제 SQL 출력
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 바인딩 값 출력
+    org.springframework.orm.jpa: DEBUG  # JPA 관련 디버그

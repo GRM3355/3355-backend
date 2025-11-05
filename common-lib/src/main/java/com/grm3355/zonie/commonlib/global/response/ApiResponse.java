@@ -2,6 +2,9 @@ package com.grm3355.zonie.commonlib.global.response;
 
 import java.time.LocalDateTime;
 
+//import org.springframework.http.HttpStatus;
+//import org.springframework.http.ResponseEntity;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,10 +37,23 @@ public class ApiResponse<T> {
 		return new ApiResponse<>(true, null, null, LocalDateTime.now());
 	}
 
+	/** 데이터 없는 성공 응답(예: DELETE 204 등) */
+	public static <T> ApiResponse<T> noContent() {
+		return new ApiResponse<>(true, null, null, null);
+	}
+
 	/**
 	 * 실패 응답 생성
 	 */
 	public static <T> ApiResponse<T> failure(String errorCode, String message) {
 		return new ApiResponse<>(false, null, new ErrorResponse(errorCode, message), LocalDateTime.now());
 	}
+
+	public static <T> ApiResponse<T> of(boolean success, String errorCode, String message, T data) {
+		return new ApiResponse<>(success, data, new ErrorResponse(errorCode, message), LocalDateTime.now());
+	}
+
+	//public ResponseEntity<ApiResponse<T>> toResponseEntity(HttpStatus status) {
+	//	return ResponseEntity.status(status).body(this);
+	//}
 }

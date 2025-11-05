@@ -32,3 +32,15 @@ logging:
   level:
     root: INFO
     com.grm3355.zonie: INFO
+
+#jwt
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  access-token-expiration-time: 86400000 # 24시간
+  location-token-expiration-time: 600000 # 10분
+#cors
+cors:
+  allowed-origins: "http://localhost:8082,http://zony.kro.kr, http://www.zony.kro.kr,https://zony.kro.kr, https://www.zony.kro.kr"
+#공공데이터 api
+openapi:
+  serviceKey: ${OPENAPI_SERVICE_KEY}

@@ -1,0 +1,19 @@
+package com.grm3355.zonie.apiserver.domain.auth.dto;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
+import lombok.Getter;
+
+@Builder
+@Getter
+public class UserTokenDto {
+
+	@Schema(description = "사용자 아이디", example = "user:asdf-asdf-asdf-aasdf")
+	String userId;
+
+	@Schema(description = "위도", example = "37.5894939323")
+	double lat;
+
+	@Schema(description = "경도", example = "127.0167863252")
+	double lon;
+}
