@@ -24,10 +24,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 		registry.setApplicationDestinationPrefixes("/app");
 
 		// server -> client 메세지 수신 (Sub) 엔드포인트: /sub
-		// 클라이언트가 "/sub/echo"를 구독하면, 서버는 이 주소로 메시지를 브로드캐스팅함
-		// - Spring Simple (in-memory) Message Broker 사용: RedisSubscriber가 Redis에서 받은 메세지를 이 브로커(/sub)로 쏴줌: 간단하지만 유실 가능성이 있고 모니터링이 어려움
-		// - Redis Pub/Sub: 지속성이 없지만 실시간성 데이터 처리에 적합.
-		// - Redis는 STOMP 지원하지 않지만, Pub/Sub 기능을 통해 메세지 브로커를 사용할 수 있음
+		// RedisSubscriber가 Redis(Pub/Sub)에서 받은 메시지를
+		// 이곳에 등록된 SimpleBroker(/sub)로 전송하여 클라이언트에게 브로드캐스팅함.
 		registry.enableSimpleBroker("/sub");
 
 	}
