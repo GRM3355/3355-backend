@@ -9,6 +9,9 @@ import com.grm3355.zonie.apiserver.domain.location.dto.FestivalZoneVarifyRespons
 import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
+
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,16 +23,14 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-
-import java.util.List;
 
 @DisplayName("위치 갱신 통합테스트")
 @SpringBootTest
@@ -47,6 +48,28 @@ class LocationControllerTest {
 
 	@MockitoBean
 	private RedisTokenService redisTokenService;
+
+
+	// Redis 컨테이너
+	static GenericContainer<?> redisContainer;
+
+	@BeforeAll
+	static void setUp() {
+		redisContainer = new GenericContainer<>(DockerImageName.parse("redis:7.0.12"))
+			.withExposedPorts(6379);
+		redisContainer.start();
+
+		System.setProperty("spring.redis.host", redisContainer.getHost());
+		System.setProperty("spring.redis.port", redisContainer.getFirstMappedPort().toString());
+	}
+
+	@AfterAll
+	static void tearDown() {
+		if (redisContainer != null) {
+			redisContainer.stop();
+		}
+	}
+
 
 	@Test
 	@DisplayName("위치 정보 업데이트")
