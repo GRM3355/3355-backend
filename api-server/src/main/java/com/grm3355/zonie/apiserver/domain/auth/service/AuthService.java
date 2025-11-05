@@ -16,7 +16,6 @@ import com.grm3355.zonie.apiserver.common.jwt.JwtProvider;
 import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
-import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;

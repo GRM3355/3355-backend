@@ -24,6 +24,5 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
 
     implementation 'org.springframework.boot:spring-boot-starter-validation' //jpa 애노테이션
-    //implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9' //dto Schema 필요
 
 }
