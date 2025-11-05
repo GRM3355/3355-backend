@@ -67,6 +67,14 @@ public class RedisTokenService {
 		}
 	}
 
+	//토큰 값 체크
+	public boolean validateLocationToken(String userId) {
+		String token = redisTemplate.opsForValue().get(buildKey(userId));
+		return token != null && !token.isBlank();
+	}
+
+
+
 	/**
 	 * 위치 + 디바이스 정보 업데이트 (TTL 갱신 포함)
 	 */
