@@ -1,11 +1,13 @@
-package com.grm3355.zonie.chatserver.websocket;
+package com.grm3355.zonie.chatserver.controller;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Controller
 @RequiredArgsConstructor
 public class EchoHandler {
@@ -20,7 +22,7 @@ public class EchoHandler {
 	 */
 	@MessageMapping("/echo")
 	public void echo(String message) {
-		System.out.println("LOG: /app/echo received: " + message);
+		log.info("LOG: /app/echo received: {}", message);
 		redisTemplate.convertAndSend("echo-channel", "[Echo] " + message); // StompBrokerRelay 대신 RedisTemplate으로 직접 Pub
 	}
 }
