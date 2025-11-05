@@ -1,5 +1,8 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 import org.locationtech.jts.geom.Point;
 
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
@@ -7,6 +10,7 @@ import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 @Builder
 @Getter
@@ -34,19 +38,25 @@ public class ChatRoomResponse {
 	@Schema(description = "접근거리", example = "1.0")
 	private double radius;
 
-	@Schema(description = "접근위치", example = "(123.233, 26.223)")
-	private Point position;
+	@Schema(description = "위도", example = "(123.233, 26.223)")
+	private double lat;
 
-	public static ChatRoomResponse fromEntity(ChatRoom chatRoom) {
-		return new ChatRoomResponse(
-			chatRoom.getChatRoomId(),
-			chatRoom.getFestival().getFestivalId(),
-			chatRoom.getUser().getUserId(),
-			chatRoom.getTitle(),
-			chatRoom.getMaxParticipants(),
-			chatRoom.getRadius(),
-			chatRoom.getPosition()
-		);
-	}
+	@Schema(description = "경도", example = "123.233")
+	private double lon;
+
+	 public static ChatRoomResponse fromEntity(ChatRoom chatRoom) {
+	 	return new ChatRoomResponse(
+	 		chatRoom.getChatRoomId(),
+	 		chatRoom.getFestival().getFestivalId(),
+	 		chatRoom.getUser().getUserId(),
+	 		chatRoom.getTitle(),
+
+	 		chatRoom.getMaxParticipants(),
+	 		chatRoom.getRadius(),
+	 		chatRoom.getPosition().getY(),
+	 		chatRoom.getPosition().getX()
+	 	);
+	 }
+
 
 }

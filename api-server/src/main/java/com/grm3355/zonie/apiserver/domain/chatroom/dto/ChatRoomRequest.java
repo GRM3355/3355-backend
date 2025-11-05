@@ -1,5 +1,8 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -8,10 +11,8 @@ import lombok.Getter;
 @Getter
 public class ChatRoomRequest {
 
-	@Schema(description = "축제 아이디", example = "1")
-	private Long festivalId;
-
 	@Schema(description = "채팅방 제목", example = "채팅방 제목입니다.")
+	@NotBlank(message = "채팅방 제목은 필수입니다.")
 	private String title;
 
 }

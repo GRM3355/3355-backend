@@ -54,8 +54,8 @@ public class RedisTokenService {
 
 	// Redis에서 locationToken 정보 조회
 	public UserTokenDto getLocationInfo(String token) {
-		String redisKey = buildKey(token);
 
+		String redisKey = buildKey(token);
 		String saved = redisTemplate.opsForValue().get(redisKey);
 		if (saved == null)
 			return null;
@@ -72,8 +72,6 @@ public class RedisTokenService {
 		String token = redisTemplate.opsForValue().get(buildKey(userId));
 		return token != null && !token.isBlank();
 	}
-
-
 
 	/**
 	 * 위치 + 디바이스 정보 업데이트 (TTL 갱신 포함)

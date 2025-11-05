@@ -23,7 +23,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
         SELECT f
         FROM Festival f
         WHERE f.festivalId = :festivalId
-          AND CURRENT_DATE BETWEEN f.eventStartDate AND f.eventEndDate
+          AND CURRENT_TIMESTAMP Between f.eventStartDate And f.eventEndDate
       """)
 	Optional<Festival> findByIsValidFestival(long festivalId);
 

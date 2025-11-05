@@ -29,6 +29,7 @@ import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
 import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;
+import com.grm3355.zonie.commonlib.global.enums.Region;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 
@@ -57,7 +58,6 @@ public class ChatRoomService {
 		this.chatRoomRepository = chatRoomRepository;
 		this.userRepository = userRepository;
 	}
-
 
 	/**
 	 * 채팅방 생성
@@ -101,6 +101,7 @@ public class ChatRoomService {
 		//위치 세팅
 		Point point = geometryFactory.createPoint(new Coordinate(location2.getLon(), location2.getLat()));
 
+
 		ChatRoom chatRoom = ChatRoom.builder()
 			.chatRoomId(roomId)
 			.festival(festival)
@@ -111,8 +112,19 @@ public class ChatRoomService {
 			.position(point).build();
 		ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
 
+		ChatRoomResponse chatRoomResponse = ChatRoomResponse.builder()
+			.chatRoomId(createRoomId())
+			.festivalId(festivalId)
+			.userId(userId)
+			.title(request.getTitle())
+			.maxParticipants(MAX_ROOM)
+			.radius(MAX_RADIUS)
+			.lat(chatRoom.getPosition().getY())
+			.lon(chatRoom.getPosition().getX())
+			.build();
+
 		//return
-		return ChatRoomResponse.fromEntity(saveChatRoom);
+		return chatRoomResponse;
 	}
 
 	/**
@@ -123,17 +135,21 @@ public class ChatRoomService {
 	public Page<ChatRoomResponse> getChatRoomList(long festivalId, String userId,
 		SearchRequest req) {
 
+		System.out.println("=======> getChatRoomList 1111");
 		Sort.Order order = Sort.Order.desc("createdAt");
 		Pageable pageable = PageRequest.of(req.getPage() - 1,
 			req.getPageSize(), Sort.by(order));
 
+		System.out.println("=======> pageable="+pageable);
 		//ListType 내용 가져오기
 		Page<ChatRoom> pageList = getProductsListTypeUser(festivalId, userId, req, pageable);
+		System.out.println("=======> pageList="+pageList);
 
 		//페이지 변환
 		List<ChatRoomResponse> dtoPage = pageList.stream().map(ChatRoomResponse::fromEntity)
 			.collect(Collectors.toList());
 
+		System.out.println("=======> dtoPage="+dtoPage);
 		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
 	}
 
@@ -141,22 +157,26 @@ public class ChatRoomService {
 	private Page<ChatRoom> getProductsListTypeUser(
 		long festivalId, String userId, SearchRequest req, Pageable pageable) {
 
-		return switch (req.getSort()) {
+		Region region = req.getRegion();
+		String regionStr = region != null ? region.toString() : null;
 
-			case PARTICIPANTS_ASC -> chatRoomRepository
-				.chatRoomList_PARTICIPANTS_ASC(festivalId, userId, req.getRegion().toString(),
+		System.out.println("=======> userId="+userId);
+		System.out.println("=======> req.getOrder()="+req.getOrder());
+		return switch (req.getOrder()) {
+			case PART_ASC -> chatRoomRepository
+				.chatRoomList_PARTICIPANTS_ASC(festivalId, userId, regionStr,
 					req.getKeyword(), pageable);
 
-			case PARTICIPANTS_DESC -> chatRoomRepository
-				.chatRoomList_PARTICIPANTS_DESC(festivalId, userId, req.getRegion().toString(),
+			case PART_DESC -> chatRoomRepository
+				.chatRoomList_PARTICIPANTS_DESC(festivalId, userId, regionStr,
 					req.getKeyword(), pageable);
 
-			case CREATED_AT_ASC -> chatRoomRepository
-				.chatRoomList_CREATED_AT_ASC(festivalId, userId, req.getRegion().toString(),
+			case DATE_ASC -> chatRoomRepository
+				.chatRoomList_CREATED_AT_ASC(festivalId, userId, regionStr,
 					req.getKeyword(), pageable);
 
-			case CREATED_AT_DESC -> chatRoomRepository
-				.chatRoomList_CREATED_AT_DESC(festivalId, userId, req.getRegion().toString(),
+			case DATE_DESC -> chatRoomRepository
+				.chatRoomList_CREATED_AT_DESC(festivalId, userId, regionStr,
 					req.getKeyword(), pageable);
 		};
 	}

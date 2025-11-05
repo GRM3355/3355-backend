@@ -20,11 +20,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		value = """
         SELECT c
         FROM ChatRoom c LEFT JOIN Festival f ON c.festival.festivalId = f.festivalId
-        WHERE c.festival.festivalId = :festivalId
-			AND f.region = :region
+        WHERE c.chatRoomId is not null
+			AND (:festivalId is null or :festivalId = 0 or f.festivalId = :festivalId)
 			AND (:userId is null or c.user.userId = :userId)
+			AND (:region is null or f.region = :region)
 			AND (:keyword is null or c.title like concat('%', :keyword, '%'))
-			ORDER BY c.maxParticipants asc
+			ORDER BY f.chatRoomCount asc
       """)
 	Page<ChatRoom> chatRoomList_PARTICIPANTS_ASC
 	(long festivalId, String userId, String region, String keyword, Pageable pageable);
@@ -34,11 +35,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		value = """
         SELECT c
         FROM ChatRoom c LEFT JOIN Festival f ON c.festival.festivalId = f.festivalId
-        WHERE c.festival.festivalId = :festivalId
-			AND f.region = :region
+        WHERE c.chatRoomId is not null
+			AND (:festivalId is null or :festivalId = 0 or f.festivalId = :festivalId)
 			AND (:userId is null or c.user.userId = :userId)
+			AND (:region is null or f.region = :region)
 			AND (:keyword is null or c.title like concat('%', :keyword, '%'))
-			order by c.maxParticipants asc
+			ORDER BY f.chatRoomCount desc
       """)
 	Page<ChatRoom> chatRoomList_PARTICIPANTS_DESC
 	(long festivalId, String userId, String region, String keyword, Pageable pageable);
@@ -48,12 +50,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		value = """
         SELECT c
         FROM ChatRoom c LEFT JOIN Festival f ON c.festival.festivalId = f.festivalId
-        WHERE c.festival.festivalId = :festivalId
-			AND f.region = :region
+        WHERE c.chatRoomId is not null
+			AND (:festivalId is null or :festivalId = 0 or f.festivalId = :festivalId)
 			AND (:userId is null or c.user.userId = :userId)
+			AND (:region is null or f.region = :region)
 			AND (:keyword is null or c.title like concat('%', :keyword, '%'))
-			AND (:keyword is null or c.title like concat('%', :keyword, '%'))
-			order by c.createdAt asc
+			ORDER BY c.createdAt asc
       """)
 	Page<ChatRoom> chatRoomList_CREATED_AT_ASC
 	(long festivalId, String userId, String region, String keyword, Pageable pageable);
@@ -63,11 +65,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		value = """
         SELECT c
         FROM ChatRoom c LEFT JOIN Festival f ON c.festival.festivalId = f.festivalId
-        WHERE c.festival.festivalId = :festivalId
-			AND f.region = :region
+        WHERE c.chatRoomId is not null
+			AND (:festivalId is null or :festivalId = 0 or f.festivalId = :festivalId)
 			AND (:userId is null or c.user.userId = :userId)
+			AND (:region is null or f.region = :region)
 			AND (:keyword is null or c.title like concat('%', :keyword, '%'))
-			order by c.createdAt desc
+			ORDER BY c.createdAt desc
       """)
 	Page<ChatRoom> chatRoomList_CREATED_AT_DESC
 	(long festivalId, String userId, String region, String keyword, Pageable pageable);
