@@ -28,9 +28,10 @@ import lombok.NoArgsConstructor;
 @Getter
 public class User extends BaseTimeEntity {
 
-	//@GeneratedValue(strategy = GenerationType.IDENTITY)
-	//private Long uuid;
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long uuid;
+
 	@NotBlank
 	@Size(max = 100)
 	@Column(name = "user_id", nullable = false, unique = true, length = 100)
@@ -42,15 +43,6 @@ public class User extends BaseTimeEntity {
 	@Column(name = "password", nullable = false, length = 100)
 	@NotBlank(message = "비밀번호는 정보는 필수 입력 값입니다.")
 	private String password;
-
-	@Size(max = 20)
-	@Column(name = "client_ip", nullable = false, length = 20)
-	@NotBlank(message = "아이피는 필수 입력 값입니다.")
-	private String clientIP;
-
-	@Size(max = 20)
-	@Column(name = "device", nullable = true, length = 20)
-	private String device;
 
 	@Enumerated(EnumType.STRING)
 	@Column(name = "role", nullable = false, length = 20)

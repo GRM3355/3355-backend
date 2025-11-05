@@ -55,16 +55,12 @@ public class AuthService {
 		User user = User.builder()
 			.userId(userId)
 			.password(password)
-			.clientIP(getClientIp(request))
-			.device(device)
 			.role(Role.GUEST).build();
 		User saved_db = userRepository.save(user);
 
 		//사용자정보
 		UserTokenDto userTokenDto = UserTokenDto.builder()
-			.userId(userId)
-			.clientIp(clientIp)
-			.lon(lon).build();
+			.userId(userId).lat(lat).lon(lon).build();
 
 		//아이디 저장후 인증정보 authentication  정보 가져오기
 		Authentication authentication = authenticationManager.authenticate(

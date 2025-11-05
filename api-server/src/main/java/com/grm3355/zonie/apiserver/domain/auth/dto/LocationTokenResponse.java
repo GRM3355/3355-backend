@@ -9,6 +9,5 @@ public record LocationTokenResponse(
 	@Schema(description = "처리메시지", example = "갱신되었습니다.")
 	String message
 
-	//String locationToken
 ) {
 }

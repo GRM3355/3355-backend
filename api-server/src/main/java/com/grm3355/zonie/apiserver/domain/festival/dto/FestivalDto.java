@@ -1,4 +1,4 @@
-package com.grm3355.zonie.commonlib.domain.festival.dto;
+package com.grm3355.zonie.apiserver.domain.festival.dto;
 
 import java.time.LocalDate;
 

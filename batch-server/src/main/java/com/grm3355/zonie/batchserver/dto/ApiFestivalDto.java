@@ -1,4 +1,4 @@
-package com.grm3355.zonie.commonlib.domain.batch.dto;
+package com.grm3355.zonie.batchserver.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
