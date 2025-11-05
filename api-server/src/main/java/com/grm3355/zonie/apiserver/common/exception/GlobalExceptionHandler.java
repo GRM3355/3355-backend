@@ -216,7 +216,8 @@ public class GlobalExceptionHandler {
 		ApiResponse<ApiErrorPayload> body =
 			ApiResponse.of(false, code.getCode(), code.getMessage(), null);
 
-		return body.toResponseEntity(HttpStatus.valueOf(code.getCode()));
+		//return body.toResponseEntity(HttpStatus.valueOf(code.getCode()));
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
 	}
 
 	/**

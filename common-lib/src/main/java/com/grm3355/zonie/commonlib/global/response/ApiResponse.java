@@ -2,8 +2,8 @@ package com.grm3355.zonie.commonlib.global.response;
 
 import java.time.LocalDateTime;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+//import org.springframework.http.HttpStatus;
+//import org.springframework.http.ResponseEntity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -53,8 +53,7 @@ public class ApiResponse<T> {
 		return new ApiResponse<>(success, data, new ErrorResponse(errorCode, message), LocalDateTime.now());
 	}
 
-	public ResponseEntity<ApiResponse<T>> toResponseEntity(HttpStatus status) {
-		return ResponseEntity.status(status).body(this);
-
-	}
+	//public ResponseEntity<ApiResponse<T>> toResponseEntity(HttpStatus status) {
+	//	return ResponseEntity.status(status).body(this);
+	//}
 }
