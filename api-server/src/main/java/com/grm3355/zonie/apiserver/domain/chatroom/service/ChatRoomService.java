@@ -1,7 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -16,7 +15,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.grm3355.zonie.apiserver.common.dto.SearchRequest;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.SearchRequest;
 import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
@@ -24,6 +24,7 @@ import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
+import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
@@ -43,14 +44,14 @@ public class ChatRoomService {
 	private static int MAX_ROOM = 30;
 	private static double MAX_RADIUS = 1.0;
 	private final RedisTokenService redisTokenService;
-	private final FestivalService festivalService;
+	private final FestivalInfoService festivalService;
 	private final ChatRoomRepository chatRoomRepository;
 	private final UserRepository userRepository;
 
 	// GeometryFactory 생성 (보통 한 번만 만들어 재사용)
 	GeometryFactory geometryFactory = new GeometryFactory();
 
-	public ChatRoomService(RedisTokenService redisTokenService, FestivalService festivalService,
+	public ChatRoomService(RedisTokenService redisTokenService, FestivalInfoService festivalService,
 		ChatRoomRepository chatRoomRepository, UserRepository userRepository
 	) {
 		this.redisTokenService = redisTokenService;
@@ -101,7 +102,6 @@ public class ChatRoomService {
 		//위치 세팅
 		Point point = geometryFactory.createPoint(new Coordinate(location2.getLon(), location2.getLat()));
 
-
 		ChatRoom chatRoom = ChatRoom.builder()
 			.chatRoomId(roomId)
 			.festival(festival)
@@ -113,12 +113,10 @@ public class ChatRoomService {
 		ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
 
 		ChatRoomResponse chatRoomResponse = ChatRoomResponse.builder()
-			.chatRoomId(createRoomId())
+			.chatRoomId(roomId)
 			.festivalId(festivalId)
 			.userId(userId)
 			.title(request.getTitle())
-			.maxParticipants(MAX_ROOM)
-			.radius(MAX_RADIUS)
 			.lat(chatRoom.getPosition().getY())
 			.lon(chatRoom.getPosition().getX())
 			.build();
@@ -128,56 +126,89 @@ public class ChatRoomService {
 	}
 
 	/**
-	 * 채팅방 목록
+	 * 축제별 채팅방 목록
+	 * @param festivalId
+	 * @param req
 	 * @return
 	 */
 	@Transactional
-	public Page<ChatRoomResponse> getChatRoomList(long festivalId, String userId,
+	public Page<ChatRoomResponse> getFestivalChatRoomList(long festivalId,
 		SearchRequest req) {
 
-		System.out.println("=======> getChatRoomList 1111");
 		Sort.Order order = Sort.Order.desc("createdAt");
 		Pageable pageable = PageRequest.of(req.getPage() - 1,
 			req.getPageSize(), Sort.by(order));
 
-		System.out.println("=======> pageable="+pageable);
 		//ListType 내용 가져오기
-		Page<ChatRoom> pageList = getProductsListTypeUser(festivalId, userId, req, pageable);
-		System.out.println("=======> pageList="+pageList);
+		Page<ChatRoom> pageList = getFestivalListTypeUser(festivalId, req, pageable);
 
 		//페이지 변환
 		List<ChatRoomResponse> dtoPage = pageList.stream().map(ChatRoomResponse::fromEntity)
 			.collect(Collectors.toList());
 
-		System.out.println("=======> dtoPage="+dtoPage);
 		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
 	}
 
-	//검색조건별 목록 가져오기
-	private Page<ChatRoom> getProductsListTypeUser(
-		long festivalId, String userId, SearchRequest req, Pageable pageable) {
+	//축제별 채팅방 검색조건별 목록 가져오기
+	private Page<ChatRoom> getFestivalListTypeUser(
+		long festivalId, SearchRequest req, Pageable pageable) {
 
 		Region region = req.getRegion();
 		String regionStr = region != null ? region.toString() : null;
 
-		System.out.println("=======> userId="+userId);
-		System.out.println("=======> req.getOrder()="+req.getOrder());
 		return switch (req.getOrder()) {
 			case PART_ASC -> chatRoomRepository
-				.chatRoomList_PARTICIPANTS_ASC(festivalId, userId, regionStr,
-					req.getKeyword(), pageable);
-
+				.chatFestivlRoomList_PARTICIPANTS_ASC(festivalId, regionStr, req.getKeyword(), pageable);
 			case PART_DESC -> chatRoomRepository
-				.chatRoomList_PARTICIPANTS_DESC(festivalId, userId, regionStr,
-					req.getKeyword(), pageable);
-
+				.chatFestivlRoomList_PARTICIPANTS_DESC(festivalId, regionStr, req.getKeyword(), pageable);
 			case DATE_ASC -> chatRoomRepository
-				.chatRoomList_CREATED_AT_ASC(festivalId, userId, regionStr,
-					req.getKeyword(), pageable);
-
+				.chatFestivlRoomList_CREATED_AT_ASC(festivalId, regionStr,req.getKeyword(), pageable);
 			case DATE_DESC -> chatRoomRepository
-				.chatRoomList_CREATED_AT_DESC(festivalId, userId, regionStr,
-					req.getKeyword(), pageable);
+				.chatFestivlRoomList_CREATED_AT_DESC(festivalId, regionStr,req.getKeyword(), pageable);
+		};
+	}
+
+	/**
+	 * 나의 채팅방 목록
+	 * @param userDetails
+	 * @param req
+	 * @return
+	 */
+	@Transactional
+	public Page<MyChatRoomResponse> getMyroomChatRoomList(UserDetailsImpl userDetails,
+		SearchRequest req) {
+
+		String userId = userDetails.getUsername();
+
+		Sort.Order order = Sort.Order.desc("createdAt");
+		Pageable pageable = PageRequest.of(req.getPage() - 1,
+			req.getPageSize(), Sort.by(order));
+
+		//ListType 내용 가져오기
+		Page<ChatRoomInfoDto> pageList = getMyroomListTypeUser(userId, req, pageable);
+
+		//페이지 변환
+		List<MyChatRoomResponse> dtoPage = pageList.stream().map(MyChatRoomResponse::fromDto)
+			.collect(Collectors.toList());
+
+		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
+	}
+
+	//축제별 채팅방 검색조건별 목록 가져오기
+	private Page<ChatRoomInfoDto> getMyroomListTypeUser(String userId, SearchRequest req, Pageable pageable) {
+
+		Region region = req.getRegion();
+		String regionStr = region != null ? region.toString() : null;
+
+		return switch (req.getOrder()) {
+			case PART_ASC -> chatRoomRepository
+				.chatMyRoomList_PARTICIPANTS_ASC(userId, regionStr, req.getKeyword(), pageable);
+			case PART_DESC -> chatRoomRepository
+				.chatMyRoomList_PARTICIPANTS_DESC(userId, regionStr, req.getKeyword(), pageable);
+			case DATE_ASC -> chatRoomRepository
+				.chatMyRoomList_CREATED_AT_ASC(userId, regionStr,req.getKeyword(), pageable);
+			case DATE_DESC -> chatRoomRepository
+				.chatMyRoomList_CREATED_AT_DESC(userId, regionStr,req.getKeyword(), pageable);
 		};
 	}
 
@@ -194,6 +225,7 @@ public class ChatRoomService {
 
 	//사용자 위치정보
 	private LocationDto getUserPostion(String userId){
+		System.out.println("=======> userId="+userId);
 		UserTokenDto userTokenDto= redisTokenService.getLocationInfo(userId);
 		return  LocationDto.builder().lat(userTokenDto.getLat()).lon(userTokenDto.getLon()).build();
 	}

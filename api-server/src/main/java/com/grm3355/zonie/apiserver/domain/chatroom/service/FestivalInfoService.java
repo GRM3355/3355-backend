@@ -1,9 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
 import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository;
@@ -11,10 +9,10 @@ import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 
 @Service
-public class FestivalService {
+public class FestivalInfoService {
 	private final FestivalRepository festivalRepository;
 
-	public FestivalService(FestivalRepository festivalRepository, LocationService locationService) {
+	public FestivalInfoService(FestivalRepository festivalRepository, LocationService locationService) {
 		this.festivalRepository = festivalRepository;
 	}
 

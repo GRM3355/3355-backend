@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.common.dto;
+package com.grm3355.zonie.apiserver.domain.chatroom.dto;
 
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;

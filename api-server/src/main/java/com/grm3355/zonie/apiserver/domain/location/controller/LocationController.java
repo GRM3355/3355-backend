@@ -71,10 +71,10 @@ public class LocationController {
 		))
 	})
 	@PutMapping("/update")
-	public ResponseEntity<?> updateLocation(@AuthenticationPrincipal UserDetailsImpl user,
+	public ResponseEntity<?> updateLocation(@AuthenticationPrincipal UserDetailsImpl userDetails,
 		@Valid @RequestBody LocationDto locationDto) {
 		//10분 단위로 호출함.
-		LocationTokenResponse response = locationService.update(locationDto, user.getUsername());
+		LocationTokenResponse response = locationService.update(locationDto, userDetails);
 		return ResponseEntity.ok(ApiResponse.success(response));
 	}
 
@@ -112,9 +112,9 @@ public class LocationController {
 		))
 	})
 	@GetMapping("/festivalVerify")
-	public ResponseEntity<?> getFestivalVerify(@AuthenticationPrincipal UserDetailsImpl user, long festivalId) {
+	public ResponseEntity<?> getFestivalVerify(@AuthenticationPrincipal UserDetailsImpl userDetails, long festivalId) {
 		FestivalZoneVarifyResponse response = locationService
-			.getFestivalVerify(user.getUsername(), festivalId);
+			.getFestivalVerify(userDetails, festivalId);
 		return ResponseEntity.ok(ApiResponse.success(response));
 
 	}
@@ -141,9 +141,9 @@ public class LocationController {
 		))
 	})
 	@GetMapping("/chatroomVerify")
-	public ResponseEntity<?> getChatRoomVerify(@AuthenticationPrincipal UserDetailsImpl user, String chatroomId) {
+	public ResponseEntity<?> getChatRoomVerify(@AuthenticationPrincipal UserDetailsImpl userDetails, String chatroomId) {
 		ChatRoomZoneVarifyResponse response = locationService
-			.getChatroomVerify(user.getUsername(), chatroomId);
+			.getChatroomVerify(userDetails, chatroomId);
 		return ResponseEntity.ok(ApiResponse.success(response));
 	}
 }

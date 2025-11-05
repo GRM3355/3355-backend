@@ -37,6 +37,7 @@ public class RedisTokenService {
 	public void generateLocationToken(UserTokenDto info) {
 		String redisKey = buildKey(info.getUserId());
 
+		System.out.println("====================>generateLocationToken="+redisKey);
 		try {
 			String infoJson = objectMapper.writeValueAsString(info);
 			// Redis에 10분 TTL로 저장
@@ -44,6 +45,7 @@ public class RedisTokenService {
 
 			UserTokenDto userTokenDto = getLocationInfo(info.getUserId());
 
+			System.out.println("====================>generateLocationToken true"+userTokenDto.getLat()+"___"+userTokenDto.getLon());
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Redis 저장 중 오류 발생", e);
 		}
