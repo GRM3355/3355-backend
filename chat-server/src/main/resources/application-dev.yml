@@ -7,8 +7,6 @@ spring:
     redis:
       host: placeholder-dev-host.com
       port: 6379
-      username: your-username
-      password: your-password
 
   datasource:
     url: placeholder-postgresql-rds-uri

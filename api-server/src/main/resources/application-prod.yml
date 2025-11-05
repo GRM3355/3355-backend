@@ -5,11 +5,14 @@ spring:
   data:
     mongodb:
       uri: ${MONGO_PROD_URI} # 환경 변수 또는 외부 설정 파일에서 주입
+      database: zonie-database
     # --- ElastiCache (Redis) (운영용) ---
     redis:
       host: ${REDIS_PROD_HOST}
       port: 6379 # port: ${PROD_REDIS_PORT} # || REDIS_PROD_PORT
       password: ${REDIS_PROD_PASSWORD}
+      ssl:
+        enabled: true
 
   # --- RDS (PostgreSQL) (운영용) ---
   # chat-server도 방 입장 시 user_chat_rooms 테이블 접근을 위해 DB 연결이 필요.
@@ -29,3 +32,15 @@ logging:
   level:
     root: INFO
     com.grm3355.zonie: INFO
+
+#jwt
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  access-token-expiration-time: 86400000 # 24시간
+  location-token-expiration-time: 600000 # 10분
+#cors
+cors:
+  allowed-origins: "http://localhost:8082,http://zony.kro.kr, http://www.zony.kro.kr,https://zony.kro.kr, https://www.zony.kro.kr"
+#공공데이터 api
+openapi:
+  serviceKey: ${OPENAPI_SERVICE_KEY}

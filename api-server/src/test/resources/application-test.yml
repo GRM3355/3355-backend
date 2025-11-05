@@ -15,3 +15,15 @@
 logging:
   level:
     com.grm3355.zonie: DEBUG
+jwt:
+  secret: yourSecretKeyHeredjeknzlxfoefjflkasdkdkfsdlkwjfjlsdkjfaskldfjlasdkzidnakhdkasjbfkjsahdfndfkjhsadfnaskdfhSBfkjhsdfnasndfnkashdfasndf
+  access-token-expiration-time: 86400000 # 24시간
+  location-token-expiration-time: 600000 # 10분
+
+#cors
+cors:
+  allowed-origins: "http://localhost:8082,http://example.com"
+
+#공공데이터 api
+openapi:
+  serviceKey: asdfasdfasdfdaldjfleuiuoahdflasdfjlasjdflasjkdfkl

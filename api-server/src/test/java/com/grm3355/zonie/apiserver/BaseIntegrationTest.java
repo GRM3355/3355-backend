@@ -1,6 +1,7 @@
 package com.grm3355.zonie.apiserver;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -17,6 +18,7 @@ import java.sql.SQLException;
 @SpringBootTest
 @ActiveProfiles("test") // application-test.yml (빈 파일)을 로드
 @Testcontainers         // 이 클래스가 Testcontainers를 사용함을 알림
+@AutoConfigureMockMvc(addFilters = false) //시큐리티 제외
 public abstract class BaseIntegrationTest {
 
 	// === 1. PostgreSQL (PostGIS) 컨테이너 ===
