@@ -79,5 +79,10 @@ public abstract class BaseIntegrationTest {
 
 		// MongoDB
 		registry.add("spring.data.mongodb.uri", mongoContainer::getReplicaSetUrl);
+
+		// JWT
+		String jwtSecret = System.getenv("JWT_SECRET_KEY");
+		registry.add("jwt.secret", () -> jwtSecret);
+
 	}
 }
