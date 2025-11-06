@@ -46,19 +46,35 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	/**
 	 * 축제 목록보기
 	 */
-
 	//축제목록 개최일 오름차순 정렬
 	@Query(
 		value = """
-        SELECT c
-        FROM ChatRoom c LEFT JOIN Festival f ON f.festivalId = c.festival.festivalId
-        WHERE c.chatRoomId is not null
-			AND (:festivalId is null or :festivalId = 0 or f.festivalId = :festivalId)
+        SELECT f
+        FROM Festival f 
+        WHERE f.festivalId is not null
 			AND (:region is null or f.region = :region)
-			AND (:keyword is null or c.title like concat('%', :keyword, '%'))
-			ORDER BY f.chatRoomCount asc
+			AND (
+				:status = 'ALL'
+				OR (:status = 'ONGOING' AND f.eventStartDate <= CURRENT_DATE AND f.eventEndDate >= CURRENT_DATE)
+				OR (:status = 'UPCOMING' AND f.eventStartDate > CURRENT_DATE)
+			  )		
+			AND (:keyword is null or f.title like concat('%', :keyword, '%'))
+			ORDER BY
+			 CASE
+			   WHEN :sortType = 'DATE_ASC' THEN f.eventStartDate
+			 END ASC,
+			 CASE
+			   WHEN :sortType = 'DATE_DESC' THEN f.eventStartDate
+			 END DESC,
+			 CASE
+			   WHEN :sortType = 'TITLE_ASC' THEN f.title
+			 END ASC,
+			 CASE
+			   WHEN :sortType = 'TITLE_DESC' THEN f.title
+			 END DESC			
+									
       """)
-	Page<> chatFestivlRoomList_PARTICIPANTS_ASC
-	(long festivalId, String region, String keyword, Pageable pageable);
+	Page<Festival> getFestivlList(String region, String status, String OrderType, String keyword, Pageable pageable);
+
 
 }

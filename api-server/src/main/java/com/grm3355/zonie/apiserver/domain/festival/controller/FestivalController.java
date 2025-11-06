@@ -24,6 +24,7 @@ import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
@@ -79,11 +80,11 @@ public class FestivalController {
 	@GetMapping("/festivals")
 	public ResponseEntity<?> getFestivalList(@ModelAttribute FestivalSearchRequest request
 	) {
-		Page<ChatRoomResponse> pageList = festivalService.getFestivalList(request);
-		PageResponse<ChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
+		Page<FestivalResponse> pageList = festivalService.getFestivalList(request);
+		PageResponse<FestivalResponse> response = new PageResponse<>(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
-
+s
 	//축제내용
 	@GetMapping("/festivals/{festivalId}")
 	public ResponseEntity<?> gefFestivalContent(@PathVariable long festivalId,

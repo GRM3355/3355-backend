@@ -23,6 +23,7 @@ import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
+import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalStatus;
 import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
@@ -163,17 +164,11 @@ public class ChatRoomService {
 
 		Region region = req.getRegion();
 		String regionStr = region != null ? region.toString() : null;
+		String order = req.getOrder().toString();
 
-		return switch (req.getOrder()) {
-			case PART_ASC -> chatRoomRepository
-				.chatFestivlRoomList_PARTICIPANTS_ASC(festivalId, regionStr, req.getKeyword(), pageable);
-			case PART_DESC -> chatRoomRepository
-				.chatFestivlRoomList_PARTICIPANTS_DESC(festivalId, regionStr, req.getKeyword(), pageable);
-			case DATE_ASC -> chatRoomRepository
-				.chatFestivlRoomList_CREATED_AT_ASC(festivalId, regionStr,req.getKeyword(), pageable);
-			case DATE_DESC -> chatRoomRepository
-				.chatFestivlRoomList_CREATED_AT_DESC(festivalId, regionStr,req.getKeyword(), pageable);
-		};
+		return chatRoomRepository
+			.chatFestivlRoomList(festivalId, regionStr, order, req.getKeyword(), pageable);
+
 	}
 
 	/**
@@ -207,17 +202,11 @@ public class ChatRoomService {
 
 		Region region = req.getRegion();
 		String regionStr = region != null ? region.toString() : null;
+		String order = req.getOrder().toString();
 
-		return switch (req.getOrder()) {
-			case PART_ASC -> chatRoomRepository
-				.chatMyRoomList_PARTICIPANTS_ASC(userId, regionStr, req.getKeyword(), pageable);
-			case PART_DESC -> chatRoomRepository
-				.chatMyRoomList_PARTICIPANTS_DESC(userId, regionStr, req.getKeyword(), pageable);
-			case DATE_ASC -> chatRoomRepository
-				.chatMyRoomList_CREATED_AT_ASC(userId, regionStr,req.getKeyword(), pageable);
-			case DATE_DESC -> chatRoomRepository
-				.chatMyRoomList_CREATED_AT_DESC(userId, regionStr,req.getKeyword(), pageable);
-		};
+		return chatRoomRepository
+			.chatMyRoomList(userId, regionStr, order, req.getKeyword(), pageable);
+
 	}
 
 	//채팅룸 아이디 생성

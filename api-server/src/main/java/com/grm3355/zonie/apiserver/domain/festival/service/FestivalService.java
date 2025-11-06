@@ -24,7 +24,9 @@ import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.SearchRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.FestivalInfoService;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
+import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalStatus;
 import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
@@ -53,49 +55,43 @@ public class FestivalService {
 	}
 
 	/**
-	 * 축제별 채팅방 목록
+	 * 축제목록
 	 * @param req
 	 * @return
 	 */
 	@Transactional
-	public Page<ChatRoomResponse> getFestivalList(FestivalSearchRequest req) {
+	public Page<FestivalResponse> getFestivalList(FestivalSearchRequest req) {
 
 		Sort.Order order = Sort.Order.asc("eventStartDate");
 		Pageable pageable = PageRequest.of(req.getPage() - 1,
 			req.getPageSize(), Sort.by(order));
 
 		//ListType 내용 가져오기
-		Page<ChatRoom> pageList = getFestivalListTypeUser(req, pageable);
+		Page<Festival> pageList = getFestivalListType(req, pageable);
 
 		//페이지 변환
-		List<ChatRoomResponse> dtoPage = pageList.stream().map(ChatRoomResponse::fromEntity)
+		List<FestivalResponse> dtoPage = pageList.stream().map(FestivalResponse::fromEntity)
 			.collect(Collectors.toList());
 
 		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
 	}
 
 	//축제별 채팅방 검색조건별 목록 가져오기
-	private Page<ChatRoom> getFestivalListTypeUser(
-		long festivalId, FestivalSearchRequest req, Pageable pageable) {
+	private Page<Festival> getFestivalListType(
+		FestivalSearchRequest req, Pageable pageable) {
 
 		Region region = req.getRegion();
 		String regionStr = region != null ? region.toString() : null;
+		FestivalStatus status = req.getStatus();
+		String statusStr = status != null ? status.toString() : null;
+		String order = req.getOrder().toString();
 
-		//FestivalStatus
-		return switch (req.getOrder()) {
-			case DATE_ASC -> festivalRepository
-				.chatFestivlList_DATE_ASC(regionStr, req.getKeyword(), pageable);
-			case DATE_DESC -> festivalRepository
-				.chatFestivlList_DATE_DESC(regionStr, req.getKeyword(), pageable);
-			case TITLE_ASC -> festivalRepository
-				.chatFestivlList_TITLE_ASC(regionStr, req.getKeyword(), pageable);
-			case TITLE_DESC -> festivalRepository
-				.chatFestivlList_TITLE_DESC(regionStr, req.getKeyword(), pageable);
-		};
+		return festivalRepository.getFestivlList(regionStr, statusStr,
+			order,req.getKeyword(), pageable);
 	}
 
 	/**
-	 * 나의 채팅방 목록
+	 * 축제 상세내용
 	 * @param userDetails
 	 * @param req
 	 * @return
