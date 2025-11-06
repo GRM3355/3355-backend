@@ -1,6 +1,7 @@
 package com.grm3355.zonie.commonlib.domain.festival.entity;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,8 +11,10 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.io.WKTReader;
 
 import com.grm3355.zonie.commonlib.global.entity.BaseTimeEntity;
+import com.grm3355.zonie.commonlib.global.enums.RegionCode;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -34,7 +37,7 @@ public class Festival extends BaseTimeEntity {
 	@Column(name = "festival_id", nullable = false, unique = true, updatable = false)
 	private Long festivalId;
 
-	@Column(name = "addr1", nullable = false, length = 100)
+	@Column(name = "addr1", nullable = false, length = 1024)
 	private String addr1;
 
 	@Column(name = "content_id", nullable = false, unique = true, updatable = false)
@@ -46,26 +49,25 @@ public class Festival extends BaseTimeEntity {
 	@Column(name = "event_end_date", nullable = false)
 	private LocalDate eventEndDate;
 
-	@Column(name = "first_image", length = 100)
+	@Column(name = "first_image", length = 1024)
 	private String firstImage;
 
 	@Column(name = "position", columnDefinition = "geography(Point, 4326)")
-	//@Column(name = "position", columnDefinition = "geometry(Point,4326)")
 	private Point position;
 
 	@Column(name = "area_code")
 	private int areaCode;
 
-	@Column(name = "tel", length = 50)
+	@Column(name = "tel", length = 1024)
 	private String tel;
 
-	@Column(name = "title", length = 200)
+	@Column(name = "title", length = 1024)
 	private String title;
 
 	@Column(name = "region", length = 20)
 	private String region;
 
-	@Column(name = "url", length = 200)
+	@Column(name = "url", length = 500)
 	private String url;
 
 	@Column(name = "target_type", length = 20)
@@ -73,6 +75,12 @@ public class Festival extends BaseTimeEntity {
 
 	@Column(name = "status", length = 20)
 	private String status;
+
+	@Column(name = "map_x", length = 20)
+	private String mapx;
+
+	@Column(name = "map_y", length = 20)
+	private String mapy;
 
 	@Builder.Default
 	@Column(name = "chat_room_count", nullable = false)

@@ -1,5 +1,6 @@
 package com.grm3355.zonie.commonlib.domain.festival.repository;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,5 +27,8 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
           AND CURRENT_TIMESTAMP Between f.eventStartDate And f.eventEndDate
       """)
 	Optional<Festival> findByIsValidFestival(long festivalId);
+
+	// 이벤트 종료일이 현재 날짜보다 이전인 축제를 삭제
+	void deleteByEventEndDateBefore(LocalDate date);
 
 }
