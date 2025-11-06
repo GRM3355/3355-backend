@@ -10,7 +10,6 @@ import lombok.Setter;
 
 @Getter
 @Setter
-
 public class PageResponse<T> {
 
 	@Schema(description = "페이지 내용", example = "리스트값을 배열로.")
