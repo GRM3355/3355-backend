@@ -32,7 +32,6 @@ import lombok.NoArgsConstructor;
 @Getter
 public class ChatRoom extends BaseTimeEntity {
 
-
 	// @GeneratedValue(strategy = GenerationType.IDENTITY)
 	// @Column(name = "uuid", nullable = false, unique = true, updatable = false)
 	// private Long Long;
@@ -65,7 +64,6 @@ public class ChatRoom extends BaseTimeEntity {
 	private double radius;
 
 	@Column(name = "position", columnDefinition = "geography(Point, 4326)")
-	//@Column(name = "position", columnDefinition = "geometry(Point,4326)")
 	private Point position;
 
 

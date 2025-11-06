@@ -9,6 +9,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class MessageSendRequest {
 	private String content;
-	private String tempUserId; // (임시) 인증이 구현되기 전까지 사용할 ID
+	// private String tempUserId; // (임시) 인증이 구현되기 전까지 사용할 ID
 	// (확장 기능: img)
 }

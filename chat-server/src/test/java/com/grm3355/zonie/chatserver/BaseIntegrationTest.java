@@ -14,7 +14,7 @@ import org.testcontainers.utility.DockerImageName;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test") // application-test.yml (빈 파일)을 로드
 @Testcontainers         // 이 클래스가 Testcontainers를 사용함을 알림
 public abstract class BaseIntegrationTest {
@@ -77,5 +77,13 @@ public abstract class BaseIntegrationTest {
 
 		// MongoDB
 		registry.add("spring.data.mongodb.uri", mongoContainer::getReplicaSetUrl);
+
+		// JWT
+		String jwtSecret = System.getenv().getOrDefault(
+			"JWT_SECRET_KEY",
+			"ci-test-default-secret-key-1234567890-abcdefghijklmnopqrstuvwxyz" // 임의 문자열
+		);
+		registry.add("jwt.secret", () -> jwtSecret);
+
 	}
 }

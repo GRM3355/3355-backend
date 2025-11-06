@@ -1,14 +1,10 @@
 package com.grm3355.zonie.apiserver.domain.chatroom;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.apiserver.common.jwt.JwtProvider;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.SearchRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
-import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
-import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -122,4 +118,3 @@ class ChatRoomControllerTest {
 			.andExpect(jsonPath("$.data.content[0].festivalTitle").value("테스트 축제"));
 	}
 }
-

@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.common.jwt;
+package com.grm3355.zonie.commonlib.domain.auth;
 
 import java.util.Date;
 
@@ -9,7 +9,6 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.commonlib.global.enums.Role;
 
 import io.jsonwebtoken.Claims;
@@ -27,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Component
-public class JwtProvider {
+public class JwtTokenProvider {
 
 	private static final String CLAIM_KEY_AUTH = "auth";
 
@@ -107,7 +106,7 @@ public class JwtProvider {
 			.getPayload(	);
 	}
 
-	public String getEmailFromToken(String token) {
+	public String getUserIdFromToken(String token) {
 		return extractClaims(token).getSubject();
 	}
 

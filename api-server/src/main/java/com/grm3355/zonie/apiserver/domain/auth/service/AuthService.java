@@ -12,11 +12,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.grm3355.zonie.apiserver.common.jwt.JwtProvider;
+import com.grm3355.zonie.commonlib.domain.auth.JwtTokenProvider;
 import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
-import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;
@@ -33,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthService {
 
 	private static final String PRE_FIX = "user:";
-	private final JwtProvider jwtProvider;
+	private final JwtTokenProvider jwtTokenProvider;
 	private final AuthenticationManager authenticationManager;
 	private final UserRepository userRepository;
 	private final RedisTokenService redisTokenService;
@@ -88,7 +87,7 @@ public class AuthService {
 		String roleEnumName = roleName.startsWith("ROLE_") ? roleName.substring(5) : roleName;
 
 		//액세스 토큰 생성(JWT) - 클라이언트가 저장
-		String accessToken = jwtProvider.createAccessToken(userDetails.getUsername(), Role.valueOf(roleEnumName));
+		String accessToken = jwtTokenProvider.createAccessToken(userDetails.getUsername(), Role.valueOf(roleEnumName));
 
 		//위치 토큰 생성 - 실시간 저장을 위해서 Redis에만 저장
 		redisTokenService.generateLocationToken(userTokenDto);
