@@ -22,14 +22,13 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-jackson:0.13.0'
     implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
 
-    testRuntimeOnly 'com.h2database:h2'                                         // 테스트용 H2 (in-memory) DB (RDS 대체)
-    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.18.1'   // 테스트용 Embedded Mongo (MongoDB Atlas 대체)
-    testImplementation('it.ozimov:embedded-redis:0.7.3') {                      // 테스트용 Embedded Redis (ElastiCache 대체)
-        exclude group: 'org.slf4j', module: 'slf4j-simple'
-    }
+//    testRuntimeOnly 'com.h2database:h2'                                         // 테스트용 H2 (in-memory) DB (RDS 대체)
+//    testImplementation 'de.flapdoodle.embed:de.flapdoodle.embed.mongo:4.18.1'   // 테스트용 Embedded Mongo (MongoDB Atlas 대체)
+//    testImplementation('it.ozimov:embedded-redis:0.7.3') {                      // 테스트용 Embedded Redis (ElastiCache 대체)
+//        exclude group: 'org.slf4j', module: 'slf4j-simple'
+//    }
 
-    testImplementation 'org.testcontainers:junit-jupiter:1.20.0' // Testcontainers JUnit 5 지원
-    testImplementation 'org.testcontainers:postgresql:1.20.0'   // PostgreSQL 컨테이너
-    testImplementation 'org.testcontainers:mongodb:1.20.0'      // MongoDB 컨테이너
-
+    testImplementation 'org.testcontainers:junit-jupiter:1.20.0'    // Testcontainers JUnit 5 지원
+    testImplementation 'org.testcontainers:postgresql:1.20.0'       // PostgreSQL 컨테이너
+    testImplementation 'org.testcontainers:mongodb:1.20.0'          // MongoDB 컨테이너
 }

@@ -51,7 +51,7 @@ public class ChatRoomHandler {
 	@MessageMapping("/chat-rooms/{roomId}/join")
 	public void joinRoom(
 		@DestinationVariable String roomId,
-		@AuthenticationPrincipal Principal principal,
+		// @AuthenticationPrincipal Principal principal,
 		StompHeaderAccessor accessor
 	) {
 		String userId = getUserIdFromSession(accessor);
@@ -68,7 +68,7 @@ public class ChatRoomHandler {
 	@MessageMapping("/chat-rooms/{roomId}/leave")
 	public void leaveRoom(
 		@DestinationVariable String roomId,
-		@AuthenticationPrincipal Principal principal,
+		// @AuthenticationPrincipal Principal principal,
 		StompHeaderAccessor accessor
 	) {
 		String userId = getUserIdFromSession(accessor);
@@ -85,7 +85,7 @@ public class ChatRoomHandler {
 	public void sendMessage(
 		@DestinationVariable String roomId,
 		@Payload MessageSendRequest request,
-		@AuthenticationPrincipal Principal principal,
+		// @AuthenticationPrincipal Principal principal,
 		StompHeaderAccessor accessor
 	) {
 
