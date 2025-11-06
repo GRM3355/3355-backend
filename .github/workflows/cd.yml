@@ -146,7 +146,7 @@ jobs:
 
       - name: Deploy Chat Server to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        timeout-minutes: 30
+        timeout-minutes: 60
         with:
           task-definition: ${{ steps.render-chat-task.outputs.task-definition }}
           cluster: ${{ env.ECS_CLUSTER }}

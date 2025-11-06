@@ -34,11 +34,13 @@ import com.grm3355.zonie.apiserver.common.jwt.UserDetailsServiceImpl;
 public class SecurityConfig {
 
 	private static final String[] WHITE_LIST = {
+		"/", 	//health check
+		"/health", 	//health check
 		"/api/v1/auth/**",    // Auth API
-		"/api/v1/location/**",    // location API
-		"/api/v1/batch/**",
-		"/api/v1/chat-rooms/**",
-		"/api/v1/festivals/**",
+		"/api/v1/location/**",  // location API
+		"/api/v1/batch/**",		//batch
+		"/api/v1/chat-rooms/**", //chat-rooms
+		"/api/v1/festivals/**",  //festival
 		"/uploads/**",    // 이미지 업로드 경로
 		"/static/**",    // 정적 이미지 경로
 		"/swagger-ui/**",     // Swagger UI
