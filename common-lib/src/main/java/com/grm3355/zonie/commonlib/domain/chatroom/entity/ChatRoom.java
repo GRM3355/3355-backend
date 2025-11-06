@@ -1,5 +1,7 @@
 package com.grm3355.zonie.commonlib.domain.chatroom.entity;
 
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -7,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import org.locationtech.jts.geom.Point;
@@ -45,6 +48,9 @@ public class ChatRoom extends BaseTimeEntity {
 	@ManyToOne
 	private User user;
 
+	@OneToMany(mappedBy = "chatRoom")
+	private List<ChatRoomUser> participants;
+
 	@Column(name = "title", nullable = false, length = 100)
 	private String title;
 
@@ -59,5 +65,7 @@ public class ChatRoom extends BaseTimeEntity {
 
 	@Column(name = "position", columnDefinition = "geography(Point, 4326)")
 	private Point position;
+
+
 
 }

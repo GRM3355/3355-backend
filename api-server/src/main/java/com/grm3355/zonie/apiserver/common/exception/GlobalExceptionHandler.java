@@ -1,13 +1,16 @@
 package com.grm3355.zonie.apiserver.common.exception;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -65,14 +68,33 @@ public class GlobalExceptionHandler {
 
 	/* ======= Validation (@Valid/@Validated) ======= */
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleMethodArgumentNotValid(
-		MethodArgumentNotValidException ex, HttpServletRequest req) {
-		log.error("=================================> MethodArgumentNotValidException.class 에러 로그 찍기", ex); // 예외 로그 찍기
-		Map<String, String> fieldErrors = new LinkedHashMap<>();
-		ex.getBindingResult().getFieldErrors()
-			.forEach(fe -> fieldErrors.put(fe.getField(), fe.getDefaultMessage()));
+	public ResponseEntity<?> handleMethodArgumentNotValid(
+		 MethodArgumentNotValidException ex, HttpServletRequest req) {
 
-		return build(ErrorCode.INVALID_INPUT, "요청 본문 검증 실패", fieldErrors, req);
+		// log.error("=================================> MethodArgumentNotValidException.class 에러 로그 찍기", ex); // 예외 로그 찍기
+		//  Map<String, String> fieldErrors = new LinkedHashMap<>();
+		//  ex.getBindingResult().getFieldErrors()
+		// 	.forEach(fe -> fieldErrors.put(fe.getField(), fe.getDefaultMessage()));
+		//  return build(ErrorCode.INVALID_INPUT, "요청 본문 검증 실패", fieldErrors, req);
+
+		// String errorMsg = ex.getBindingResult()
+		// 	.getFieldErrors()
+		// 	.stream()
+		// 	.map(DefaultMessageSourceResolvable::getDefaultMessage)
+		// 	.collect(Collectors.joining(", "));
+		// return ResponseEntity.badRequest().body(Map.of("error", errorMsg));
+
+		List<String> errorData  = ex.getBindingResult().getFieldErrors()
+			.stream()
+			.map(e->e.getField() + " : "+e.getDefaultMessage())
+			.collect(Collectors.toList());
+
+		ApiResponse<Object> error = ApiResponse.failure(
+			HttpStatus.BAD_REQUEST.toString(),
+			ErrorCode.BAD_REQUEST.getMessage(),
+			errorData );
+
+		return ResponseEntity.badRequest().body(error);
 	}
 
 	@ExceptionHandler(ConstraintViolationException.class)
