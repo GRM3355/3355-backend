@@ -128,8 +128,6 @@ public class ChatRoomService {
 			.lat(chatRoom.getPosition().getY())
 			.lon(chatRoom.getPosition().getX())
 			.build();
-
-		//return
 		return chatRoomResponse;
 	}
 
@@ -158,16 +156,23 @@ public class ChatRoomService {
 	}
 
 	//축제별 채팅방 검색조건별 목록 가져오기
-	private Page<ChatRoom> getFestivalListTypeUser(
+	public Page<ChatRoom> getFestivalListTypeUser(
 		long festivalId, SearchRequest req, Pageable pageable) {
 
 		Region region = req.getRegion();
 		String regionStr = region != null ? region.toString() : null;
 		String order = req.getOrder().toString();
 
-		return chatRoomRepository
-			.chatFestivlRoomList(festivalId, regionStr, order, req.getKeyword(), pageable);
-
+		return switch (req.getOrder()) {
+			case PART_ASC -> chatRoomRepository
+				.chatFestivalRoomList_PART_ASC(festivalId, regionStr, req.getKeyword(), pageable);
+			case PART_DESC -> chatRoomRepository
+				.chatFestivalRoomList_PART_DESC(festivalId, regionStr, req.getKeyword(), pageable);
+			case DATE_ASC -> chatRoomRepository
+				.chatFestivalRoomList_DATE_ASC(festivalId, regionStr, req.getKeyword(), pageable);
+			case DATE_DESC -> chatRoomRepository
+				.chatFestivalRoomList_DATE_DESC(festivalId, regionStr, req.getKeyword(), pageable);
+		};
 	}
 
 	/**
@@ -203,8 +208,16 @@ public class ChatRoomService {
 		String regionStr = region != null ? region.toString() : null;
 		String order = req.getOrder().toString();
 
-		return chatRoomRepository
-			.chatMyRoomList(userId, regionStr, order, req.getKeyword(), pageable);
+		return switch (req.getOrder()) {
+			case PART_ASC -> chatRoomRepository
+				.chatMyRoomList_PART_ASC(userId, regionStr, req.getKeyword(), pageable);
+			case PART_DESC -> chatRoomRepository
+				.chatMyRoomList_PART_DESC(userId, regionStr, req.getKeyword(), pageable);
+			case DATE_ASC -> chatRoomRepository
+				.chatMyRoomList_DATE_ASC(userId, regionStr, req.getKeyword(), pageable);
+			case DATE_DESC -> chatRoomRepository
+				.chatMyRoomList_DATE_DESC(userId, regionStr, req.getKeyword(), pageable);
+		};
 
 	}
 

@@ -1,5 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.festival.service;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,12 +14,16 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.grm3355.zonie.apiserver.common.enums.OrderType;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.SearchRequest;
+import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchDto;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalTotalSearchResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.PageResult;
+import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalOrderType;
 import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalStatus;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository;
@@ -35,14 +40,15 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 public class FestivalService {
 	private final FestivalRepository festivalRepository;
-	private final ChatRoomRepository chatRoomRepository;
+	private final ChatRoomService chatRoomService;
 
 	// GeometryFactory 생성 (보통 한 번만 만들어 재사용)
 	GeometryFactory geometryFactory = new GeometryFactory();
 
-	public FestivalService(FestivalRepository festivalRepository, ChatRoomRepository chatRoomRepository) {
+	public FestivalService(FestivalRepository festivalRepository,
+		ChatRoomService chatRoomService) {
 		this.festivalRepository = festivalRepository;
-		this.chatRoomRepository = chatRoomRepository;
+		this.chatRoomService = chatRoomService;
 	}
 
 	/**
@@ -77,8 +83,19 @@ public class FestivalService {
 		String statusStr = status != null ? status.toString() : null;
 		String order = req.getOrder().toString();
 
-		return festivalRepository.getFestivalList(regionStr, statusStr,
-			order,req.getKeyword(), pageable);
+		// 현재 시점 기준 +30일
+		LocalDateTime endDateLimit = LocalDateTime.now().plusDays(30);
+
+		return switch (req.getOrder()) {
+			case DATE_ASC -> festivalRepository
+				.getFestivalList_DATE_ASC(regionStr, statusStr, req.getKeyword(), endDateLimit, pageable);
+			case DATE_DESC -> festivalRepository
+				.getFestivalList_DATE_DESC(regionStr, statusStr, req.getKeyword(), endDateLimit, pageable);
+			case TITLE_ASC -> festivalRepository
+				.getFestivalList_TITLE_ASC(regionStr, statusStr, req.getKeyword(), endDateLimit, pageable);
+			case TITLE_DESC -> festivalRepository
+				.getFestivalList_TITLE_DESC(regionStr, statusStr, req.getKeyword(), endDateLimit, pageable);
+		};
 	}
 
 	/**
@@ -103,16 +120,24 @@ public class FestivalService {
 		String keyword = request.getKeyword();
 
 		//축제목록
-		Page<Festival> festivalPageList = festivalRepository.getFestivalList(null, null, null,
-			keyword, PageRequest.of(0, 10));
+		FestivalSearchRequest festival = FestivalSearchRequest.builder()
+			.keyword(keyword)
+			.order(FestivalOrderType.DATE_ASC)
+			.build();
+
+		Page<Festival> festivalPageList = getFestivalListType(festival, PageRequest.of(0, 10));
 		//List<FestivalResponse> festivalList = festivalPageList.stream().map(FestivalResponse::fromEntity).collect(Collectors.toList());
 		PageResult<FestivalResponse> resultFestivalList = PageResult.of(
 			festivalPageList.map(FestivalResponse::fromEntity)
 		);
 
 		//채팅방 목록
-		Page<ChatRoom> chatroomPageList = chatRoomRepository.chatFestivalRoomList(0, null, null,
-			keyword, PageRequest.of(0, 10));
+		SearchRequest searchRequest = SearchRequest.builder()
+			.keyword(keyword)
+			.order(OrderType.DATE_ASC)
+			.build();
+		Page<ChatRoom> chatroomPageList = chatRoomService
+			.getFestivalListTypeUser(0, searchRequest, PageRequest.of(0, 10));
 		//List<ChatRoomResponse> chatroomList = chatroomPageList.stream().map(ChatRoomResponse::fromEntity).collect(Collectors.toList());
 		PageResult<ChatRoomResponse> resultRoomList = PageResult.of(
 			chatroomPageList.map(ChatRoomResponse::fromEntity)
@@ -122,7 +147,6 @@ public class FestivalService {
 			resultFestivalList,
 			resultRoomList
 		);
-
 	}
 
 

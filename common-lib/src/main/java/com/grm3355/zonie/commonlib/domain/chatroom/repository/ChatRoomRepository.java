@@ -26,35 +26,88 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	 * @param pageable
 	 * @return
 	 */
+	//채팅방 참여자수 오름차순 정렬
+	@Query("""
+		SELECT new com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto(
+			c,
+			f.title,
+			COUNT(u)
+		)
+		FROM ChatRoom c
+		LEFT JOIN c.festival f
+		LEFT JOIN c.participants u
+		WHERE f.festivalId is not null
+		  AND (:festivalId =0 or f.festivalId =: festivalId)
+		  AND (:region IS NULL OR f.region = :region)
+		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
+		GROUP BY c.chatRoomId, c.title, f.title
+		ORDER BY COUNT(u) ASC
+    """)
+	Page<ChatRoom> chatFestivalRoomList_PART_ASC
+	(long festivalId, String region, String keyword, Pageable pageable);
 
-	//채팅방 참여자 오름차순 정렬
+	//채팅방 참여자수 내림차순 정렬
 	@Query(
 		value = """
-        SELECT c
-        FROM ChatRoom c LEFT JOIN Festival f ON f.festivalId = c.festival.festivalId
-        WHERE c.chatRoomId is not null
-			AND (:festivalId is null or :festivalId = 0 or f.festivalId = :festivalId)
-			AND (:region is null or f.region = :region)
-			AND (:keyword is null or c.title like concat('%', :keyword, '%'))
-			ORDER BY
-			 CASE
-			   WHEN :sortType = 'DATE_ASC' THEN c.createdAt
-			 END ASC,
-			 CASE
-			   WHEN :sortType = 'DATE_DESC' THEN c.createdAt
-			 END DESC,
-			 CASE
-			   WHEN :sortType = 'PART_ASC' THEN f.chatRoomCount
-			 END ASC,
-			 CASE
-			   WHEN :sortType = 'PART_DESC' THEN f.chatRoomCount
-			 END DESC							
+		SELECT new com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto(
+			c,
+			f.title,
+			COUNT(u)
+		)
+		FROM ChatRoom c
+		LEFT JOIN c.festival f
+		LEFT JOIN c.participants u
+		WHERE f.festivalId is not null
+		  AND (:festivalId =0 or f.festivalId =: festivalId)
+		  AND (:region IS NULL OR f.region = :region)
+		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
+		GROUP BY c.chatRoomId, c.title, f.title
+		ORDER BY COUNT(u) DESC
       """)
-	Page<ChatRoom> chatFestivalRoomList
-	(long festivalId, String region, String OrderType, String keyword, Pageable pageable);
+	Page<ChatRoom> chatFestivalRoomList_PART_DESC
+		(long festivalId, String region, String keyword, Pageable pageable);
 
+	//채팅방 최신순 오름차순 정렬
+	@Query(
+		value = """
+		SELECT new com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto(
+			c,
+			f.title,
+			COUNT(u)
+		)
+		FROM ChatRoom c
+		LEFT JOIN c.festival f
+		LEFT JOIN c.participants u
+		WHERE f.festivalId is not null
+		  AND (:festivalId =0 or f.festivalId =: festivalId)
+		  AND (:region IS NULL OR f.region = :region)
+		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
+		GROUP BY c.chatRoomId, c.title, f.title
+		ORDER BY c.createdAt ASC
+      """)
+	Page<ChatRoom> chatFestivalRoomList_DATE_ASC
+		(long festivalId, String region, String keyword, Pageable pageable);
 
-
+	//채팅방 최신순 내림차순 정렬
+	@Query(
+		value = """
+		SELECT new com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto(
+			c,
+			f.title,
+			COUNT(u)
+		)
+		FROM ChatRoom c
+		LEFT JOIN c.festival f
+		LEFT JOIN c.participants u
+		WHERE f.festivalId is not null
+		  AND (:festivalId =0 or f.festivalId =: festivalId)
+		  AND (:region IS NULL OR f.region = :region)
+		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
+		GROUP BY c.chatRoomId, c.title, f.title
+		ORDER BY c.createdAt DESC
+      """)
+	Page<ChatRoom> chatFestivalRoomList_DATE_DESC
+		(long festivalId, String region, String keyword, Pageable pageable);
 
 	/**
 	 * 내 채팅 관련 JPQL(userId로 조회)
@@ -64,7 +117,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	 * @param pageable
 	 * @return
 	 */
-	//채팅방 참여자 오름차순 정렬x
+	//채팅방 참여자수 오름차순 정렬
 	@Query("""
 		SELECT new com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto(
 			c,
@@ -79,23 +132,71 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		  AND (:region IS NULL OR f.region = :region)
 		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
 		GROUP BY c.chatRoomId, c.title, f.title
-		ORDER BY
-		 CASE
-		   WHEN :sortType = 'DATE_ASC' THEN f.eventStartDate
-		 END ASC,
-		 CASE
-		   WHEN :sortType = 'DATE_DESC' THEN f.eventStartDate
-		 END DESC,
-		 CASE
-		   WHEN :sortType = 'TITLE_ASC' THEN COUNT(u)
-		 END ASC,
-		 CASE
-		   WHEN :sortType = 'TITLE_DESC' THEN COUNT(u)
-		 END DESC
+		ORDER BY COUNT(u) ASC
 					 				        
     """)
-	Page<ChatRoomInfoDto> chatMyRoomList
-	(String userId, String region, String OrderType, String keyword, Pageable pageable);
+	Page<ChatRoomInfoDto> chatMyRoomList_PART_ASC
+	(String userId, String region, String keyword, Pageable pageable);
 
+	//채팅 참여자수 내림차순 정렬
+	@Query("""
+		SELECT new com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto(
+			c,
+			f.title,
+			COUNT(u)
+		)
+		FROM ChatRoom c
+		LEFT JOIN c.festival f
+		LEFT JOIN c.participants u
+		WHERE c.chatRoomId IS NOT NULL
+		  AND (u.user.userId=:userId)
+		  AND (:region IS NULL OR f.region = :region)
+		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
+		GROUP BY c.chatRoomId, c.title, f.title
+		ORDER BY COUNT(u) DESC
+					 				        
+    """)
+	Page<ChatRoomInfoDto> chatMyRoomList_PART_DESC
+		(String userId, String region, String keyword, Pageable pageable);
 
+	//등록일 오름차순
+	@Query("""
+		SELECT new com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto(
+			c,
+			f.title,
+			COUNT(u)
+		)
+		FROM ChatRoom c
+		LEFT JOIN c.festival f
+		LEFT JOIN c.participants u
+		WHERE c.chatRoomId IS NOT NULL
+		  AND (u.user.userId=:userId)
+		  AND (:region IS NULL OR f.region = :region)
+		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
+		GROUP BY c.chatRoomId, c.title, f.title
+		ORDER BY c.createdAt ASC
+    """)
+	Page<ChatRoomInfoDto> chatMyRoomList_DATE_ASC
+		(String userId, String region, String keyword, Pageable pageable);
+
+	//등록일 내림차순
+	@Query("""
+		SELECT new com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto(
+			c,
+			f.title,
+			COUNT(u)
+		)
+		FROM ChatRoom c
+		LEFT JOIN c.festival f
+		LEFT JOIN c.participants u
+		WHERE c.chatRoomId IS NOT NULL
+		  AND (u.user.userId=:userId)
+		  AND (:region IS NULL OR f.region = :region)
+		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
+		GROUP BY c.chatRoomId, c.title, f.title
+		ORDER BY c.createdAt DESC
+    """)
+	Page<ChatRoomInfoDto> chatMyRoomList_DATE_DESC
+		(String userId, String region, String keyword, Pageable pageable);
 }
+
