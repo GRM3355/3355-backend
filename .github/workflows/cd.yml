@@ -6,6 +6,7 @@ on:
     branches:
       - dev
       - main
+      - fix/25_cd_test
 
 env:
   ECR_REGISTRY: 548182874697.dkr.ecr.ap-northeast-2.amazonaws.com
