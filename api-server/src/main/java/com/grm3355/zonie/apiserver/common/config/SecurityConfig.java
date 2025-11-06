@@ -25,7 +25,7 @@ import com.grm3355.zonie.apiserver.common.filter.RateLimitingFilter;
 import com.grm3355.zonie.apiserver.common.jwt.JwtAccessDeniedHandler;
 import com.grm3355.zonie.apiserver.common.jwt.JwtAuthenticationEntryPoint;
 import com.grm3355.zonie.apiserver.common.jwt.JwtAuthenticationFilter;
-import com.grm3355.zonie.apiserver.common.jwt.JwtProvider;
+import com.grm3355.zonie.commonlib.domain.auth.JwtTokenProvider;
 import com.grm3355.zonie.apiserver.common.jwt.UserDetailsServiceImpl;
 
 @Configuration
@@ -43,7 +43,7 @@ public class SecurityConfig {
 		"/v3/api-docs/**",    // Swagger API 문서
 		"/api/v1/redis/ping"  // Redis 연결 테스트
 	}; // 인증 없이 접근을 허용하는 공개(Public) URL 패턴 목록
-	private final JwtProvider jwtProvider;
+	private final JwtTokenProvider jwtTokenProvider;
 	private final UserDetailsServiceImpl userDetailsService;
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 	private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
@@ -52,12 +52,12 @@ public class SecurityConfig {
 	@Value("${cors.allowed-origins}") // Added annotation
 	private String[] allowedOrigins; // Added fieldRateLimitingFilter
 
-	public SecurityConfig(JwtProvider jwtProvider,
+	public SecurityConfig(JwtTokenProvider jwtTokenProvider,
 		UserDetailsServiceImpl userDetailsService,
 		JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
 		JwtAccessDeniedHandler jwtAccessDeniedHandler,
 		RateLimitingFilter rateLimitingFilter) {
-		this.jwtProvider = jwtProvider;
+		this.jwtTokenProvider = jwtTokenProvider;
 		this.userDetailsService = userDetailsService;
 		this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
 		this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
@@ -92,7 +92,7 @@ public class SecurityConfig {
 	public JwtAuthenticationFilter jwtAuthenticationFilter() {
 		// JWT 기반 인증을 위한 커스텀 필터(JwtAuthenticationFilter)를 빈으로 등록한다.
 		// 이 필터는 모든 HTTP 요청에 대해 JWT 유효성을 검사하고 인증을 처리한다.
-		return new JwtAuthenticationFilter(jwtProvider, userDetailsService);
+		return new JwtAuthenticationFilter(jwtTokenProvider, userDetailsService);
 	}
 
 	@Bean

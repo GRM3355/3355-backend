@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 
 @Repository
-public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
+public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 	Optional<ChatRoom> findByChatRoomId(String chatRoomId);
 }

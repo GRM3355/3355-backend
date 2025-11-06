@@ -15,6 +15,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.grm3355.zonie.commonlib.domain.auth.JwtTokenProvider;
+
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-	private final JwtProvider jwtProvider;
+	private final JwtTokenProvider jwtTokenProvider;
 	private final UserDetailsServiceImpl userDetailsService;
 
 	@Override
@@ -45,12 +47,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		if (jwt != null) {
 			try {
-				jwtProvider.validateToken(jwt);
-				String email = jwtProvider.getEmailFromToken(jwt);
+				jwtTokenProvider.validateToken(jwt);
+				String userId = jwtTokenProvider.getUserIdFromToken(jwt);
 
 				// DB에서 최신 사용자 정보를 로드하여 토큰 정보의 유효성(예: 계정 잠금, 권한 변경 등)을 확인한다.
 				// 이는 토큰이 탈취되거나 사용자 상태가 변경되었을 때 발생할 수 있는 보안 문제를 방지한다.
-				UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+				UserDetails userDetails = userDetailsService.loadUserByUsername(userId);
 				UsernamePasswordAuthenticationToken authentication =
 					new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 

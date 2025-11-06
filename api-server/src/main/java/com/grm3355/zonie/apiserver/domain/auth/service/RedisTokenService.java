@@ -7,9 +7,8 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.apiserver.common.jwt.JwtProvider;
+import com.grm3355.zonie.commonlib.domain.auth.JwtTokenProvider;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
-import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
@@ -19,12 +18,12 @@ public class RedisTokenService {
 
 	private static final Duration TOKEN_TTL = Duration.ofMinutes(60); // TTL 5분 --> 임시로 60분으로 변경
 	private final StringRedisTemplate redisTemplate;
-	private final JwtProvider jwtProvider;
+	private final JwtTokenProvider jwtTokenProvider;
 	private final ObjectMapper objectMapper;
 
-	public RedisTokenService(StringRedisTemplate redisTemplate, JwtProvider jwtProvider, ObjectMapper objectMapper) {
+	public RedisTokenService(StringRedisTemplate redisTemplate, JwtTokenProvider jwtTokenProvider, ObjectMapper objectMapper) {
 		this.redisTemplate = redisTemplate;
-		this.jwtProvider = jwtProvider;
+		this.jwtTokenProvider = jwtTokenProvider;
 		this.objectMapper = objectMapper;
 	}
 
