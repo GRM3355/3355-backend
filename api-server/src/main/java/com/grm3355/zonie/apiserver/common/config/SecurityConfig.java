@@ -34,6 +34,8 @@ import com.grm3355.zonie.apiserver.common.jwt.UserDetailsServiceImpl;
 public class SecurityConfig {
 
 	private static final String[] WHITE_LIST = {
+		"/",    // Auth API
+		"/health",    // Auth API
 		"/api/v1/auth/**",    // Auth API
 		"/api/v1/location/**",    // location API
 		"/api/v1/batch/**",

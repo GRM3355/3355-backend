@@ -24,6 +24,8 @@ import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
+import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,18 +36,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@Tag(name = "Auth & User", description = "채팅방 생성")
+@Tag(name = "축제 목록 및 내용", description = "축제목록, 내용을 표시합니다.")
 @RequestMapping("/api/v1/")
 public class FestivalController {
 
-	private final ChatRoomService chatRoomService;
+	private final FestivalService festivalService;
 
-	public ChatRoomController(ChatRoomService chatRoomService) {
-		this.chatRoomService = chatRoomService;
+	public FestivalController(FestivalService festivalService) {
+		this.festivalService = festivalService;
 	}
 
 	//축제 목록
-	@Operation(summary = "축제별 채팅방 목록", description = "해당 축제의 채팅방을 볼 수 있다.")
+	@Operation(summary = "축제 목록", description = "해당 축제의 목록을 볼 수 있다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록표시", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class)
 		)),
@@ -75,39 +77,36 @@ public class FestivalController {
 		))
 	})
 	@GetMapping("/festivals")
-	public ResponseEntity<?> getFestivalLis(@PathVariable long festivalId,
-		@ModelAttribute SearchRequest request
+	public ResponseEntity<?> getFestivalList(@ModelAttribute FestivalSearchRequest request
 	) {
-		Page<ChatRoomResponse> pageList = chatRoomService.getFestivalChatRoomList(festivalId, request);
+		Page<ChatRoomResponse> pageList = festivalService.getFestivalList(request);
 		PageResponse<ChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 
 	//축제내용
-	@GetMapping("/festivals")
+	@GetMapping("/festivals/{festivalId}")
 	public ResponseEntity<?> gefFestivalContent(@PathVariable long festivalId,
 		@ModelAttribute SearchRequest request
 	) {
-		Page<ChatRoomResponse> pageList = chatRoomService.getFestivalChatRoomList(festivalId, request);
+		Page<ChatRoomResponse> pageList = chatRoomService.getFestivalContent(festivalId, request);
 		PageResponse<ChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 
 	//통합 검색
-	@GetMapping("/festivals")
-	public ResponseEntity<?> getTotalFestivalLis(@PathVariable long festivalId,
+	@GetMapping("/festivals/search")
+	public ResponseEntity<?> getFestivalLTotalSearch(@PathVariable long festivalId,
 		@ModelAttribute SearchRequest request
 	) {
-		Page<ChatRoomResponse> pageList = chatRoomService.getFestivalChatRoomList(festivalId, request);
+		Page<ChatRoomResponse> pageList = chatRoomService.getFestivalTotalSearch(festivalId, request);
 		PageResponse<ChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 
-	//축제 지역 목록
-	@GetMapping("/festivals")
-	public ResponseEntity<?> getFestivalRegion(@PathVariable long festivalId,
-		@ModelAttribute SearchRequest request
-	) {
+	//지역목록
+	@GetMapping("/festivals/region")
+	public ResponseEntity<?> getFestivalRegion() {
 		Page<ChatRoomResponse> pageList = chatRoomService.getFestivalChatRoomList(festivalId, request);
 		PageResponse<ChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
