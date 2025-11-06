@@ -85,7 +85,7 @@ public class ChatRoomService {
 		// 2. ChatRoomUser 엔티티 생성 및 DB 저장
 		ChatRoomUser newParticipant = ChatRoomUser.builder()
 			.user(user)
-			.chatRoomId(room)
+			.chatRoom(room)
 			.nickName(newNickname)
 			.lastReadAt(LocalDateTime.now()) // 최초 입장 시점
 			.build();
