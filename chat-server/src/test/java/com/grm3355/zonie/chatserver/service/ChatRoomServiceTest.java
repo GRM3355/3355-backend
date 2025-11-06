@@ -16,6 +16,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.ValueOperations;
 
+import com.grm3355.zonie.chatserver.util.JwtChannelInterceptor;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoomUser;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository;
@@ -42,6 +43,8 @@ class ChatRoomServiceTest {
 	private ValueOperations<String, Object> valueOperations;
 	@Mock
 	private SetOperations<String, Object> setOperations;
+	@Mock
+	private JwtChannelInterceptor jwtChannelInterceptor;
 
 	@InjectMocks
 	private ChatRoomService chatRoomService;
@@ -68,7 +71,7 @@ class ChatRoomServiceTest {
 		when(userRepository.findByUserId(userId)).thenReturn(Optional.of(mockUser));
 		when(chatRoomRepository.findById(roomId)).thenReturn(Optional.of(mockRoom));
 		// (3) 재방문자가 아님
-		when(chatRoomUserRepository.findByUserAndChatRoomId(any(), any())).thenReturn(Optional.empty());
+		when(chatRoomUserRepository.findByUserAndChatRoom(any(), any())).thenReturn(Optional.empty());
 		// (4) 닉네임 카운터가 1을 반환
 		when(valueOperations.increment(anyString(), eq(1L))).thenReturn(1L);
 
@@ -79,7 +82,7 @@ class ChatRoomServiceTest {
 		assertThat(nickname).isEqualTo("#1");
 		// (5) DB에 "참가자1" 닉네임으로 저장되었는지 검증
 		verify(chatRoomUserRepository, times(1)).save(argThat(
-			userRoom -> userRoom.getNickName().equals("참가자1")
+			userRoom -> userRoom.getNickName().equals("#1")
 		));
 	}
 
@@ -96,7 +99,7 @@ class ChatRoomServiceTest {
 		when(userRepository.findByUserId(anyString())).thenReturn(Optional.of(User.builder().build()));
 		when(chatRoomRepository.findById(anyString())).thenReturn(Optional.of(ChatRoom.builder().build()));
 		// (3) 재방문자로 확인됨
-		when(chatRoomUserRepository.findByUserAndChatRoomId(any(), any())).thenReturn(Optional.of(existingUser));
+		when(chatRoomUserRepository.findByUserAndChatRoom(any(), any())).thenReturn(Optional.of(existingUser));
 
 		// when
 		String nickname = chatRoomService.joinRoom("returning-user", "room-1");

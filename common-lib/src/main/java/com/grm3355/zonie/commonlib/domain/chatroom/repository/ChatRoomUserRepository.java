@@ -17,9 +17,9 @@ import com.grm3355.zonie.commonlib.domain.user.entity.User;
 public interface ChatRoomUserRepository extends JpaRepository<ChatRoomUser, Long> {
 	Optional<ChatRoomUser> findByChatRoomUserId(long chatRoomId);
 
-	Optional<ChatRoomUser> findByUserAndChatRoomId(User user, ChatRoom room); // 닉네임 중복 방지 및 재방문자 확인용
+	Optional<ChatRoomUser> findByUserAndChatRoom(User user, ChatRoom room); // 닉네임 중복 방지 및 재방문자 확인용
 
-	void deleteByUserAndChatRoomId(User user, ChatRoom room); // (퇴장 시 삭제) 명시적 퇴장 (leaveRoom) 시 사용
+	void deleteByUserAndChatRoom(User user, ChatRoom room); // (퇴장 시 삭제) 명시적 퇴장 (leaveRoom) 시 사용
 
 	@Modifying
 	@Query("UPDATE ChatRoomUser cru SET cru.lastReadAt = :now WHERE cru.user.userId = :userId")

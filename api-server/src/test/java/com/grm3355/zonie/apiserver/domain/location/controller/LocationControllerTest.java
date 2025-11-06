@@ -1,39 +1,8 @@
 package com.grm3355.zonie.apiserver.domain.location.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
-import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
-import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
-import com.grm3355.zonie.apiserver.domain.location.dto.ChatRoomZoneVarifyResponse;
-import com.grm3355.zonie.apiserver.domain.location.dto.FestivalZoneVarifyResponse;
-import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
-import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
-import com.grm3355.zonie.commonlib.global.response.ApiResponse;
-
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.utility.DockerImageName;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @DisplayName("위치 갱신 통합테스트")
 @SpringBootTest

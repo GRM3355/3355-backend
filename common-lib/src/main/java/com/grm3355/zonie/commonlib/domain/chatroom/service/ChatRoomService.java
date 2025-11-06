@@ -2,7 +2,6 @@ package com.grm3355.zonie.commonlib.domain.chatroom.service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Random;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,7 @@ import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 
 @Slf4j
-@Service
+@Service("chatRoomParticipationService")
 @RequiredArgsConstructor
 public class ChatRoomService {
 
@@ -61,7 +60,7 @@ public class ChatRoomService {
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
 
 		// 3. (REQ-CHAT-08) 재방문자 처리: DB에 ChatRoomUser 데이터가 있는지 확인
-		Optional<ChatRoomUser> existingParticipant = chatRoomUserRepository.findByUserAndChatRoomId(user, room);
+		Optional<ChatRoomUser> existingParticipant = chatRoomUserRepository.findByUserAndChatRoom(user, room);
 
 		if (existingParticipant.isPresent()) {
 			// 3-A. 재방문자 (이미 DB에 닉네임이 저장되어 있음)
@@ -160,7 +159,7 @@ public class ChatRoomService {
 
 		// 3. (REQ-CHAT-08) DB 삭제: user_chat_rooms 테이블에서 해당 데이터 DELETE
 		//    (재입장 시 신규 입장자로 간주되어 새 닉네임을 받게 됨)
-		chatRoomUserRepository.deleteByUserAndChatRoomId(user, room);
+		chatRoomUserRepository.deleteByUserAndChatRoom(user, room);
 		log.info("Successfully removed user {} from room {} permanently.", userId, roomId);
 	}
 }

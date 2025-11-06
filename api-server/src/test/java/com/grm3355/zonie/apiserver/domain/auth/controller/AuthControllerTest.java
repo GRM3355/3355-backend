@@ -9,9 +9,7 @@ import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
-import org.mockito.InjectMocks;
 import org.mockito.Mockito;
-import org.mockito.Spy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -23,7 +21,6 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 
 @DisplayName("토큰 발행 통합테스트")
 @WebMvcTest(AuthController.class)

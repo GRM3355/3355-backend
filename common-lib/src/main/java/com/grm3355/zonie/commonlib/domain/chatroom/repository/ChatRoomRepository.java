@@ -11,7 +11,6 @@ import org.springframework.stereotype.Repository;
 
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
-import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
 
 @Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
