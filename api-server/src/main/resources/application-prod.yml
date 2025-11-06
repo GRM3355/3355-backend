@@ -25,7 +25,7 @@ spring:
   # --- JPA (운영용) ---
   jpa:
     hibernate:
-      ddl-auto: none # 운영 환경에서는 validate 또는 none 사용
+      ddl-auto: update # 운영 환경에서는 validate 또는 none 사용,테이블 생성하기위해서 update 처리, 차후에 none처리
     show-sql: false
 
 logging:
