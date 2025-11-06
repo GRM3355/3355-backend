@@ -138,30 +138,34 @@ public class ChatRoomService {
 	 * @return
 	 */
 	@Transactional
-	public Page<ChatRoomResponse> getFestivalChatRoomList(long festivalId,
+	public Page<MyChatRoomResponse> getFestivalChatRoomList(long festivalId,
 		SearchRequest req) {
+
+		System.out.println("============>getFestivalChatRoomList 111");
 
 		Sort.Order order = Sort.Order.desc("createdAt");
 		Pageable pageable = PageRequest.of(req.getPage() - 1,
 			req.getPageSize(), Sort.by(order));
 
+		System.out.println("============>getFestivalChatRoomList 222");
 		//ListType 내용 가져오기
-		Page<ChatRoom> pageList = getFestivalListTypeUser(festivalId, req, pageable);
+		Page<ChatRoomInfoDto> pageList = getFestivalListTypeUser(festivalId, req, pageable);
 
+		System.out.println("============>getFestivalChatRoomList 333");
 		//페이지 변환
-		List<ChatRoomResponse> dtoPage = pageList.stream().map(ChatRoomResponse::fromEntity)
+		List<MyChatRoomResponse> dtoPage = pageList.stream().map(MyChatRoomResponse::fromDto)
 			.collect(Collectors.toList());
 
+		System.out.println("============>getFestivalChatRoomList 444");
 		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
 	}
 
 	//축제별 채팅방 검색조건별 목록 가져오기
-	public Page<ChatRoom> getFestivalListTypeUser(
+	public Page<ChatRoomInfoDto> getFestivalListTypeUser(
 		long festivalId, SearchRequest req, Pageable pageable) {
 
 		Region region = req.getRegion();
 		String regionStr = region != null ? region.toString() : null;
-		String order = req.getOrder().toString();
 
 		return switch (req.getOrder()) {
 			case PART_ASC -> chatRoomRepository
@@ -184,7 +188,6 @@ public class ChatRoomService {
 	@Transactional
 	public Page<MyChatRoomResponse> getMyroomChatRoomList(UserDetailsImpl userDetails,
 		SearchRequest req) {
-
 		String userId = userDetails.getUsername();
 
 		Sort.Order order = Sort.Order.desc("createdAt");
@@ -206,7 +209,6 @@ public class ChatRoomService {
 
 		Region region = req.getRegion();
 		String regionStr = region != null ? region.toString() : null;
-		String order = req.getOrder().toString();
 
 		return switch (req.getOrder()) {
 			case PART_ASC -> chatRoomRepository

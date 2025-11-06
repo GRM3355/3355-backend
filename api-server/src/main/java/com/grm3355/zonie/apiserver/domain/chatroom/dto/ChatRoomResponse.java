@@ -42,7 +42,6 @@ public class ChatRoomResponse {
 	@Schema(description = "경도", example = "123.233")
 	private double lon;
 
-
 	public static ChatRoomResponse fromEntity(ChatRoom chatRoom) {
 		return new ChatRoomResponse(
 			chatRoom.getChatRoomId(),

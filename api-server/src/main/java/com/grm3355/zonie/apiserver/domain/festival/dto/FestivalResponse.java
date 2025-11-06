@@ -61,19 +61,8 @@ public class FestivalResponse {
 
 	public static FestivalResponse fromEntity(Festival festival) {
 
-		//LocalDateTime dateTime = LocalDateTime.parse(festival.getEventStartDate(),
-		//	DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-		//LocalDate dateOnly = dateTime.toLocalDate();
-
-		LocalDate startDateTime = LocalDate.from(LocalDateTime.parse(
-			festival.getEventStartDate().toString(),
-			DateTimeFormatter.ofPattern("yyyy-MM-dd")
-		));
-
-		LocalDate endDateTime = LocalDate.from(LocalDateTime.parse(
-			festival.getEventStartDate().toString(),
-			DateTimeFormatter.ofPattern("yyyy-MM-dd")
-		));
+		LocalDate startDateTime = festival.getEventStartDate();
+		LocalDate endDateTime = festival.getEventEndDate();
 
 		return new FestivalResponse(
 			festival.getFestivalId(),

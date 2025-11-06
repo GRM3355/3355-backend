@@ -1,35 +1,19 @@
 package com.grm3355.zonie.apiserver.domain.festival.controller;
 
-import java.net.URI;
-import java.util.Arrays;
 import java.util.List;
-
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.grm3355.zonie.apiserver.common.dto.PageResponse;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.SearchRequest;
-import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
-import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
-import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchDto;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
-import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalTotalSearchResponse;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
 import com.grm3355.zonie.commonlib.global.enums.Region;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
@@ -57,7 +41,7 @@ public class FestivalController {
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록표시", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class)
 		)),
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 유효성 검증 실패", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-			examples = @ExampleObject(
+				examples = @ExampleObject(
 				name = "BAD_REQUEST",
 				value = "{\"success\":false,\"status\":400,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 			)
@@ -123,42 +107,6 @@ public class FestivalController {
 		@ModelAttribute SearchRequest request
 	) {
 		FestivalResponse response = festivalService.getFestivalContent(festivalId);
-		return ResponseEntity.ok().body(ApiResponse.success(response));
-	}
-
-	@Operation(summary = "통합검색", description = "해당 축제의 내용을 볼 수 있다.")
-	@ApiResponses({
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "내용표시", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class)
-		)),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 유효성 검증 실패", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-			examples = @ExampleObject(
-				name = "BAD_REQUEST",
-				value = "{\"success\":false,\"status\":400,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-			)
-		)),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "405", description = "허용되지 않은 메소드", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-			examples = @ExampleObject(
-				name = "METHOD_NOT_ALLOWED",
-				value = "{\"success\":false,\"status\":405,\"error\":{\"code\":\"METHOD_NOT_ALLOWED\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-			)
-		)),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "415", description = "UNSUPPORTED_MEDIA_TYPE", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-			examples = @ExampleObject(
-				name = "UNSUPPORTED_MEDIA_TYPE",
-				value = "{\"success\":false,\"status\":415,\"error\":{\"code\":\"UNSUPPORTED_MEDIA_TYPE\",\"message\":\"잘못된 콘텐츠 타입입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-			)
-		)),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "429", description = "요청 횟수 초과", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-			examples = @ExampleObject(
-				name = "TOO_MANY_REQUESTS",
-				value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
-			)
-		))
-	})	//통합 검색
-	@GetMapping("/festivals/search")
-	public ResponseEntity<?> getFestivalLTotalSearch(@Valid @ModelAttribute FestivalSearchDto request
-	) {
-		FestivalTotalSearchResponse response = festivalService.getTotalSearch(request);
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 

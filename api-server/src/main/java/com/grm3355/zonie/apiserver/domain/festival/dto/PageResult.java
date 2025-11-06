@@ -1,6 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.festival.dto;
 
 import java.util.List;
+import java.util.function.Function;
 
 import org.springframework.data.domain.Page;
 
@@ -22,4 +23,10 @@ public class PageResult<T> {
 			page.getContent()
 		);
 	}
+	public static <T, R> PageResult<R> of(Page<T> page, Function<? super T, ? extends R> mapper) {
+		List<R> mappedItems = (List<R>)page.stream().map(mapper).toList();
+		return new PageResult<>(page.getTotalElements(), mappedItems);
+	}
+
 }
+

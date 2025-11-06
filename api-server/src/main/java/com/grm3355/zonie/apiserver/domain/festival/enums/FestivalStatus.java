@@ -6,7 +6,7 @@ import lombok.Getter;
 public enum FestivalStatus {
 	UPCOMING("예정"),
 	ONGOING("진행 중"),
-	ENDED("종료");
+	ALL("전체");
 
 	private final String name;
 

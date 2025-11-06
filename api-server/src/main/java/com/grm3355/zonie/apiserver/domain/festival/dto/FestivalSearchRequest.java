@@ -49,7 +49,8 @@ public class FestivalSearchRequest {
 	private Region region;
 
 	@Schema(description = "축제진행여부")
-	private FestivalStatus status;
+	@Builder.Default
+	private FestivalStatus status = FestivalStatus.ALL;
 
 	@Schema(description = "검색어")
 	private String keyword;

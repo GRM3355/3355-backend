@@ -54,7 +54,7 @@ public class ChatRoom extends BaseTimeEntity {
 	@Column(name = "title", nullable = false, length = 100)
 	private String title;
 
-	@Column(name = "cover_image_url", nullable = false, length = 100)
+	@Column(name = "cover_image_url", length = 100)
 	private String coverImageUrl;
 
 	@Column(name = "max_participants", nullable = false)

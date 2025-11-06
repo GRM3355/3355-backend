@@ -118,8 +118,8 @@ public class ChatRoomController {
 	public ResponseEntity<?> getChatRoomList(@PathVariable long festivalId,
 		@ModelAttribute SearchRequest request
 		) {
-		Page<ChatRoomResponse> pageList = chatRoomService.getFestivalChatRoomList(festivalId, request);
-		PageResponse<ChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
+		Page<MyChatRoomResponse> pageList = chatRoomService.getFestivalChatRoomList(festivalId, request);
+		PageResponse<MyChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 

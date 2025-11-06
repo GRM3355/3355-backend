@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
+import com.grm3355.zonie.commonlib.global.enums.Region;
 
 @Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
@@ -38,12 +39,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		LEFT JOIN c.participants u
 		WHERE f.festivalId is not null
 		  AND (:festivalId =0 or f.festivalId =: festivalId)
-		  AND (:region IS NULL OR f.region = :region)
+		  AND (:region is null or f.region = :region)
 		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
 		GROUP BY c.chatRoomId, c.title, f.title
 		ORDER BY COUNT(u) ASC
     """)
-	Page<ChatRoom> chatFestivalRoomList_PART_ASC
+	Page<ChatRoomInfoDto> chatFestivalRoomList_PART_ASC
 	(long festivalId, String region, String keyword, Pageable pageable);
 
 	//채팅방 참여자수 내림차순 정렬
@@ -59,12 +60,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		LEFT JOIN c.participants u
 		WHERE f.festivalId is not null
 		  AND (:festivalId =0 or f.festivalId =: festivalId)
-		  AND (:region IS NULL OR f.region = :region)
+		  AND (:region is null or f.region = :region)
 		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
 		GROUP BY c.chatRoomId, c.title, f.title
 		ORDER BY COUNT(u) DESC
       """)
-	Page<ChatRoom> chatFestivalRoomList_PART_DESC
+	Page<ChatRoomInfoDto> chatFestivalRoomList_PART_DESC
 		(long festivalId, String region, String keyword, Pageable pageable);
 
 	//채팅방 최신순 오름차순 정렬
@@ -80,12 +81,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		LEFT JOIN c.participants u
 		WHERE f.festivalId is not null
 		  AND (:festivalId =0 or f.festivalId =: festivalId)
-		  AND (:region IS NULL OR f.region = :region)
+		  AND (:region is null or f.region = :region)
 		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
 		GROUP BY c.chatRoomId, c.title, f.title
 		ORDER BY c.createdAt ASC
       """)
-	Page<ChatRoom> chatFestivalRoomList_DATE_ASC
+	Page<ChatRoomInfoDto> chatFestivalRoomList_DATE_ASC
 		(long festivalId, String region, String keyword, Pageable pageable);
 
 	//채팅방 최신순 내림차순 정렬
@@ -101,12 +102,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		LEFT JOIN c.participants u
 		WHERE f.festivalId is not null
 		  AND (:festivalId =0 or f.festivalId =: festivalId)
-		  AND (:region IS NULL OR f.region = :region)
+		  AND (:region is null or f.region = :region)
 		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
 		GROUP BY c.chatRoomId, c.title, f.title
 		ORDER BY c.createdAt DESC
       """)
-	Page<ChatRoom> chatFestivalRoomList_DATE_DESC
+	Page<ChatRoomInfoDto> chatFestivalRoomList_DATE_DESC
 		(long festivalId, String region, String keyword, Pageable pageable);
 
 	/**
