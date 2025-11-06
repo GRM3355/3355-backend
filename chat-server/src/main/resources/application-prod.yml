@@ -36,3 +36,8 @@ logging:
     # 운영 환경에서는 INFO 레벨만 로깅 (DEBUG는 너무 많음)
     root: INFO
     com.grm3355.zonie: INFO
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  access-token-expiration-time: 86400000 # 24시간
+  location-token-expiration-time: 600000 # 10분

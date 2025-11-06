@@ -17,6 +17,16 @@
         }
       ],
       "essential": true,
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8081/health || exit 1"
+        ],
+        "interval": 10,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 60
+      },
       "environment": [
         { "name": "SPRING_PROFILES_ACTIVE", "value": "prod" }
       ],
@@ -26,7 +36,8 @@
         { "name": "DB_PROD_PASSWORD", "valueFrom": "DB_PROD_PASSWORD" },
         { "name": "MONGO_PROD_URI", "valueFrom": "MONGO_PROD_URI" },
         { "name": "REDIS_PROD_HOST", "valueFrom": "REDIS_PROD_HOST" },
-        { "name": "REDIS_PROD_PASSWORD", "valueFrom": "REDIS_PROD_PASSWORD" }
+        { "name": "REDIS_PROD_PASSWORD", "valueFrom": "REDIS_PROD_PASSWORD" },
+        { "name": "JWT_SECRET_KEY", "valueFrom": "JWT_SECRET_KEY" }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
