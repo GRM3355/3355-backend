@@ -49,6 +49,10 @@ public class ApiResponse<T> {
 		return new ApiResponse<>(false, null, new ErrorResponse(errorCode, message), LocalDateTime.now());
 	}
 
+	public static <T> ApiResponse<T> failure(String errorCode, String message, T data) {
+		return new ApiResponse<>(false, data, new ErrorResponse(errorCode, message), LocalDateTime.now());
+	}
+
 	public static <T> ApiResponse<T> of(boolean success, String errorCode, String message, T data) {
 		return new ApiResponse<>(success, data, new ErrorResponse(errorCode, message), LocalDateTime.now());
 	}

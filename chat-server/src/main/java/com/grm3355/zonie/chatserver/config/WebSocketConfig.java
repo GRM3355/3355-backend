@@ -1,14 +1,22 @@
 package com.grm3355.zonie.chatserver.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import com.grm3355.zonie.chatserver.util.JwtChannelInterceptor;
+
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @EnableWebSocketMessageBroker // STOMP 메시지 브로커 기능을 활성화
+@RequiredArgsConstructor
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
+	private final JwtChannelInterceptor jwtChannelInterceptor;
 
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
@@ -28,5 +36,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 		// 이곳에 등록된 SimpleBroker(/sub)로 전송하여 클라이언트에게 브로드캐스팅함.
 		registry.enableSimpleBroker("/sub");
 
+	}
+
+	@Override
+	public void configureClientInboundChannel(ChannelRegistration registration) {
+		// 클라이언트에서 들어오는 메시지 (CONNECT, SEND, SUBSCRIBE 등)를 가로챕니다.
+		registration.interceptors(jwtChannelInterceptor);
 	}
 }

@@ -1,12 +1,17 @@
 package com.grm3355.zonie.chatserver.controller;
 
+import java.security.Principal;
+import java.util.Map;
+
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import com.grm3355.zonie.chatserver.dto.MessageSendRequest;
+import com.grm3355.zonie.commonlib.domain.chatroom.service.ChatRoomService;
 import com.grm3355.zonie.commonlib.domain.message.MessageService;
 
 import lombok.RequiredArgsConstructor;
@@ -17,10 +22,61 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ChatRoomHandler {
 
-	// private final ChatRoomService chatRoomService; // (feature/15)
+	private final ChatRoomService chatRoomService;
 	private final MessageService messageService;
+	private static final String USER_ID_ATTR = "userId";
 
-	// ... (@MessageMapping("/join"), @MessageMapping("/leave") ... )
+	/**
+	 * 세션 속성에서 userId를 가져오는 헬퍼 메소드
+	 */
+	private String getUserIdFromSession(StompHeaderAccessor accessor) {
+		Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
+		if (sessionAttributes == null) {
+			log.error("StompHeaderAccessor sessionAttributes is null. SessionId: {}", accessor.getSessionId());
+			throw new RuntimeException("Session attributes are null.");
+		}
+
+		String userId = (String) sessionAttributes.get(USER_ID_ATTR);
+		if (userId == null) {
+			log.warn("Cannot find userId in session attributes for session: {}", accessor.getSessionId());
+			throw new RuntimeException("User not authenticated for this operation."); // WebSocketAnnotationMethodMessageHandler
+		}
+
+		return userId;
+	}
+
+	/**
+	 * 채팅방 입장 (Join)
+	 */
+	@MessageMapping("/chat-rooms/{roomId}/join")
+	public void joinRoom(
+		@DestinationVariable String roomId,
+		// @AuthenticationPrincipal Principal principal,
+		StompHeaderAccessor accessor
+	) {
+		String userId = getUserIdFromSession(accessor);
+		log.info(">>> STOMP RECV /app/chat-rooms/{}/join [User: {}]", roomId, userId);
+
+		// 참여 로직 실행 (닉네임 생성, Redis Set 추가, DB 저장)
+		String nickname = chatRoomService.joinRoom(userId, roomId);
+
+	}
+
+	/**
+	 * 채팅방 퇴장 (Leave)
+	 */
+	@MessageMapping("/chat-rooms/{roomId}/leave")
+	public void leaveRoom(
+		@DestinationVariable String roomId,
+		// @AuthenticationPrincipal Principal principal,
+		StompHeaderAccessor accessor
+	) {
+		String userId = getUserIdFromSession(accessor);
+		log.info(">>> STOMP RECV /app/chat-rooms/{}/leave [User: {}]", roomId, userId);
+
+		// 퇴장 로직 실행 (Redis Set 제거, DB 삭제)
+		chatRoomService.leaveRoom(userId, roomId);
+	}
 
 	/**
 	 * 채팅 메시지 전송 (Send)
@@ -29,14 +85,12 @@ public class ChatRoomHandler {
 	public void sendMessage(
 		@DestinationVariable String roomId,
 		@Payload MessageSendRequest request,
-		// @AuthenticationPrincipal UserDetailsImpl user,
+		// @AuthenticationPrincipal Principal principal,
 		StompHeaderAccessor accessor
 	) {
 
-		String userId = request.getTempUserId();
+		String userId = getUserIdFromSession(accessor);
 		String content = request.getContent();
-
-		// String userId = user.getUsername();
 
 		// 1. Location-Token 헤더 검증
 		// String locationToken = accessor.getFirstNativeHeader("Location-Token");

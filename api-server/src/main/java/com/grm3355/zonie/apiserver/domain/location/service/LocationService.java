@@ -3,6 +3,7 @@ package com.grm3355.zonie.apiserver.domain.location.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
@@ -54,19 +55,19 @@ public class LocationService {
 
 
 	@Transactional
-	public LocationTokenResponse update(LocationDto locationDto, String savedToken) {
+	public LocationTokenResponse update(LocationDto locationDto, UserDetailsImpl userDetails) {
 
+		String savedToken = userDetails.getUsername();
 		boolean value = redisTokenService.updateLocationInfo(locationDto, savedToken);
-		String message = value==true? "갱신되었습니다" : "갱신에 실패하였습니다.";
+		String message = value==true? "갱신되었습니다." : "갱신에 실패하였습니다.";
 		return new LocationTokenResponse(message);
 	}
 
 
-	public FestivalZoneVarifyResponse getFestivalVerify(String userId, long festivalId) {
-
-		//토큰 만료여부 검증
+	public FestivalZoneVarifyResponse getFestivalVerify(UserDetailsImpl userDetails, long festivalId) {
 
 		//Redis에서 토큰정보 가져오기
+		String userId = userDetails.getUsername();
 		UserTokenDto userTokenDto = getLocationInfo(userId);
 		LocationDto locationDto = LocationDto.builder().lat(userTokenDto.getLat()).lon(userTokenDto.getLon()).build();
 
@@ -85,9 +86,10 @@ public class LocationService {
 
 	}
 
-	public ChatRoomZoneVarifyResponse getChatroomVerify(String userId, String chatroomId) {
+	public ChatRoomZoneVarifyResponse getChatroomVerify(UserDetailsImpl userDetails, String chatroomId) {
 
 		//토큰 만료여부 검증
+		String userId  = userDetails.getUsername();
 
 		//Redis에서 토큰정보 가져오기
 		UserTokenDto userTokenDto = getLocationInfo(userId);

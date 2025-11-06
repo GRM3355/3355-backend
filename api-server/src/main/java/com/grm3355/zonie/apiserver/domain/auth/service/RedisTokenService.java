@@ -7,9 +7,8 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.apiserver.common.jwt.JwtProvider;
+import com.grm3355.zonie.commonlib.domain.auth.JwtTokenProvider;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
-import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
@@ -19,12 +18,12 @@ public class RedisTokenService {
 
 	private static final Duration TOKEN_TTL = Duration.ofMinutes(60); // TTL 5분 --> 임시로 60분으로 변경
 	private final StringRedisTemplate redisTemplate;
-	private final JwtProvider jwtProvider;
+	private final JwtTokenProvider jwtTokenProvider;
 	private final ObjectMapper objectMapper;
 
-	public RedisTokenService(StringRedisTemplate redisTemplate, JwtProvider jwtProvider, ObjectMapper objectMapper) {
+	public RedisTokenService(StringRedisTemplate redisTemplate, JwtTokenProvider jwtTokenProvider, ObjectMapper objectMapper) {
 		this.redisTemplate = redisTemplate;
-		this.jwtProvider = jwtProvider;
+		this.jwtTokenProvider = jwtTokenProvider;
 		this.objectMapper = objectMapper;
 	}
 
@@ -37,6 +36,7 @@ public class RedisTokenService {
 	public void generateLocationToken(UserTokenDto info) {
 		String redisKey = buildKey(info.getUserId());
 
+		System.out.println("====================>generateLocationToken="+redisKey);
 		try {
 			String infoJson = objectMapper.writeValueAsString(info);
 			// Redis에 10분 TTL로 저장
@@ -44,6 +44,7 @@ public class RedisTokenService {
 
 			UserTokenDto userTokenDto = getLocationInfo(info.getUserId());
 
+			System.out.println("====================>generateLocationToken true"+userTokenDto.getLat()+"___"+userTokenDto.getLon());
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Redis 저장 중 오류 발생", e);
 		}
@@ -54,8 +55,8 @@ public class RedisTokenService {
 
 	// Redis에서 locationToken 정보 조회
 	public UserTokenDto getLocationInfo(String token) {
-		String redisKey = buildKey(token);
 
+		String redisKey = buildKey(token);
 		String saved = redisTemplate.opsForValue().get(redisKey);
 		if (saved == null)
 			return null;
@@ -65,6 +66,12 @@ public class RedisTokenService {
 		} catch (JsonProcessingException e) {
 			return null;
 		}
+	}
+
+	//토큰 값 체크
+	public boolean validateLocationToken(String userId) {
+		String token = redisTemplate.opsForValue().get(buildKey(userId));
+		return token != null && !token.isBlank();
 	}
 
 	/**

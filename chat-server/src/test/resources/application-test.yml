@@ -29,3 +29,6 @@
 logging:
   level:
     com.grm3355.zonie: DEBUG
+
+jwt:
+  secret: "ci-test-fake-secret-key-that-is-long-enough-for-the-test-to-pass"

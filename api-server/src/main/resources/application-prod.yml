@@ -25,7 +25,7 @@ spring:
   # --- JPA (운영용) ---
   jpa:
     hibernate:
-      ddl-auto: validate # 운영 환경에서는 validate 또는 none 사용
+      ddl-auto: update # 운영 환경에서는 validate 또는 none 사용,테이블 생성하기위해서 update 처리, 차후에 none처리
     show-sql: false
 
 logging:
@@ -40,7 +40,7 @@ jwt:
   location-token-expiration-time: 600000 # 10분
 #cors
 cors:
-  allowed-origins: "http://localhost:8082,http://zony.kro.kr, http://www.zony.kro.kr,https://zony.kro.kr, https://www.zony.kro.kr"
+  allowed-origins: "http://localhost:8082,http://zony.kro.kr,http://www.zony.kro.kr,http://api.zony.kro.kr,https://zony.kro.kr,https://www.zony.kro.kr,https://api.zony.kro.kr"
 #공공데이터 api
 openapi:
   serviceKey: ${OPENAPI_SERVICE_KEY}
