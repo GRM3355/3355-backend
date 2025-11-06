@@ -46,7 +46,7 @@ public class ChatRoomService {
 	private static int MAX_ROOM = 30;
 	private static double MAX_RADIUS = 1.0;
 	private final RedisTokenService redisTokenService;
-	private final FestivalInfoService festivalService;
+	private final FestivalInfoService festivalInfoService;
 	private final ChatRoomRepository chatRoomRepository;
 	private final UserRepository userRepository;
 	private final FestivalRepository festivalRepository;
@@ -54,11 +54,11 @@ public class ChatRoomService {
 	// GeometryFactory 생성 (보통 한 번만 만들어 재사용)
 	GeometryFactory geometryFactory = new GeometryFactory();
 
-	public ChatRoomService(RedisTokenService redisTokenService, FestivalInfoService festivalService,
+	public ChatRoomService(RedisTokenService redisTokenService, FestivalInfoService festivalInfoService,
 		ChatRoomRepository chatRoomRepository, UserRepository userRepository, FestivalRepository festivalRepository
 	) {
 		this.redisTokenService = redisTokenService;
-		this.festivalService = festivalService;
+		this.festivalInfoService = festivalInfoService;
 		this.chatRoomRepository = chatRoomRepository;
 		this.userRepository = userRepository;
 		this.festivalRepository = festivalRepository;
@@ -86,7 +86,7 @@ public class ChatRoomService {
 		}
 
 		//2. 축제 존재여부체크
-		Festival festival = festivalService.getDataValid(festivalId);
+		Festival festival = festivalInfoService.getDataValid(festivalId);
 
 		//3. 축제 거리계산하기
 		LocationDto location1 = getUserPostion(userId);
@@ -117,8 +117,7 @@ public class ChatRoomService {
 		ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
 
 		//festival에 채팅방갯수 저장 /festivalId
-		festivalRepository.
-
+		festivalInfoService.increaseChatRoomCount(festivalId);
 
 		//dto 변환
 		ChatRoomResponse chatRoomResponse = ChatRoomResponse.builder()

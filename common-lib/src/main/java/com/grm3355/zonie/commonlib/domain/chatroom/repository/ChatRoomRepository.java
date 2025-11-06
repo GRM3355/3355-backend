@@ -50,7 +50,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 			   WHEN :sortType = 'PART_DESC' THEN f.chatRoomCount
 			 END DESC							
       """)
-	Page<ChatRoom> chatFestivlRoomList
+	Page<ChatRoom> chatFestivalRoomList
 	(long festivalId, String region, String OrderType, String keyword, Pageable pageable);
 
 

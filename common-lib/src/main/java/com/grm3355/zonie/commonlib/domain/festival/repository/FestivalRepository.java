@@ -58,6 +58,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 				OR (:status = 'ONGOING' AND f.eventStartDate <= CURRENT_DATE AND f.eventEndDate >= CURRENT_DATE)
 				OR (:status = 'UPCOMING' AND f.eventStartDate > CURRENT_DATE)
 			  )		
+			AND (f.eventEndDate >= CURRENT_TIMESTAMP AND f.eventStartDate <= CURRENT_TIMESTAMP + 30)
 			AND (:keyword is null or f.title like concat('%', :keyword, '%'))
 			ORDER BY
 			 CASE
@@ -74,7 +75,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			 END DESC			
 									
       """)
-	Page<Festival> getFestivlList(String region, String status, String OrderType, String keyword, Pageable pageable);
+	Page<Festival> getFestivalList(String region, String status, String OrderType, String keyword, Pageable pageable);
 
 
 }

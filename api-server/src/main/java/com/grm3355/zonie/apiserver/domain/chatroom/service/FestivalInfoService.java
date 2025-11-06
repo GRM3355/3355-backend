@@ -1,6 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
@@ -26,6 +27,6 @@ public class FestivalInfoService {
 	//채팅방 등록시 chatRoomCount +1
 	@Transactional
 	public void increaseChatRoomCount(Long festivalId) {
-		festivalRepository.incrementChatRoomCount(festivalId);
+		festivalRepository.updateFestivalChatRoomCount(festivalId);
 	}
 }
