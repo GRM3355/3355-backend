@@ -69,7 +69,7 @@ public class GlobalExceptionHandler {
 	/* ======= Validation (@Valid/@Validated) ======= */
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<?> handleMethodArgumentNotValid(
-		 MethodArgumentNotValidException ex, HttpServletRequest req) {
+		MethodArgumentNotValidException ex, HttpServletRequest req) {
 
 		// log.error("=================================> MethodArgumentNotValidException.class 에러 로그 찍기", ex); // 예외 로그 찍기
 		//  Map<String, String> fieldErrors = new LinkedHashMap<>();

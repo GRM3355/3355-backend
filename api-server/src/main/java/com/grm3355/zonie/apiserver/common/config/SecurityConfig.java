@@ -41,6 +41,7 @@ public class SecurityConfig {
 		"/api/v1/batch/**",		//batch
 		"/api/v1/chat-rooms/**", //chat-rooms
 		"/api/v1/festivals/**",  //festival
+		"/api/v1/search/**", //통합검색
 		"/uploads/**",    // 이미지 업로드 경로
 		"/static/**",    // 정적 이미지 경로
 		"/swagger-ui/**",     // Swagger UI

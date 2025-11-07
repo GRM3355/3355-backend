@@ -26,22 +26,11 @@ public class ChatRoomResponse {
 	@Schema(description = "제목", example = "채팅방 제목입니다.")
 	private String title;
 
-	//임시로 주석처리
-	//@Schema(description = "이미지명", example = "http://www.naver.com/aa.gif")
-	//private String coverImageUrl;
-
-	//@Schema(description = "최대참여자수", example = "500")
-	//private int maxParticipants;
-
-	//@Schema(description = "접근거리", example = "1.0")
-	//private double radius;
-
 	@Schema(description = "위도", example = "(123.233, 26.223)")
 	private double lat;
 
 	@Schema(description = "경도", example = "123.233")
 	private double lon;
-
 
 	public static ChatRoomResponse fromEntity(ChatRoom chatRoom) {
 		return new ChatRoomResponse(
@@ -49,8 +38,6 @@ public class ChatRoomResponse {
 			chatRoom.getFestival().getFestivalId(),
 			chatRoom.getUser().getUserId(),
 			chatRoom.getTitle(),
-			//chatRoom.getMaxParticipants(),
-			//chatRoom.getRadius(),
 			chatRoom.getPosition().getY(),
 			chatRoom.getPosition().getX()
 		);
