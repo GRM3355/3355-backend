@@ -22,7 +22,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 	 * 축제별 채팅 관련 JPQL
 	 * festivalId로 조회
 	 * @param festivalId
-	 * @param region
 	 * @param keyword
 	 * @param pageable
 	 * @return
@@ -39,13 +38,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		LEFT JOIN c.participants u
 		WHERE f.festivalId is not null
 		  AND (:festivalId =0 or f.festivalId =: festivalId)
-		  AND (:region is null or f.region = :region)
 		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
 		GROUP BY c.chatRoomId, c.title, f.title
 		ORDER BY COUNT(u) ASC
     """)
 	Page<ChatRoomInfoDto> chatFestivalRoomList_PART_ASC
-	(long festivalId, String region, String keyword, Pageable pageable);
+	(long festivalId, String keyword, Pageable pageable);
 
 	//채팅방 참여자수 내림차순 정렬
 	@Query(
@@ -60,13 +58,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		LEFT JOIN c.participants u
 		WHERE f.festivalId is not null
 		  AND (:festivalId =0 or f.festivalId =: festivalId)
-		  AND (:region is null or f.region = :region)
 		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
 		GROUP BY c.chatRoomId, c.title, f.title
 		ORDER BY COUNT(u) DESC
       """)
 	Page<ChatRoomInfoDto> chatFestivalRoomList_PART_DESC
-		(long festivalId, String region, String keyword, Pageable pageable);
+		(long festivalId, String keyword, Pageable pageable);
 
 	//채팅방 최신순 오름차순 정렬
 	@Query(
@@ -81,13 +78,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		LEFT JOIN c.participants u
 		WHERE f.festivalId is not null
 		  AND (:festivalId =0 or f.festivalId =: festivalId)
-		  AND (:region is null or f.region = :region)
 		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
 		GROUP BY c.chatRoomId, c.title, f.title
 		ORDER BY c.createdAt ASC
       """)
 	Page<ChatRoomInfoDto> chatFestivalRoomList_DATE_ASC
-		(long festivalId, String region, String keyword, Pageable pageable);
+		(long festivalId, String keyword, Pageable pageable);
 
 	//채팅방 최신순 내림차순 정렬
 	@Query(
@@ -102,18 +98,16 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		LEFT JOIN c.participants u
 		WHERE f.festivalId is not null
 		  AND (:festivalId =0 or f.festivalId =: festivalId)
-		  AND (:region is null or f.region = :region)
 		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
 		GROUP BY c.chatRoomId, c.title, f.title
 		ORDER BY c.createdAt DESC
       """)
 	Page<ChatRoomInfoDto> chatFestivalRoomList_DATE_DESC
-		(long festivalId, String region, String keyword, Pageable pageable);
+		(long festivalId, String keyword, Pageable pageable);
 
 	/**
 	 * 내 채팅 관련 JPQL(userId로 조회)
 	 * @param userId
-	 * @param region
 	 * @param keyword
 	 * @param pageable
 	 * @return
@@ -130,14 +124,13 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		LEFT JOIN c.participants u
 		WHERE c.chatRoomId IS NOT NULL
 		  AND (u.user.userId=:userId)
-		  AND (:region IS NULL OR f.region = :region)
 		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
 		GROUP BY c.chatRoomId, c.title, f.title
 		ORDER BY COUNT(u) ASC
 					 				        
     """)
 	Page<ChatRoomInfoDto> chatMyRoomList_PART_ASC
-	(String userId, String region, String keyword, Pageable pageable);
+	(String userId, String keyword, Pageable pageable);
 
 	//채팅 참여자수 내림차순 정렬
 	@Query("""
@@ -151,14 +144,13 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		LEFT JOIN c.participants u
 		WHERE c.chatRoomId IS NOT NULL
 		  AND (u.user.userId=:userId)
-		  AND (:region IS NULL OR f.region = :region)
 		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
 		GROUP BY c.chatRoomId, c.title, f.title
 		ORDER BY COUNT(u) DESC
 					 				        
     """)
 	Page<ChatRoomInfoDto> chatMyRoomList_PART_DESC
-		(String userId, String region, String keyword, Pageable pageable);
+		(String userId, String keyword, Pageable pageable);
 
 	//등록일 오름차순
 	@Query("""
@@ -172,13 +164,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		LEFT JOIN c.participants u
 		WHERE c.chatRoomId IS NOT NULL
 		  AND (u.user.userId=:userId)
-		  AND (:region IS NULL OR f.region = :region)
 		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
 		GROUP BY c.chatRoomId, c.title, f.title
 		ORDER BY c.createdAt ASC
     """)
 	Page<ChatRoomInfoDto> chatMyRoomList_DATE_ASC
-		(String userId, String region, String keyword, Pageable pageable);
+		(String userId, String keyword, Pageable pageable);
 
 	//등록일 내림차순
 	@Query("""
@@ -192,11 +183,10 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		LEFT JOIN c.participants u
 		WHERE c.chatRoomId IS NOT NULL
 		  AND (u.user.userId=:userId)
-		  AND (:region IS NULL OR f.region = :region)
 		  AND (:keyword IS NULL OR c.title LIKE CONCAT('%', :keyword, '%'))
 		GROUP BY c.chatRoomId, c.title, f.title
 		ORDER BY c.createdAt DESC
     """)
 	Page<ChatRoomInfoDto> chatMyRoomList_DATE_DESC
-		(String userId, String region, String keyword, Pageable pageable);
+		(String userId, String keyword, Pageable pageable);
 }

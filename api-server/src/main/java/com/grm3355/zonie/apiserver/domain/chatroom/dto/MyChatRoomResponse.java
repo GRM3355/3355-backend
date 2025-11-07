@@ -17,7 +17,6 @@ public class MyChatRoomResponse {
 	String festivalTitle;
 	Long participantCount;
 
-
 	public static MyChatRoomResponse fromDto(ChatRoomInfoDto dto) {
 		return new MyChatRoomResponse(
 			dto.chatRoom().getChatRoomId(),

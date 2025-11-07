@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.grm3355.zonie.apiserver.common.dto.PageResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.SearchRequest;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
 import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
@@ -34,8 +34,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
-@Tag(name = "Auth & User", description = "채팅방 생성")
-@RequestMapping("/api/v1/")
+@Tag(name = "채팅방 생성 및 목록보기", description = "채팅방을 생성하고 축제별 채팅방 목록, 내 채팅방 목록을 볼수 있습니다.")
+@RequestMapping("/api/v1")
 public class ChatRoomController {
 
 	private final ChatRoomService chatRoomService;
@@ -116,7 +116,7 @@ public class ChatRoomController {
 	})
 	@GetMapping("/festivals/{festivalId}/chat-rooms")
 	public ResponseEntity<?> getChatRoomList(@PathVariable long festivalId,
-		@ModelAttribute SearchRequest request
+		@Valid @ModelAttribute ChatRoomSearchRequest request
 		) {
 		Page<MyChatRoomResponse> pageList = chatRoomService.getFestivalChatRoomList(festivalId, request);
 		PageResponse<MyChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
@@ -155,7 +155,7 @@ public class ChatRoomController {
 	@PreAuthorize("hasRole('GUEST')")
 	@GetMapping("/chat-rooms/my-rooms")
 	public ResponseEntity<ApiResponse<PageResponse<MyChatRoomResponse>>> getChatRoomList(
-		@ModelAttribute SearchRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails
+		@Valid @ModelAttribute ChatRoomSearchRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails
 	) {
 		Page<MyChatRoomResponse> pageList = chatRoomService.getMyroomChatRoomList(userDetails, request);
 		PageResponse<MyChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());

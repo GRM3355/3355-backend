@@ -82,7 +82,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			  )		
 			AND (f.eventEndDate >= CURRENT_TIMESTAMP AND f.eventStartDate <= :endDateLimit)
 			AND (:keyword is null or f.title like concat('%', :keyword, '%'))
-			ORDER BY f.eventStartDate ASC
+			ORDER BY f.eventStartDate DESC
       """)
 	Page<Festival> getFestivalList_DATE_DESC(String region, String status, String keyword,
 		LocalDate endDateLimit, Pageable pageable);
@@ -101,7 +101,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			  )		
 			AND (f.eventEndDate >= CURRENT_TIMESTAMP AND f.eventStartDate <= :endDateLimit)
 			AND (:keyword is null or f.title like concat('%', :keyword, '%'))
-			ORDER BY f.eventStartDate ASC
+			ORDER BY f.title ASC
       """)
 	Page<Festival> getFestivalList_TITLE_ASC(String region, String status, String keyword,
 		LocalDate endDateLimit, Pageable pageable);
@@ -120,7 +120,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			  )		
 			AND (f.eventEndDate >= CURRENT_TIMESTAMP AND f.eventStartDate <= :endDateLimit)
 			AND (:keyword is null or f.title like concat('%', :keyword, '%'))
-			ORDER BY f.eventStartDate ASC
+			ORDER BY f.title DESC
       """)
 	Page<Festival> getFestivalList_TITLE_DESC(String region, String status, String keyword,
 		LocalDate endDateLimit, Pageable pageable);

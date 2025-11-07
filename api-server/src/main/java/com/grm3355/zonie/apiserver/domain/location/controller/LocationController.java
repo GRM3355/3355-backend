@@ -29,7 +29,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@Tag(name = "location", description = "사용자 위치정보 갱신 및 확인")
+@Tag(name = "위치토큰정보", description = "위치토큰정보 갱신 및 확인")
 @RequestMapping("/api/v1/location")
 @RequiredArgsConstructor
 public class LocationController {

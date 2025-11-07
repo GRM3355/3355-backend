@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.grm3355.zonie.apiserver.common.dto.PageResponse;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.SearchRequest;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
@@ -27,7 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @Tag(name = "축제 목록 및 내용", description = "축제목록, 내용을 표시합니다.")
-@RequestMapping("/api/v1/")
+@RequestMapping("/api/v1")
 public class FestivalController {
 
 	private final FestivalService festivalService;
@@ -104,7 +104,7 @@ public class FestivalController {
 	})		//축제내용
 	@GetMapping("/festivals/{festivalId}")
 	public ResponseEntity<?> gefFestivalContent(@PathVariable long festivalId,
-		@ModelAttribute SearchRequest request
+		@ModelAttribute ChatRoomSearchRequest request
 	) {
 		FestivalResponse response = festivalService.getFestivalContent(festivalId);
 		return ResponseEntity.ok().body(ApiResponse.success(response));

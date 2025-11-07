@@ -1,9 +1,5 @@
 package com.grm3355.zonie.apiserver.domain.search.controller;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -15,13 +11,11 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.grm3355.zonie.apiserver.common.service.RateLimitingService;
-import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchDto;
-import com.grm3355.zonie.apiserver.domain.festival.service.TotalSearchService;
+import com.grm3355.zonie.apiserver.domain.search.service.TotalSearchService;
+import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchDto;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchResponse;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -48,7 +42,7 @@ class TotalSearchControllerTest {
 			null, // festivals
 			null  // chatRooms
 		);
-		Mockito.when(totalSearchService.getTotalSearch(any(FestivalSearchDto.class)))
+		Mockito.when(totalSearchService.getTotalSearch(any(TotalSearchDto.class)))
 			.thenReturn(dummyResponse);
 
 		// when & then
