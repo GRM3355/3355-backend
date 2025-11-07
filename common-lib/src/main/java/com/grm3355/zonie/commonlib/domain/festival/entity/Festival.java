@@ -56,7 +56,7 @@ public class Festival extends BaseTimeEntity {
 	private Point position;
 
 	@Column(name = "area_code")
-	private int areaCode;
+	private Integer areaCode;
 
 	@Column(name = "tel", length = 1024)
 	private String tel;

@@ -37,13 +37,12 @@ public class AuthService {
 	private final UserRepository userRepository;
 	private final RedisTokenService redisTokenService;
 	private final PasswordEncoder passwordEncoder;
-	String userId;
 
 	@Transactional
 	public AuthResponse register(LocationDto locationDto, HttpServletRequest request) {
 
 		//uuid 생성
-		userId = PRE_FIX + UUID.randomUUID();
+		String userId = PRE_FIX + UUID.randomUUID();
 		String clientIp = getClientIp(request);
 		String device = request.getHeader("device");
 		double lat = locationDto.getLat();
