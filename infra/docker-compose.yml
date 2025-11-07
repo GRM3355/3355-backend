@@ -100,6 +100,24 @@ services:
     networks:
       - zonie-net
 
+  # --- 6. Zonie Batch Server ---
+  batch-server:
+    build:
+      context: ..
+      dockerfile: ./batch-server/Dockerfile # context 기준 경로
+    container_name: zonie_batch_server
+    environment: # Redis와 PostgreSQL만 필요, 외부 API를 노출하지 않으므로 ports 섹션 x
+      - SPRING_PROFILES_ACTIVE=local
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/zonie_main
+      - SPRING_DATA_REDIS_HOST=redis_cache
+    depends_on:
+      postgres_db:
+        condition: service_healthy # PG에는 써야 하므로 Healthy
+      redis_cache:
+        condition: service_started # Redis에서는 읽기만 하므로 Started
+    networks:
+      - zonie-net
+
 # --- 데이터 보존을 위한 볼륨 정의 ---
 volumes:
   postgres_data:
