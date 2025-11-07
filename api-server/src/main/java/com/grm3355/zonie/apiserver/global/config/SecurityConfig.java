@@ -25,7 +25,7 @@ import com.grm3355.zonie.apiserver.global.filter.RateLimitingFilter;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationFilter;
-import com.grm3355.zonie.commonlib.domain.auth.JwtTokenProvider;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsServiceImpl;
 
 @Configuration

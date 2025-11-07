@@ -5,7 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.grm3355.zonie.chatserver.util.JwtChannelInterceptor;
-import com.grm3355.zonie.commonlib.domain.auth.JwtTokenProvider;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 @SpringBootTest
 class ChatServerApplicationTests extends BaseIntegrationTest {

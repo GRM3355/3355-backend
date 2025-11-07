@@ -1,4 +1,4 @@
-package com.grm3355.zonie.commonlib.domain.auth;
+package com.grm3355.zonie.commonlib.global.util;
 
 import java.util.Date;
 

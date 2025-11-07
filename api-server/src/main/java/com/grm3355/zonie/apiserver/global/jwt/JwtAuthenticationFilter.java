@@ -15,7 +15,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.grm3355.zonie.commonlib.domain.auth.JwtTokenProvider;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
