@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomSyncDto;
+import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomSyncRepository;
 import com.grm3355.zonie.commonlib.global.util.RedisScanService;
 
 @Slf4j
@@ -23,7 +24,7 @@ public class RedisToDbSyncJob {
 	private static final String LAST_MSG_AT_KEY_PATTERN = "chatroom:last_msg_at:*";
 
 	private final RedisScanService redisScanService;
-	// private final ChatRoomSyncRepository chatRoomSyncRepository;
+	private final ChatRoomSyncRepository chatRoomSyncRepository;
 
 	/**
 	 * 1분마다 실행되는 Redis to DB 동기화 Job
@@ -45,7 +46,7 @@ public class RedisToDbSyncJob {
 		// 2. dto 변환 (SCARD, MGET 파이프라인 호출 후 변환)
 		Map<String, Long> participantCounts = redisScanService.getParticipantCounts(participantKeys);
 		Map<String, String> lastMessageTimestamps = redisScanService.getLastMessageTimestamps(lastMsgAtKeys);
-		List<ChatRoomSyncDto> syncDataList = mergeSyncData(participantCounts, lastMessageTimestamps); 			// DTO 리스트로 변환
+		List<ChatRoomSyncDto> syncDataList = mergeSyncData(participantCounts, lastMessageTimestamps); // DTO 리스트로 변환
 
 		if (syncDataList.isEmpty()) {
 			log.warn("키는 탐색되었으나 유효한 데이터를 DTO로 변환하지 못했습니다. Job을 종료합니다.");
@@ -53,9 +54,35 @@ public class RedisToDbSyncJob {
 		}
 		log.info("데이터 가공 완료: 총 {}개의 채팅방 데이터 DTO 변환 성공", syncDataList.size());
 
-		// (TODO: 3단계 - PostgreSQL Bulk Update 실행)
-		// (TODO: 4단계 - Redis 캐시 정리)
+		// 3. PostgreSQL Bulk Update 실행
+		try {
+			ChatRoomSyncRepository.SyncDataWrapper wrapper = new ChatRoomSyncRepository.SyncDataWrapper(syncDataList);	// Native Query용 래퍼
+			chatRoomSyncRepository.bulkUpdateChatRooms(wrapper);
+			log.info("PostgreSQL Bulk Update 완료: {}건 처리", syncDataList.size());
+		} catch (Exception e) {
+			log.error("PostgreSQL Bulk Update 중 심각한 오류 발생. Redis 데이터는 삭제되지 않습니다.", e);
+			throw e; // 스케줄러가 오류를 인지하도록 예외를 다시 던짐
+		}
 
+		// 4. Redis 캐시 정리 (3번 DB 저장 성공 시 실행)
+		try {
+			// participantKeys와 lastMsgAtKeys를 합쳐서 한 번에 삭제
+			Set<String> allKeysToDelete = Stream.concat(
+				participantKeys.stream(),
+				lastMsgAtKeys.stream()
+			).collect(Collectors.toSet());
+
+			if (!allKeysToDelete.isEmpty()) {
+				redisScanService.deleteKeys(allKeysToDelete);
+				log.info("Redis 캐시 정리 완료: 총 {}개의 키 삭제", allKeysToDelete.size());
+			}
+		} catch (Exception e) {
+			// DB 저장은 성공했으나 Redis 삭제에 실패한 경우
+			// - 다음 1분 주기에 데이터가 중복 처리될 수 있지만
+			//   - participant_count는 덮어쓰기되고,
+			//   - last_message_at은 CASE 문으로 방어됨: ChatRoomSyncRepository 쿼리문 (타임스탬프 비교해 최신값일 때만 덮어씀)
+			log.error("DB 동기화는 성공했으나 Redis 키 삭제 중 오류 발생. 로그만 남깁니다.", e);
+		}
 		log.info("RedisToDbSyncJob 완료");
 	}
 

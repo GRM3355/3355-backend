@@ -94,4 +94,16 @@ public class RedisScanService {
 		return timestampMap;
 	}
 
+	/**
+	 * 주어진 키 목록을 파이프라인으로 일괄 삭제합니다. (DEL)
+	 *
+	 * @param keys 삭제할 키 Set
+	 */
+	public void deleteKeys(Set<String> keys) {
+		if (keys == null || keys.isEmpty()) {
+			return;
+		}
+		stringRedisTemplate.delete(keys); // 내부적으로 여러 키 파이프라인 또는 단일 DEL 처리
+	}
+
 }
