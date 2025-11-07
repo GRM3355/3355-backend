@@ -120,7 +120,7 @@ jobs:
           task-definition: ${{ steps.render-api-task.outputs.task-definition }}
           cluster: ${{ env.ECS_CLUSTER }}
           service: ${{ env.ECS_SERVICE_API }}
-          wait-for-service-stability: true # ✅ 안정화 대기 생략
+          wait-for-service-stability: true # 안정화 대기 생략
 
   deploy-chat-server:
     name: Deploy Chat Server
@@ -132,7 +132,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ✅ Gradle 캐시 복원 (채팅서버가 Java/Gradle 기반일 경우)
+      # radle 캐시 복원 (채팅서버가 Java/Gradle 기반일 경우)
       - name: Restore Gradle Cache
         uses: actions/cache@v4
         with:
@@ -174,7 +174,7 @@ jobs:
           task-definition: ${{ steps.render-chat-task.outputs.task-definition }}
           cluster: ${{ env.ECS_CLUSTER }}
           service: ${{ env.ECS_SERVICE_CHAT }}
-          wait-for-service-stability: true # ✅ 안정화 대기 생략
+          wait-for-service-stability: true # 안정화 대기 생략
 
   deploy-batch-server:
     name: Deploy Batch Server
@@ -186,7 +186,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ✅ Gradle 캐시 복원 (채팅서버가 Java/Gradle 기반일 경우)
+      #  Gradle 캐시 복원 (채팅서버가 Java/Gradle 기반일 경우)
       - name: Restore Gradle Cache
         uses: actions/cache@v4
         with:
@@ -229,4 +229,4 @@ jobs:
           task-definition: ${{ steps.render-batch-task.outputs.task-definition }}
           cluster: ${{ env.ECS_CLUSTER }}
           service: ${{ env.ECS_SERVICE_BATCH }}
-          wait-for-service-stability: true # ✅ 안정화 대기 생략
+          wait-for-service-stability: true # 안정화 대기 생략
