@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.common.config;
+package com.grm3355.zonie.apiserver.global.config;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper.DefaultTypeResolverBuilder;

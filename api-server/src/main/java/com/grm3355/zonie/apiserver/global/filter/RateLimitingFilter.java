@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.common.filter;
+package com.grm3355.zonie.apiserver.global.filter;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.apiserver.common.service.RateLimitingService;
+import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 

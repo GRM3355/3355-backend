@@ -1,10 +1,10 @@
 package com.grm3355.zonie.apiserver.domain.festival.controller;
 
-import com.grm3355.zonie.apiserver.common.service.RateLimitingService;
+import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
-import com.grm3355.zonie.apiserver.common.dto.PageResponse;
+import com.grm3355.zonie.apiserver.global.dto.PageResponse;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,7 +26,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import com.grm3355.zonie.commonlib.global.enums.Region;
 
 @WebMvcTest(FestivalController.class)
 @AutoConfigureMockMvc(addFilters = false) // Security 필터 비활성화

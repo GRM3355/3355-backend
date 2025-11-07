@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.common.service;
+package com.grm3355.zonie.apiserver.global.service;
 
 import java.time.Duration;
 import java.util.Map;

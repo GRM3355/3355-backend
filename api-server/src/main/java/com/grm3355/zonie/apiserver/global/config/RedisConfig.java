@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.common.config;
+package com.grm3355.zonie.apiserver.global.config;
 
 import static org.springframework.data.redis.serializer.RedisSerializationContext.SerializationPair.*;
 

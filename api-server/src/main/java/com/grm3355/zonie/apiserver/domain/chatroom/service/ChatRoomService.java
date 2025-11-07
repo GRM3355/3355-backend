@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.grm3355.zonie.apiserver.domain.chatroom.enums.OrderType;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
-import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
+import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;

@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.common.config;
+package com.grm3355.zonie.apiserver.global.config;
 
 import java.util.List;
 
@@ -21,12 +21,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.grm3355.zonie.apiserver.common.filter.RateLimitingFilter;
-import com.grm3355.zonie.apiserver.common.jwt.JwtAccessDeniedHandler;
-import com.grm3355.zonie.apiserver.common.jwt.JwtAuthenticationEntryPoint;
-import com.grm3355.zonie.apiserver.common.jwt.JwtAuthenticationFilter;
+import com.grm3355.zonie.apiserver.global.filter.RateLimitingFilter;
+import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
+import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
+import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationFilter;
 import com.grm3355.zonie.commonlib.domain.auth.JwtTokenProvider;
-import com.grm3355.zonie.apiserver.common.jwt.UserDetailsServiceImpl;
+import com.grm3355.zonie.apiserver.global.jwt.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity

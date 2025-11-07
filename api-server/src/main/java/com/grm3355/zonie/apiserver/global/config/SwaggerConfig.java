@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.common.config;
+package com.grm3355.zonie.apiserver.global.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

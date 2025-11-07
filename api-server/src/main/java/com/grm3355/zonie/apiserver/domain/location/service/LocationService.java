@@ -3,7 +3,7 @@ package com.grm3355.zonie.apiserver.domain.location.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
+import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;

@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.common.exception;
+package com.grm3355.zonie.apiserver.global.exception;
 
 import java.util.LinkedHashMap;
 import java.util.List;

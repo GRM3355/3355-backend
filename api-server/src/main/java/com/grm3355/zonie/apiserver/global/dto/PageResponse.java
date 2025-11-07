@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.common.dto;
+package com.grm3355.zonie.apiserver.global.dto;
 
 import java.util.List;
 

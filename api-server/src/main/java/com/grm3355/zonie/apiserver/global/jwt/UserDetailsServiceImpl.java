@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.common.jwt;
+package com.grm3355.zonie.apiserver.global.jwt;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;

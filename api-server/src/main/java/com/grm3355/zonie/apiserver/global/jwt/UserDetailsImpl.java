@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.common.jwt;
+package com.grm3355.zonie.apiserver.global.jwt;
 
 import java.util.Collection;
 import java.util.List;

@@ -10,7 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.grm3355.zonie.apiserver.common.service.RateLimitingService;
+import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
 import com.grm3355.zonie.apiserver.domain.search.service.TotalSearchService;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchDto;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchResponse;

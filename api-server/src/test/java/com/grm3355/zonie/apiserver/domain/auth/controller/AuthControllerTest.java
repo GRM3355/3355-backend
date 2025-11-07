@@ -1,7 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.apiserver.common.service.RateLimitingService;
+import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.service.AuthService;
 import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;

@@ -17,10 +17,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.grm3355.zonie.apiserver.common.dto.PageResponse;
+import com.grm3355.zonie.apiserver.global.dto.PageResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
-import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
+import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
