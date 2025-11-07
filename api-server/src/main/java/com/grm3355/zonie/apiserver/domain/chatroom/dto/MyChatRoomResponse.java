@@ -19,8 +19,9 @@ public class MyChatRoomResponse {
 	String festivalTitle;
 	Long participantCount;
 	LocalDateTime lastMessageAt;
+	String lastContent;
 
-	public static MyChatRoomResponse fromDto(ChatRoomInfoDto dto) {
+	public static MyChatRoomResponse fromDto(ChatRoomInfoDto dto, String lastContent) {
 		return new MyChatRoomResponse(
 			dto.chatRoom().getChatRoomId(),
 			dto.chatRoom().getFestival().getFestivalId(),
@@ -30,8 +31,12 @@ public class MyChatRoomResponse {
 			dto.chatRoom().getPosition().getX(),
 			dto.festivalTitle(),
 			dto.participantCount(),
-			dto.lastMessageAt()
+			dto.lastMessageAt(),
+			lastContent
 		);
 	}
 
+	public static MyChatRoomResponse fromDto(ChatRoomInfoDto dto) {
+		return fromDto(dto, null);
+	}
 }

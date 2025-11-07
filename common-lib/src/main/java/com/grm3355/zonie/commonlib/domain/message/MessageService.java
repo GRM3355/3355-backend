@@ -56,7 +56,9 @@ public class MessageService {
 
 		// 4. Redis에 마지막 대화 시각 갱신
 		redisTemplate.opsForValue().set("chatroom:last_msg_at:" + roomId, String.valueOf(System.currentTimeMillis()));
-		// (확장 기능: 마지막 메시지 내용 갱신)
-		// redisTemplate.opsForValue().set("chatroom:last_msg_content:" + roomId, content);
+
+		// 5. Redis에 마지막 메시지 내용 갱신
+		String lastContent = nickname + ": " + content; // (닉네임 조회 로직이 완성되면 '임시 닉네임' 대신 'nickname' 변수 사용)
+		redisTemplate.opsForValue().set("chatroom:last_msg_content:" + roomId, lastContent);
 	}
 }

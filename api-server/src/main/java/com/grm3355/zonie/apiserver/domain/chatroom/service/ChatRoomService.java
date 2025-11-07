@@ -1,6 +1,9 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.service;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -12,6 +15,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,25 +44,28 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Transactional
 public class ChatRoomService {
+
 	private static final String PRE_FIX = "room:";
-	private static int MAX_PARTICIPANTS = 300; //최대인원수
-	private static int MAX_ROOM = 30; //최대인원수
-	private static double MAX_RADIUS = 1.0; //최대km수
+	private static final int MAX_PARTICIPANTS = 300; // 최대인원수
+	private static final int MAX_ROOM = 30; // 최대인원수
+	private static final double MAX_RADIUS = 1.0; // km
+
 	private final RedisTokenService redisTokenService;
 	private final FestivalInfoService festivalInfoService;
 	private final ChatRoomRepository chatRoomRepository;
 	private final UserRepository userRepository;
+	private final StringRedisTemplate stringRedisTemplate;
 
-	// GeometryFactory 생성 (보통 한 번만 만들어 재사용)
-	GeometryFactory geometryFactory = new GeometryFactory();
+	GeometryFactory geometryFactory = new GeometryFactory(); // GeometryFactory 생성 (보통 한 번만 만들어 재사용)
 
 	public ChatRoomService(RedisTokenService redisTokenService, FestivalInfoService festivalInfoService,
-		ChatRoomRepository chatRoomRepository, UserRepository userRepository
+		ChatRoomRepository chatRoomRepository, UserRepository userRepository, StringRedisTemplate stringRedisTemplate
 	) {
 		this.redisTokenService = redisTokenService;
 		this.festivalInfoService = festivalInfoService;
 		this.chatRoomRepository = chatRoomRepository;
 		this.userRepository = userRepository;
+		this.stringRedisTemplate = stringRedisTemplate;
 	}
 
 	/**
@@ -94,9 +101,9 @@ public class ChatRoomService {
 		}
 
 		//5. 채팅방 저장
-		//채팅룸 아이디 생성
+		// 채팅룸 아이디 생성
 		String roomId = createRoomId();
-		//위치 세팅
+		// 위치 세팅
 		Point point = geometryFactory.createPoint(new Coordinate(location2.getLon(), location2.getLat()));
 
 		ChatRoom chatRoom = ChatRoom.builder()
@@ -128,18 +135,27 @@ public class ChatRoomService {
 	 * 축제별 채팅방 목록
 	 */
 	@Transactional
-	public Page<MyChatRoomResponse> getFestivalChatRoomList(long festivalId,
-		ChatRoomSearchRequest req) {
+	public Page<MyChatRoomResponse> getFestivalChatRoomList(long festivalId, ChatRoomSearchRequest req) {
 
 		Sort.Order order = Sort.Order.desc("createdAt");
-		Pageable pageable = PageRequest.of(req.getPage() - 1,
-			req.getPageSize(), Sort.by(order));
+		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), Sort.by(order));
 
-		//ListType 내용 가져오기
+		// 1. PG에서 기본 정보 조회: ListType 내용 가져오기
 		Page<ChatRoomInfoDto> pageList = getFestivalListTypeUser(festivalId, req, pageable);
 
-		//페이지 변환
-		List<MyChatRoomResponse> dtoPage = pageList.stream().map(MyChatRoomResponse::fromDto)
+		// 2. Redis에서 마지막 대화 내용 일괄 조회
+		Map<String, String> lastContentsMap = getLastContents(pageList.getContent());
+
+		// 3. DTO 변환
+		List<MyChatRoomResponse> dtoPage = pageList.stream()
+			.map(dto -> {
+				String lastContent = lastContentsMap.getOrDefault( // 마지막 대화 내용 포함
+					dto.chatRoom().getChatRoomId(),
+					null // 대화 내용이 없으면 null
+				);
+				// MyChatRoomResponse의 오버로딩된 fromDto 호출
+				return MyChatRoomResponse.fromDto(dto, lastContent);
+			})
 			.collect(Collectors.toList());
 
 		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
@@ -218,12 +234,40 @@ public class ChatRoomService {
 		};
 	}
 
-	//채팅룸 아이디 생성
+	/**
+	 * DTO 리스트를 받아 Redis에서 마지막 대화 내용을 일괄 조회합니다. (MGET)
+	 */
+	private Map<String, String> getLastContents(List<ChatRoomInfoDto> dtoList) {
+		if (dtoList.isEmpty()) {
+			return Collections.emptyMap();
+		}
+
+		// 1. RoomId 리스트 추출 (Redis 키 생성)
+		List<String> redisKeys = dtoList.stream()
+			.map(dto -> "chatroom:last_msg_content:" + dto.chatRoom().getChatRoomId())
+			.toList();
+
+		// 2. Redis MGET
+		List<String> contents = stringRedisTemplate.opsForValue().multiGet(redisKeys);
+
+		// 3. Map<RoomId, Content>로 변환
+		Map<String, String> contentMap = new HashMap<>();
+		for (int i = 0; i < dtoList.size(); i++) {
+			String roomId = dtoList.get(i).chatRoom().getChatRoomId();
+			String content = (contents != null && i < contents.size() && contents.get(i) != null)
+				? contents.get(i)
+				: null;
+			contentMap.put(roomId, content);
+		}
+		return contentMap;
+	}
+
+	// 채팅룸 아이디 생성
 	private String createRoomId(){
 		return PRE_FIX + UUID.randomUUID();
 	}
 
-	//가능거리 계산
+	// 가능거리 계산
 	private boolean festivalCaculator(LocationDto locationDto, LocationDto festivalDto) {
 		double km = LocationService.getDistanceCalculator(locationDto, festivalDto);
 		return km > MAX_RADIUS;
