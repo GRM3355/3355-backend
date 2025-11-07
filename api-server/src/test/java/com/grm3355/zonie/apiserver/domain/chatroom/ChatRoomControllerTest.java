@@ -109,7 +109,7 @@ class ChatRoomControllerTest {
 		// 요청
 		mockMvc.perform(get("/api/v1/chat-rooms/my-rooms")
 				.param("page", "0")
-				.param("size", "10")
+				.param("pageSize", "10")
 				.contentType(MediaType.APPLICATION_JSON))
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.data.content[0].chatRoomId").value(1L))
