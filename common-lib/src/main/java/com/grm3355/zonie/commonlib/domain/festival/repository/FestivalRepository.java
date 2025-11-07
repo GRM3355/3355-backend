@@ -39,6 +39,11 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	// 이벤트 종료일이 현재 날짜보다 이전인 축제를 삭제
 	void deleteByEventEndDateBefore(LocalDate date);
 
+	//채팅방 갯수 업데이트
+	@Modifying(clearAutomatically = true)
+	@Query("UPDATE Festival f SET f.chatRoomCount = f.chatRoomCount+1 WHERE f.festivalId = :festivalId")
+	void updateFestivalChatRoomCount(Long festivalId);
+
 
 	/**
 	 * 축제 목록보기
