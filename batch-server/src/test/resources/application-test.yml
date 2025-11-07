@@ -1,0 +1,3 @@
+# 공공데이터 API 키
+openapi:
+  serviceKey: TEST_KEY_REQUIRED_FOR_CONTEXT_LOAD
