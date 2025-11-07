@@ -19,27 +19,14 @@ import com.grm3355.zonie.commonlib.global.enums.Region;
 @Repository
 public interface FestivalRepository extends JpaRepository<Festival, Long> {
 
+
 	Optional<Festival> findAllByContentIdAndTargetType(int contentId, String targetType);
 
 	Festival findByContentId(int contentId);
 
 	Optional<Festival> findByFestivalId(long festivalId);
 
-	// 이벤트 종료일이 현재 날짜보다 이전인 축제를 삭제
-	void deleteByEventEndDateBefore(LocalDate date);
-
-	/**
-	 * 해당축제 채팅방수 카운터
-	 */
-	@Modifying
-	@Query("UPDATE Festival f SET f.chatRoomCount = f.chatRoomCount+1 WHERE f.festivalId = :festivalId")
-	int updateFestivalChatRoomCount(Long festivalId);
-
-	/**
-	 * 채팅방 생성전에 유효한지체크(축제가 있는지, 해당날짜가 있는지)
-	 * @param festivalId
-	 * @return
-	 */
+	//채팅방 생성전에 유효한지체크(축제가 있는지, 해당날짜가 있는지)
 	@Query(
 		value = """
         SELECT f
@@ -48,6 +35,10 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
           AND CURRENT_TIMESTAMP Between f.eventStartDate And f.eventEndDate
       """)
 	Optional<Festival> findByIsValidFestival(long festivalId);
+
+	// 이벤트 종료일이 현재 날짜보다 이전인 축제를 삭제
+	void deleteByEventEndDateBefore(LocalDate date);
+
 
 	/**
 	 * 축제 목록보기
@@ -127,8 +118,6 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
       """)
 	Page<Festival> getFestivalList_TITLE_DESC(String region, String status, String keyword,
 		LocalDate endDateLimit, Pageable pageable);
-    
-	// 이벤트 종료일이 현재 날짜보다 이전인 축제를 삭제
-	void deleteByEventEndDateBefore(LocalDate date);
+
 
 }
