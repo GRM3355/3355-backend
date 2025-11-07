@@ -25,6 +25,9 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 
 	Optional<Festival> findByFestivalId(long festivalId);
 
+	// 이벤트 종료일이 현재 날짜보다 이전인 축제를 삭제
+	void deleteByEventEndDateBefore(LocalDate date);
+
 	/**
 	 * 해당축제 채팅방수 카운터
 	 */
