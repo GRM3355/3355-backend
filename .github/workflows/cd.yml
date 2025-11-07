@@ -120,7 +120,7 @@ jobs:
           task-definition: ${{ steps.render-api-task.outputs.task-definition }}
           cluster: ${{ env.ECS_CLUSTER }}
           service: ${{ env.ECS_SERVICE_API }}
-          wait-for-service-stability: false # ✅ 안정화 대기 생략
+          wait-for-service-stability: true # ✅ 안정화 대기 생략
 
   deploy-chat-server:
     name: Deploy Chat Server
@@ -174,7 +174,7 @@ jobs:
           task-definition: ${{ steps.render-chat-task.outputs.task-definition }}
           cluster: ${{ env.ECS_CLUSTER }}
           service: ${{ env.ECS_SERVICE_CHAT }}
-          wait-for-service-stability: false # ✅ 안정화 대기 생략
+          wait-for-service-stability: true # ✅ 안정화 대기 생략
 
   deploy-batch-server:
     name: Deploy Batch Server
@@ -229,4 +229,4 @@ jobs:
           task-definition: ${{ steps.render-batch-task.outputs.task-definition }}
           cluster: ${{ env.ECS_CLUSTER }}
           service: ${{ env.ECS_SERVICE_BATCH }}
-          wait-for-service-stability: false # ✅ 안정화 대기 생략
+          wait-for-service-stability: true # ✅ 안정화 대기 생략

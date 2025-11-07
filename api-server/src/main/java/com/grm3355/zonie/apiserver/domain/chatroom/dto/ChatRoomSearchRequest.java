@@ -25,22 +25,19 @@ public class ChatRoomSearchRequest {
 
 	@Schema(description = "페이지번호", example = "1")
 	@Digits(integer = 2, fraction = 0, message = "숫자만 가능합니다.")
-	//@NotNull(message = "페이지 번호는 필수입니다.")
+	@NotNull(message = "페이지 번호는 필수입니다.")
 	@ColumnDefault("'1'")
 	private Integer page;
 
 	@Schema(description = "한페이지 데이터 갯수", example = "10", nullable = true)
 	@Digits(integer = 2, fraction = 0, message = "숫자만 가능합니다.")
-	//@NotNull(message = "페이지 갯수 필수입니다.")
+	@NotNull(message = "페이지 갯수 필수입니다.")
 	@ColumnDefault("'10'")
 	private Integer pageSize;
 
 	@Schema(description = "정렬이름")
 	@Builder.Default
 	private OrderType order = OrderType.PART_DESC;
-
-	//@Schema(description = "지역선택")
-	//private Region region;
 
 	@Schema(description = "검색어")
 	private String keyword;
