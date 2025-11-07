@@ -33,7 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Transactional
 public class FestivalService {
-	private static int MAX_DAYS = 30; //앞으로 최대30일까지
+	private static int MAX_DAYS = 7; //앞으로 최대 7일까지
 	private final FestivalRepository festivalRepository;
 	private final ChatRoomService chatRoomService;
 	
