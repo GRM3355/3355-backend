@@ -1,0 +1,113 @@
+package com.grm3355.zonie.batchserver.job;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import com.grm3355.zonie.batchserver.dto.ChatRoomSyncDto;
+import com.grm3355.zonie.commonlib.global.util.RedisScanService;
+
+@Slf4j
+@Component
+@RequiredArgsConstructor // final 필드 생성자 자동 주입
+public class RedisToDbSyncJob {
+
+	private static final String PARTICIPANTS_KEY_PATTERN = "chatroom:participants:*";
+	private static final String LAST_MSG_AT_KEY_PATTERN = "chatroom:last_msg_at:*";
+
+	private final RedisScanService redisScanService;
+
+	/**
+	 * 1분마다 실행되는 Redis to DB 동기화 Job
+	 */
+	@Scheduled(fixedRate = 60000) // fixedRate = 60000ms = 1분
+	public void syncRedisToDb() {
+		log.info("RedisToDbSyncJob 시작: Redis 데이터를 PostgreSQL로 동기화합니다.");
+
+		// 1. Redis 키 탐색: RedisScanService (SCAN)
+		Set<String> participantKeys = redisScanService.scanKeys(PARTICIPANTS_KEY_PATTERN); 	// (1) 실시간 참여자 수 키 스캔
+		Set<String> lastMsgAtKeys = redisScanService.scanKeys(LAST_MSG_AT_KEY_PATTERN);		// (2) 마지막 대화 시각 키 스캔
+
+		if (participantKeys.isEmpty() && lastMsgAtKeys.isEmpty()) {
+			log.info("동기화할 데이터가 없습니다. Job을 종료합니다.");
+			return;
+		}
+		log.info("키 탐색 완료: 참여자 수 키 {}개, 마지막 대화 시각 키 {}개", participantKeys.size(), lastMsgAtKeys.size());
+
+		// 2. dto 변환 (SCARD, MGET 파이프라인 호출 후 변환)
+		Map<String, Long> participantCounts = redisScanService.getParticipantCounts(participantKeys);
+		Map<String, String> lastMessageTimestamps = redisScanService.getLastMessageTimestamps(lastMsgAtKeys);
+		List<ChatRoomSyncDto> syncDataList = mergeSyncData(participantCounts, lastMessageTimestamps); 			// DTO 리스트로 변환
+
+		if (syncDataList.isEmpty()) {
+			log.warn("키는 탐색되었으나 유효한 데이터를 DTO로 변환하지 못했습니다. Job을 종료합니다.");
+			return;
+		}
+		log.info("데이터 가공 완료: 총 {}개의 채팅방 데이터 DTO 변환 성공", syncDataList.size());
+
+		// (TODO: 3단계 - PostgreSQL Bulk Update 실행)
+		// (TODO: 4단계 - Redis 캐시 정리)
+
+		log.info("RedisToDbSyncJob 완료");
+	}
+
+	/**
+	 * 두 종류의 Redis 데이터(참여자 수, 마지막 대화 시각)를 roomId를 기준으로 병합하여 DTO 리스트로 변환합니다.
+	 */
+	private List<ChatRoomSyncDto> mergeSyncData(Map<String, Long> participantCounts, Map<String, String> lastMessageTimestamps) {
+
+		// 1. (Key, Value) -> (RoomId, Dto)로 변환
+		Map<Long, ChatRoomSyncDto> participantDtoMap = participantCounts.entrySet().stream()
+			.collect(Collectors.toMap(
+				entry -> parseRoomId(entry.getKey()), // "chatroom:participants:123" -> 123
+				entry -> ChatRoomSyncDto.withParticipantCount(parseRoomId(entry.getKey()), entry.getValue())
+			));
+
+		Map<Long, ChatRoomSyncDto> timestampDtoMap = lastMessageTimestamps.entrySet().stream()
+			.collect(Collectors.toMap(
+				entry -> parseRoomId(entry.getKey()), // "chatroom:last_msg_at:123" -> 123
+				entry -> ChatRoomSyncDto.withLastMessageTimestamp(parseRoomId(entry.getKey()), Long.parseLong(entry.getValue()))
+			));
+
+		// 2. 두 개의 Map을 roomId 기준으로 병합
+		return Stream.concat(participantDtoMap.entrySet().stream(), timestampDtoMap.entrySet().stream())
+			.collect(Collectors.toMap(
+				Map.Entry::getKey,   // roomId (Long)
+				Map.Entry::getValue, // ChatRoomSyncDto
+				// 3. Key(roomId)가 중복될 경우 (참여자 수, 타임스탬프 둘 다 있는 경우) 두 DTO를 하나로 합칩니다.
+				(dto1, dto2) -> new ChatRoomSyncDto(
+					dto1.roomId(),
+					dto1.participantCount() != null ? dto1.participantCount() : dto2.participantCount(),
+					dto1.lastMessageTimestamp() != null ? dto1.lastMessageTimestamp() : dto2.lastMessageTimestamp()
+				)
+			))
+			.values() // Map<Long, ChatRoomSyncDto> -> Collection<ChatRoomSyncDto>
+			.stream()
+			.toList(); // Collection -> List<ChatRoomSyncDto>
+	}
+
+	/**
+	 * Redis 키에서 채팅방 ID(Long)를 파싱합니다.
+	 * (예: "chatroom:participants:123" -> 123L)
+	 */
+	private Long parseRoomId(String key) {
+		try {
+			// "chatroom:participants:123" -> "123"
+			String roomIdStr = StringUtils.delete(key, "chatroom:participants:");
+			roomIdStr = StringUtils.delete(roomIdStr, "chatroom:last_msg_at:");
+
+			return Long.parseLong(roomIdStr);
+		} catch (Exception e) {
+			log.warn("Redis 키에서 RoomId 파싱 실패: {}", key, e);
+			return null; // 파싱 실패 시 null 반환 (merge 로직에서 필터링됨)
+		}
+	}
+}
