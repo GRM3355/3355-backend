@@ -1,4 +1,4 @@
-package com.grm3355.zonie.chatserver.global.controller;
+package com.grm3355.zonie.chatserver.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
