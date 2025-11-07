@@ -1,5 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.dto;
 
+import java.time.LocalDateTime;
+
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 
 import lombok.Builder;
@@ -16,6 +18,7 @@ public class MyChatRoomResponse {
 	double lon;
 	String festivalTitle;
 	Long participantCount;
+	LocalDateTime lastMessageAt;
 
 	public static MyChatRoomResponse fromDto(ChatRoomInfoDto dto) {
 		return new MyChatRoomResponse(
@@ -26,7 +29,8 @@ public class MyChatRoomResponse {
 			dto.chatRoom().getPosition().getY(),
 			dto.chatRoom().getPosition().getX(),
 			dto.festivalTitle(),
-			dto.participantCount()
+			dto.participantCount(),
+			dto.lastMessageAt()
 		);
 	}
 

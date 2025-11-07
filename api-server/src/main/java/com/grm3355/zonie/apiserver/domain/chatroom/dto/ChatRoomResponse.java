@@ -1,7 +1,5 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.dto;
 
-import org.locationtech.jts.geom.Point;
-
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,7 +10,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-public class ChatRoomResponse {
+public class ChatRoomResponse { // 채팅방 생성 시점에서의 채팅방 정보 응답
 
 	@Schema(description = "채팅방 아이디", example = "room:abc-def-ghi")
 	private String chatRoomId;

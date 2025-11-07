@@ -41,8 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 public class ChatRoomService {
 	private static final String PRE_FIX = "room:";
-	private static int MAX_PARTICIPANTS = 300; //최대인원스
-	private static int MAX_ROOM = 30; //최대인원스
+	private static int MAX_PARTICIPANTS = 300; //최대인원수
+	private static int MAX_ROOM = 30; //최대인원수
 	private static double MAX_RADIUS = 1.0; //최대km수
 	private final RedisTokenService redisTokenService;
 	private final FestivalInfoService festivalInfoService;
@@ -63,10 +63,6 @@ public class ChatRoomService {
 
 	/**
 	 * 채팅방 생성
-	 * @param festivalId
-	 * @param request
-	 * @param userDetails
-	 * @return
 	 */
 	public ChatRoomResponse setCreateChatRoom(long festivalId,
 		ChatRoomRequest request, UserDetailsImpl userDetails) {
@@ -130,9 +126,6 @@ public class ChatRoomService {
 
 	/**
 	 * 축제별 채팅방 목록
-	 * @param festivalId
-	 * @param req
-	 * @return
 	 */
 	@Transactional
 	public Page<MyChatRoomResponse> getFestivalChatRoomList(long festivalId,
@@ -152,7 +145,7 @@ public class ChatRoomService {
 		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
 	}
 
-	//축제별 채팅방 검색조건별 목록 가져오기
+	// 축제별 채팅방 검색조건별 목록 가져오기
 	public Page<ChatRoomInfoDto> getFestivalListTypeUser(
 		long festivalId, ChatRoomSearchRequest req, Pageable pageable) {
 
@@ -170,14 +163,15 @@ public class ChatRoomService {
 				.chatFestivalRoomList_DATE_ASC(festivalId, keyword, pageable);
 			case DATE_DESC -> chatRoomRepository
 				.chatFestivalRoomList_DATE_DESC(festivalId, keyword, pageable);
+			case ACTIVE_ASC -> chatRoomRepository
+				.chatFestivalRoomList_ACTIVE_ASC(festivalId, keyword, pageable);
+			case ACTIVE_DESC -> chatRoomRepository
+				.chatFestivalRoomList_ACTIVE_DESC(festivalId, keyword, pageable);
 		};
 	}
 
 	/**
 	 * 나의 채팅방 목록
-	 * @param userDetails
-	 * @param req
-	 * @return
 	 */
 	@Transactional
 	public Page<MyChatRoomResponse> getMyroomChatRoomList(UserDetailsImpl userDetails,
@@ -217,8 +211,11 @@ public class ChatRoomService {
 				.chatMyRoomList_DATE_ASC(userId, keyword, pageable);
 			case DATE_DESC -> chatRoomRepository
 				.chatMyRoomList_DATE_DESC(userId, keyword, pageable);
+			case ACTIVE_ASC -> chatRoomRepository
+				.chatMyRoomList_ACTIVE_ASC(userId, keyword, pageable);
+			case ACTIVE_DESC -> chatRoomRepository
+				.chatMyRoomList_ACTIVE_DESC(userId, keyword, pageable);
 		};
-
 	}
 
 	//채팅룸 아이디 생성
@@ -229,7 +226,7 @@ public class ChatRoomService {
 	//가능거리 계산
 	private boolean festivalCaculator(LocationDto locationDto, LocationDto festivalDto) {
 		double km = LocationService.getDistanceCalculator(locationDto, festivalDto);
-		return (km>MAX_RADIUS)?true:false;
+		return km > MAX_RADIUS;
 	}
 
 	//사용자 위치정보

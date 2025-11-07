@@ -41,9 +41,6 @@ public class ChatRoomService {
 
 	/**
 	 * 사용자가 채팅방에 입장할 때 호출되는 메소드
-	 * @param userId
-	 * @param roomId
-	 * @return
 	 */
 	@Transactional
 	public String joinRoom(String userId, String roomId) {

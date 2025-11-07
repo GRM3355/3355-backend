@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -12,7 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.grm3355.zonie.batchserver.dto.ChatRoomSyncDto;
+import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomSyncDto;
 import com.grm3355.zonie.commonlib.global.util.RedisScanService;
 
 @Slf4j
@@ -24,6 +23,7 @@ public class RedisToDbSyncJob {
 	private static final String LAST_MSG_AT_KEY_PATTERN = "chatroom:last_msg_at:*";
 
 	private final RedisScanService redisScanService;
+	// private final ChatRoomSyncRepository chatRoomSyncRepository;
 
 	/**
 	 * 1분마다 실행되는 Redis to DB 동기화 Job
@@ -65,13 +65,13 @@ public class RedisToDbSyncJob {
 	private List<ChatRoomSyncDto> mergeSyncData(Map<String, Long> participantCounts, Map<String, String> lastMessageTimestamps) {
 
 		// 1. (Key, Value) -> (RoomId, Dto)로 변환
-		Map<Long, ChatRoomSyncDto> participantDtoMap = participantCounts.entrySet().stream()
+		Map<String, ChatRoomSyncDto> participantDtoMap = participantCounts.entrySet().stream()
 			.collect(Collectors.toMap(
 				entry -> parseRoomId(entry.getKey()), // "chatroom:participants:123" -> 123
 				entry -> ChatRoomSyncDto.withParticipantCount(parseRoomId(entry.getKey()), entry.getValue())
 			));
 
-		Map<Long, ChatRoomSyncDto> timestampDtoMap = lastMessageTimestamps.entrySet().stream()
+		Map<String, ChatRoomSyncDto> timestampDtoMap = lastMessageTimestamps.entrySet().stream()
 			.collect(Collectors.toMap(
 				entry -> parseRoomId(entry.getKey()), // "chatroom:last_msg_at:123" -> 123
 				entry -> ChatRoomSyncDto.withLastMessageTimestamp(parseRoomId(entry.getKey()), Long.parseLong(entry.getValue()))
@@ -80,7 +80,7 @@ public class RedisToDbSyncJob {
 		// 2. 두 개의 Map을 roomId 기준으로 병합
 		return Stream.concat(participantDtoMap.entrySet().stream(), timestampDtoMap.entrySet().stream())
 			.collect(Collectors.toMap(
-				Map.Entry::getKey,   // roomId (Long)
+				Map.Entry::getKey,   // roomId
 				Map.Entry::getValue, // ChatRoomSyncDto
 				// 3. Key(roomId)가 중복될 경우 (참여자 수, 타임스탬프 둘 다 있는 경우) 두 DTO를 하나로 합칩니다.
 				(dto1, dto2) -> new ChatRoomSyncDto(
@@ -89,25 +89,25 @@ public class RedisToDbSyncJob {
 					dto1.lastMessageTimestamp() != null ? dto1.lastMessageTimestamp() : dto2.lastMessageTimestamp()
 				)
 			))
-			.values() // Map<Long, ChatRoomSyncDto> -> Collection<ChatRoomSyncDto>
+			.values() // Map<String, ChatRoomSyncDto> -> Collection<ChatRoomSyncDto>
 			.stream()
 			.toList(); // Collection -> List<ChatRoomSyncDto>
 	}
 
 	/**
-	 * Redis 키에서 채팅방 ID(Long)를 파싱합니다.
-	 * (예: "chatroom:participants:123" -> 123L)
+	 * Redis 키에서 채팅방 ID를 파싱합니다.
+	 * (예: "chatroom:participants:123" -> 123)
 	 */
-	private Long parseRoomId(String key) {
-		try {
-			// "chatroom:participants:123" -> "123"
-			String roomIdStr = StringUtils.delete(key, "chatroom:participants:");
-			roomIdStr = StringUtils.delete(roomIdStr, "chatroom:last_msg_at:");
-
-			return Long.parseLong(roomIdStr);
-		} catch (Exception e) {
-			log.warn("Redis 키에서 RoomId 파싱 실패: {}", key, e);
-			return null; // 파싱 실패 시 null 반환 (merge 로직에서 필터링됨)
+	private String parseRoomId(String key) {
+		// "chatroom:participants:"
+		if (key.startsWith(PARTICIPANTS_KEY_PATTERN.replace("*", ""))) {
+			return key.substring(PARTICIPANTS_KEY_PATTERN.length() - 1);
 		}
+		// "chatroom:last_msg_at:"
+		if (key.startsWith(LAST_MSG_AT_KEY_PATTERN.replace("*", ""))) {
+			return key.substring(LAST_MSG_AT_KEY_PATTERN.length() - 1);
+		}
+		log.warn("알 수 없는 키 패턴에서 RoomId 파싱 실패: {}", key);
+		return null; // merge 로직에서 필터링됨
 	}
 }

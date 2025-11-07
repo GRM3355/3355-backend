@@ -75,7 +75,7 @@ public class ChatRoomController {
 	})
 	@PreAuthorize("hasRole('GUEST')")
 	@PostMapping("/festivals/{festivalId}/chat-rooms")
-	public ResponseEntity<?> creteChatRoom(@PathVariable long festivalId,
+	public ResponseEntity<?> createChatRoom(@PathVariable long festivalId,
 		@Valid @RequestBody ChatRoomRequest chatRoomRequest,  HttpServletRequest servlet,
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
 
