@@ -127,5 +127,8 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
       """)
 	Page<Festival> getFestivalList_TITLE_DESC(String region, String status, String keyword,
 		LocalDate endDateLimit, Pageable pageable);
+    
+	// 이벤트 종료일이 현재 날짜보다 이전인 축제를 삭제
+	void deleteByEventEndDateBefore(LocalDate date);
 
 }

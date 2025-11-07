@@ -224,7 +224,7 @@ jobs:
 
       - name: Deploy Batch Server to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        timeout-minutes: 10
+        timeout-minutes: 60
         with:
           task-definition: ${{ steps.render-batch-task.outputs.task-definition }}
           cluster: ${{ env.ECS_CLUSTER }}

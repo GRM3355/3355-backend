@@ -1,6 +1,9 @@
-# 공통 설정
+# batch-server 공통 설정
 spring:
   application:
     name: batch-server
   main:
-    web-application-type: none
+    web-application-type: none # 웹 서버가 아님을 명시
+  profiles:
+    # 기본 프로파일을 local로 설정하여 로컬 개발 환경에서 별도 옵션 없이 실행 가능하게 함
+    active: ${SPRING_PROFILES_ACTIVE:local}

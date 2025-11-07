@@ -19,7 +19,8 @@
         { "name": "DB_PROD_USERNAME", "valueFrom": "DB_PROD_USERNAME" },
         { "name": "DB_PROD_PASSWORD", "valueFrom": "DB_PROD_PASSWORD" },
         { "name": "REDIS_PROD_HOST", "valueFrom": "REDIS_PROD_HOST" },
-        { "name": "REDIS_PROD_PASSWORD", "valueFrom": "REDIS_PROD_PASSWORD" }
+        { "name": "REDIS_PROD_PASSWORD", "valueFrom": "REDIS_PROD_PASSWORD" },
+        { "name": "OPENAPI_SERVICE_KEY", "valueFrom": "OPENAPI_SERVICE_KEY" }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",

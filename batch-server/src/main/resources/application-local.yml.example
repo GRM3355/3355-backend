@@ -1,0 +1,33 @@
+# COPY THIS FILE AND PASTE IT TO YOUR application-local File.
+# batch-server; local (Docker DB/Redis ??)
+spring:
+# --- PostgreSQL---
+datasource:
+url: jdbc:postgresql://localhost:5432/zonie_main?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
+username: zonie
+password: zonie_pass
+driver-class-name: org.postgresql.Driver
+
+# --- Redis ---
+data:
+redis:
+host: localhost
+port: 6379
+
+# --- JPA (Batch) ---
+jpa:
+hibernate:
+ddl-auto: update
+show-sql: true
+
+# --- OpenAPI Key ---
+openapi:
+serviceKey: 1TZUp5wb6UBqknDnt%2BYSqrqfEm35n5FyxD8akm%2FYKiHYUilapxdfALSUbR2WGn98d8YIusX2i%2F24z5nwaUvOiA%3D%3D
+
+# --- Logging ---
+logging:
+level:
+# Batch -> DB
+org.hibernate.SQL: DEBUG
+org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+org.springframework.orm.jpa: DEBUG
