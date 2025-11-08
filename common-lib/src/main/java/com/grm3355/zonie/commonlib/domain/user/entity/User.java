@@ -45,27 +45,27 @@ public class User extends BaseTimeEntity {
 	@NotBlank(message = "비밀번호는 정보는 필수 입력 값입니다.")
 	private String password;
 
-	//USER, USER, ADMIN - 카카오회원은 USER
+	// GUEST, USER, ADMIN - 카카오회원은 USER
 	@Enumerated(EnumType.STRING)
 	@Column(name = "role", nullable = false, length = 20)
 	private Role role;
 
-	//닉네임
-	@Column(name = "nick_name", nullable = false, length = 50)
-	private String nickName;
+	// 닉네임
+	@Column(name = "profile_nickname", length = 50)
+	private String profileNickName;
 
-	//프로필 이미지
+	// 이메일
+	@Column(name = "account_email")
+	private String accountEmail;
+
+	// 프로필 이미지
 	@Column(name = "profile_image", length = 100)
 	private String profileImage;
 
 	// 로그인 제공자 (KAKAO, GOOGLE, NAVER, APPLE 등)
 	@Enumerated(EnumType.STRING)
-	@Column(nullable = false)
 	private ProviderType provider;
 
 	// SNS가 제공하는 고유 ID (sub, id 등)
-	@Column(nullable = false)
 	private String providerId;
-
 }
-
