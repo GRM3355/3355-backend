@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -38,7 +39,10 @@ class FestivalControllerTest {
 	private FestivalService festivalService;
 
 	@MockitoBean
-	private RateLimitingService rateLimitingService;  // Mock으로 등록
+	private RateLimitingService rateLimitingService;
+
+	@MockitoBean
+	private UserDetailsService userDetailsService;
 
 	@Test
 	@DisplayName("축제 목록 조회 테스트")
