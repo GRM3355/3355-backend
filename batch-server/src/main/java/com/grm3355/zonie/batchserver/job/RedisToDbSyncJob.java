@@ -57,7 +57,15 @@ public class RedisToDbSyncJob {
 		// 3. PostgreSQL Bulk Update 실행
 		try {
 			ChatRoomSyncRepository.SyncDataWrapper wrapper = new ChatRoomSyncRepository.SyncDataWrapper(syncDataList);	// Native Query용 래퍼
-			chatRoomSyncRepository.bulkUpdateChatRooms(wrapper);
+			String roomIdsArray = listToPgArray(wrapper.getRoomIds());
+			String countsArray = listToPgArray(wrapper.getCounts());
+			String timestampsArray = listToPgArray(wrapper.getTimestamps());
+
+			chatRoomSyncRepository.bulkUpdateChatRooms(
+				roomIdsArray,
+				countsArray,
+				timestampsArray
+			);
 			log.info("PostgreSQL Bulk Update 완료: {}건 처리", syncDataList.size());
 		} catch (Exception e) {
 			log.error("PostgreSQL Bulk Update 중 심각한 오류 발생. Redis 데이터는 삭제되지 않습니다.", e);
@@ -101,7 +109,16 @@ public class RedisToDbSyncJob {
 		Map<String, ChatRoomSyncDto> timestampDtoMap = lastMessageTimestamps.entrySet().stream()
 			.collect(Collectors.toMap(
 				entry -> parseRoomId(entry.getKey()), // "chatroom:last_msg_at:123" -> 123
-				entry -> ChatRoomSyncDto.withLastMessageTimestamp(parseRoomId(entry.getKey()), Long.parseLong(entry.getValue()))
+				entry -> {
+					String timestampStr = entry.getValue();
+					if (timestampStr.startsWith("\"") && timestampStr.endsWith("\"")) { //  양 끝의 큰따옴표를 제거
+						timestampStr = timestampStr.substring(1, timestampStr.length() - 1);
+					}
+					return ChatRoomSyncDto.withLastMessageTimestamp(
+						parseRoomId(entry.getKey()),
+						Long.parseLong(timestampStr) // 수정된 문자열로 파싱 시도
+					);
+				}
 			));
 
 		// 2. 두 개의 Map을 roomId 기준으로 병합
@@ -136,5 +153,32 @@ public class RedisToDbSyncJob {
 		}
 		log.warn("알 수 없는 키 패턴에서 RoomId 파싱 실패: {}", key);
 		return null; // merge 로직에서 필터링됨
+	}
+
+	/**
+	 * List를 PostgreSQL 배열 문자열 (예: '{item1, item2}')로 변환하는 유틸리티 메서드
+	 */
+	private <T> String listToPgArray(List<T> list) {
+		if (list == null || list.isEmpty()) {
+			return "{}"; // 빈 배열
+		}
+		String content = list.stream()
+			.map(item -> {
+				// null일 경우 "NULL" 문자열을 반환
+				if (item == null) {
+					return "NULL";
+				}
+
+				// String 타입만 따옴표를 추가
+				if (item instanceof String) {
+					return "\"" + item + "\"";
+				}
+
+				// Long/Integer는 그대로 사용
+				return item.toString();
+			})
+			.collect(Collectors.joining(","));
+
+		return "{" + content + "}";
 	}
 }

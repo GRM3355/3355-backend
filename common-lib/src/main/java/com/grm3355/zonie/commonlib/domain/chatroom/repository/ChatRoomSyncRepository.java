@@ -21,8 +21,6 @@ public interface ChatRoomSyncRepository extends Repository<ChatRoom, String> { /
 	/**
 	 * DTO 리스트를 받아 PostgreSQL의 chat_rooms 테이블을 Bulk Update 합니다.
 	 * PostgreSQL의 'unnest' 함수와 'UPDATE ... FROM' 구문을 사용합니다.
-	 *
-	 * @param syncData DTO 리스트를 담고 있는 래퍼 객체
 	 */
 	@Modifying
 	@Transactional
@@ -41,17 +39,20 @@ public interface ChatRoomSyncRepository extends Repository<ChatRoom, String> { /
                                 THEN TO_TIMESTAMP(data.last_message_timestamp / 1000.0)
                                 ELSE cr.last_message_at
                             END
-        FROM (
-            -- 3. DTO 리스트를 임시 테이블(data)로 변환
-            SELECT
-                UNNEST(CAST(:#{#syncData.roomIds} AS TEXT[])) AS room_id, 
-                UNNEST(CAST(:#{#syncData.counts} AS BIGINT[])) AS participant_count,
-                UNNEST(CAST(:#{#syncData.timestamps} AS BIGINT[])) AS last_message_timestamp
-        ) AS data
+		FROM (
+          SELECT
+			UNNEST(CAST(:roomIdsArray AS TEXT[])) AS room_id,
+            UNNEST(CAST(:countsArray AS BIGINT[])) AS participant_count,
+            UNNEST(CAST(:timestampsArray AS BIGINT[])) AS last_message_timestamp
+      ) AS data
         WHERE
             cr.chat_room_id = data.room_id;
         """, nativeQuery = true)
-	void bulkUpdateChatRooms(@Param("syncData") SyncDataWrapper syncData);
+	void bulkUpdateChatRooms(
+		@Param("roomIdsArray") String roomIdsArray,
+		@Param("countsArray") String countsArray,
+		@Param("timestampsArray") String timestampsArray
+	);
 
 
 	/**

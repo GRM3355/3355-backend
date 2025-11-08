@@ -1,7 +1,6 @@
 package com.grm3355.zonie.commonlib.domain.festival.entity;
 
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,10 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import org.locationtech.jts.geom.Point;
-import org.locationtech.jts.io.WKTReader;
 
 import com.grm3355.zonie.commonlib.global.entity.BaseTimeEntity;
-import com.grm3355.zonie.commonlib.global.enums.RegionCode;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

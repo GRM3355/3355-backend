@@ -55,6 +55,9 @@ public class ChatRoomService {
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 		ChatRoom room = chatRoomRepository.findById(roomId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
+		log.info("USER FETCHED: {}", user.getUserId());
+		log.info("ROOM FETCHED: {}", room.getChatRoomId());
+
 
 		// 3. (REQ-CHAT-08) 재방문자 처리: DB에 ChatRoomUser 데이터가 있는지 확인
 		Optional<ChatRoomUser> existingParticipant = chatRoomUserRepository.findByUserAndChatRoom(user, room);

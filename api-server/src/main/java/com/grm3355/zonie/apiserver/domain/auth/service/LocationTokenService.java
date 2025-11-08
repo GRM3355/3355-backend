@@ -62,7 +62,7 @@ public class LocationTokenService {
 	 * 토큰 유효성 검사
 	 */
 	public boolean validateLocationToken(String token) {
-		return Boolean.TRUE.equals(redisTemplate.hasKey(buildKey(token)));
+		return redisTemplate.hasKey(buildKey(token));
 	}
 
 	/**

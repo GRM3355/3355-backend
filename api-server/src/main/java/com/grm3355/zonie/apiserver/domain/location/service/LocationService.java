@@ -59,7 +59,7 @@ public class LocationService {
 
 		String savedToken = userDetails.getUsername();
 		boolean value = redisTokenService.updateLocationInfo(locationDto, savedToken);
-		String message = value==true? "갱신되었습니다." : "갱신에 실패하였습니다.";
+		String message = value ? "갱신되었습니다." : "갱신에 실패하였습니다.";
 		return new LocationTokenResponse(message);
 	}
 
@@ -80,7 +80,7 @@ public class LocationService {
 
 		//계산호출
 		double radius_km = getDistanceCalculator(locationDto, festivalPosition);
-		boolean accessValue = (radius_km <= 1.0) ? true : false;
+		boolean accessValue = radius_km <= 1.0;
 
 		return new FestivalZoneVarifyResponse(accessValue, radius_km, festivalId, userId);
 
@@ -100,12 +100,14 @@ public class LocationService {
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 정보가 없습니다."));
 
 		LocationDto chatroomPosition = LocationDto.builder()
-			.lat(chatRoom.getPosition().getY())
-			.lon(chatRoom.getPosition().getX()).build();
+			.lat(0.0).lon(0.0)
+			// .lat(chatRoom.getPosition().getY())
+			// .lon(chatRoom.getPosition().getX())
+			.build();
 
 		//계산호출
 		double radius_km = getDistanceCalculator(locationDto, chatroomPosition);
-		boolean accessValue = (radius_km <= 1.0) ? true : false;
+		boolean accessValue = radius_km <= 1.0;
 
 		return new ChatRoomZoneVarifyResponse(accessValue, radius_km, chatroomId, userId);
 
