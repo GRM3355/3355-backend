@@ -86,7 +86,7 @@ class AuthServiceTest {
 
 		// then
 		assertThat(response).isNotNull();
-		assertThat(response.getAccessToken()).isEqualTo("fake-jwt-token");
+		assertThat(response.accessToken()).isEqualTo("fake-jwt-token");
 
 		verify(userRepository, times(1)).save(any(User.class));
 		verify(redisTokenService, times(1)).generateLocationToken(any(UserTokenDto.class));
@@ -107,7 +107,7 @@ class AuthServiceTest {
 		UserDetailsImpl userDetails = spy(UserDetailsImpl.build(mockUser));
 		when(userDetails.getAuthorities()).thenReturn(java.util.Collections.emptyList());
 
-		UserTokenDto tokenDto = new UserTokenDto("user:1111", 37.1, 127.2);
+		UserTokenDto tokenDto = UserTokenDto.builder().userId("user:1111").lat(37.1).lon(127.2).build();
 
 		// when / then
 		org.junit.jupiter.api.Assertions.assertThrows(
