@@ -27,10 +27,10 @@ public class FestivalResponse {
 	@Schema(description = "주소", example = "서울 강남구 강남대로 23")
 	private String addr1;
 
-	@Schema(description = "제목", example = "2025-11-02")
+	@Schema(description = "시작일", example = "2025-11-02")
 	private LocalDate eventStartDate;
 
-	@Schema(description = "제목", example = "2025-11-10")
+	@Schema(description = "종료일", example = "2025-11-10")
 	private LocalDate eventEndDate;
 
 	@Schema(description = "이미지명", example = "http://tong.visitkorea.or.kr/cms/resource/76/3380276_image2_1.jpg")

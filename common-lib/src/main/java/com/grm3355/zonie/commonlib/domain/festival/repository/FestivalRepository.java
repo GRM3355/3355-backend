@@ -15,20 +15,9 @@ import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
 @Repository
 public interface FestivalRepository extends JpaRepository<Festival, Long> {
 
-	Optional<Festival> findAllByContentIdAndTargetType(int contentId, String targetType);
-
-	Festival findByContentId(int contentId);
-
 	Optional<Festival> findByFestivalId(long festivalId);
 
 	// 채팅방 생성전에 유효한지체크(축제가 있는지, 해당날짜가 있는지)
-	// @Query(
-	// 	value = """
-    //     SELECT f
-    //     FROM Festival f
-    //     WHERE f.festivalId = :festivalId
-    //       AND CURRENT_TIMESTAMP Between f.startStartDate And f.eventEndDate
-    //   """)
 	@Query(
 		value = """
 			SELECT * FROM festivals f

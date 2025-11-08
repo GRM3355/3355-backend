@@ -39,8 +39,8 @@ public class MyChatRoomResponse {
 			dto.getFestivalId(),
 			dto.getUserId(),
 			dto.getTitle(),
-			0,
-			0,
+			dto.getLat(),
+			dto.getLon(),
 			dto.getFestivalTitle(),
 			dto.getParticipantCount()
 		);

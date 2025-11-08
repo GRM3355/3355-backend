@@ -18,21 +18,20 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 	/**
 	 * 축제별 채팅 관련 JPQL
 	 * festivalId로 조회
-	 * @param festivalId
-	 * @param keyword
-	 * @param pageable
-	 * @return
+	 * @param festivalId 축제 아이디
+	 * @param keyword 검색어
+	 * @param pageable 페이징
+	 * @return ChatRoomInfoDto
 	 */
 	@Query(
 		value = """
-        SELECT 
-			c.chat_room_id as chatRoomId,
-			c.festival_id as festivalId,			
-			c.user_id as userId,
-			c.title as title,
-			c.position as position,
-			ST_Y(c.position::geometry) AS lat,
-			ST_X(c.position::geometry) AS lon,
+        SELECT
+            c.chat_room_id as chatRoomId,
+            c.festival_id as festivalId,
+            c.user_id as userId,
+            c.title as title,
+            ST_Y(c.position::geometry) AS lat,
+            ST_X(c.position::geometry) AS lon,
             f.title AS festivalTitle,
             COUNT(u.user_id) AS participantCount
         FROM chat_rooms c
@@ -60,19 +59,18 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 
 	/**
 	 * 내 채팅 관련 JPQL(userId로 조회)
-	 * @param userId
-	 * @param keyword
-	 * @param pageable
+	 * @param userId 등록자 아이디
+	 * @param keyword 검색어
+	 * @param pageable 페이징
 	 * @return
 	 */
 	@Query(
 		value = """
-        SELECT 
+        SELECT
 			c.chat_room_id as chatRoomId,
-			c.festival_id as festivalId,			
+			c.festival_id as festivalId,
 			c.user_id as userId,
 			c.title as title,
-			c.position as position,
 			ST_Y(c.position::geometry) AS lat,
 			ST_X(c.position::geometry) AS lon,
             f.title AS festivalTitle,
