@@ -68,5 +68,4 @@ public class User extends BaseTimeEntity {
 
 	// SNS가 제공하는 고유 ID (sub, id 등)
 	private String providerId;
-
 }
