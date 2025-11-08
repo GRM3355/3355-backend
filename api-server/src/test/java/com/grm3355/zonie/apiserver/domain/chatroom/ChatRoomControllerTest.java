@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @DisplayName("채팅방 생성 통합테스트")
 @SpringBootTest
-@AutoConfigureMockMvc
+// @AutoConfigureMockMvc
 class ChatRoomControllerTest extends BaseIntegrationTest {
 
 	@Autowired

@@ -13,6 +13,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -26,7 +27,6 @@ import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationFilter;
 import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
-import com.grm3355.zonie.apiserver.global.jwt.UserDetailsServiceImpl;
 
 @Configuration
 @EnableWebSecurity
@@ -49,7 +49,7 @@ public class SecurityConfig {
 		"/api/v1/redis/ping"  // Redis 연결 테스트
 	}; // 인증 없이 접근을 허용하는 공개(Public) URL 패턴 목록
 	private final JwtTokenProvider jwtTokenProvider;
-	private final UserDetailsServiceImpl userDetailsService;
+	private final UserDetailsService userDetailsService;
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 	private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 	private final RateLimitingFilter rateLimitingFilter;
@@ -58,7 +58,7 @@ public class SecurityConfig {
 	private String[] allowedOrigins; // Added fieldRateLimitingFilter
 
 	public SecurityConfig(JwtTokenProvider jwtTokenProvider,
-		UserDetailsServiceImpl userDetailsService,
+		UserDetailsService userDetailsService,
 		JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
 		JwtAccessDeniedHandler jwtAccessDeniedHandler,
 		RateLimitingFilter rateLimitingFilter) {
