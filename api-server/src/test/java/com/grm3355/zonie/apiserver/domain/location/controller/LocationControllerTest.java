@@ -5,8 +5,8 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 
 @DisplayName("위치 갱신 통합테스트")
-@SpringBootTest
-@AutoConfigureMockMvc
+// @SpringBootTest
+// @AutoConfigureMockMvc
 class LocationControllerTest {
 /*
 	@Autowired

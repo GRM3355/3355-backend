@@ -1,5 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.search.dto;
 
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,17 +38,17 @@ public class TotalSearchChatRoomResponse {
 	private Long participantCount;
 
 	public static TotalSearchChatRoomResponse fromDto(ChatRoomInfoDto dto) {
-		return new TotalSearchChatRoomResponse(
-			dto.chatRoom().getChatRoomId(),
-			dto.chatRoom().getFestival().getFestivalId(),
-			dto.chatRoom().getUser().getUserId(),
-			dto.chatRoom().getTitle(),
-			dto.chatRoom().getPosition().getY(),
-			dto.chatRoom().getPosition().getX(),
-			dto.festivalTitle(),
-			dto.participantCount()
-		);
+		return TotalSearchChatRoomResponse.builder()
+			.chatRoomId(dto.chatRoomId())
+			.festivalId(dto.festivalId())
+			// .userId(dto.chatRoom().getUser().getUserId())
+			.title(dto.title())
+			// dto.chatRoom().getPosition().getY(),
+			// dto.chatRoom().getPosition().getX(),
+			.lat(0.0)
+			.lon(0.0)
+			.festivalTitle(dto.festivalTitle())
+			.participantCount(dto.participantCount())
+			.build();
 	}
-
-
 }

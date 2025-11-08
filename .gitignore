@@ -47,3 +47,6 @@ application-local.yml
 *-local.properties
 
 data/
+
+### macOS ###
+**/.DS_Store

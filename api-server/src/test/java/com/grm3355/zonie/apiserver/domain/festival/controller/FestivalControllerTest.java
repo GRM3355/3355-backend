@@ -1,22 +1,28 @@
 package com.grm3355.zonie.apiserver.domain.festival.controller;
 
-import com.grm3355.zonie.apiserver.common.service.RateLimitingService;
+import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
+import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
+import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
-import com.grm3355.zonie.apiserver.common.dto.PageResponse;
+import com.grm3355.zonie.apiserver.global.dto.PageResponse;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -26,9 +32,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import com.grm3355.zonie.commonlib.global.enums.Region;
 
-@WebMvcTest(FestivalController.class)
+@WebMvcTest(
+	controllers = FestivalController.class,
+	excludeAutoConfiguration = {
+		DataSourceAutoConfiguration.class,
+		JpaRepositoriesAutoConfiguration.class
+	}
+)
 @AutoConfigureMockMvc(addFilters = false) // Security 필터 비활성화
 class FestivalControllerTest {
 
@@ -39,7 +50,19 @@ class FestivalControllerTest {
 	private FestivalService festivalService;
 
 	@MockitoBean
-	private RateLimitingService rateLimitingService;  // Mock으로 등록
+	private RateLimitingService rateLimitingService;
+
+	@MockitoBean
+	private UserDetailsService userDetailsService;
+
+	@MockitoBean
+	private JwtTokenProvider jwtTokenProvider;
+
+	@MockitoBean
+	private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+	@MockitoBean
+	private JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
 	@Test
 	@DisplayName("축제 목록 조회 테스트")

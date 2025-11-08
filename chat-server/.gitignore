@@ -43,3 +43,6 @@ src/main/resources/data
 .env
 src/main/resources/application-local.properties
 src/main/resources/application-local.yml
+
+### macOS ###
+**/.DS_Store
