@@ -20,6 +20,7 @@
         { "name": "DB_PROD_PASSWORD", "valueFrom": "DB_PROD_PASSWORD" },
         { "name": "REDIS_PROD_HOST", "valueFrom": "REDIS_PROD_HOST" },
         { "name": "REDIS_PROD_PASSWORD", "valueFrom": "REDIS_PROD_PASSWORD" },
+        { "name": "JWT_SECRET_KEY", "valueFrom": "JWT_SECRET_KEY" },
         { "name": "OPENAPI_SERVICE_KEY", "valueFrom": "OPENAPI_SERVICE_KEY" }
       ],
       "logConfiguration": {

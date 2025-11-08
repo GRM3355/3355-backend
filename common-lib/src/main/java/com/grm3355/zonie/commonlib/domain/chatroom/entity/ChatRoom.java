@@ -34,10 +34,6 @@ import lombok.NoArgsConstructor;
 @Getter
 public class ChatRoom extends BaseTimeEntity {
 
-	// @GeneratedValue(strategy = GenerationType.IDENTITY)
-	// @Column(name = "uuid", nullable = false, unique = true, updatable = false)
-	// private Long Long;
-
 	@Id
 	@Column(name = "chat_room_id", unique = true, nullable = false, length = 50)
 	private String chatRoomId;

@@ -1,4 +1,4 @@
-package com.grm3355.zonie.commonlib.domain.message;
+package com.grm3355.zonie.chatserver.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -10,6 +10,9 @@ import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grm3355.zonie.commonlib.domain.message.enums.MessageType;
+import com.grm3355.zonie.commonlib.domain.message.entity.Message;
+import com.grm3355.zonie.commonlib.domain.message.repository.MessageRepository;
 
 @Slf4j
 @Service

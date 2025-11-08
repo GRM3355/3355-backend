@@ -1,18 +1,16 @@
 package com.grm3355.zonie.chatserver.controller;
 
-import java.security.Principal;
 import java.util.Map;
 
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 
 import com.grm3355.zonie.chatserver.dto.MessageSendRequest;
-import com.grm3355.zonie.commonlib.domain.chatroom.service.ChatRoomService;
-import com.grm3355.zonie.commonlib.domain.message.MessageService;
+import com.grm3355.zonie.chatserver.service.ChatRoomService;
+import com.grm3355.zonie.chatserver.service.MessageService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

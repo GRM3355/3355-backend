@@ -12,7 +12,7 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import com.grm3355.zonie.commonlib.domain.message.Message;
+import com.grm3355.zonie.commonlib.domain.message.entity.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Slf4j

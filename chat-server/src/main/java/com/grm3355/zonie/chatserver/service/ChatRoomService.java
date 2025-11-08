@@ -1,4 +1,4 @@
-package com.grm3355.zonie.commonlib.domain.chatroom.service;
+package com.grm3355.zonie.chatserver.service;
 
 import java.time.LocalDateTime;
 import java.util.Optional;

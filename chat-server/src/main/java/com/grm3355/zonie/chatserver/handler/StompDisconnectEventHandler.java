@@ -4,15 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-import java.security.Principal;
 import java.util.Map;
 
-import com.grm3355.zonie.commonlib.domain.chatroom.service.ChatRoomService;
+import com.grm3355.zonie.chatserver.service.ChatRoomService;
 
 @Slf4j
 @Component

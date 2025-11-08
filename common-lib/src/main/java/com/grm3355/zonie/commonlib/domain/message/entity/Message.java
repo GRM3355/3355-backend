@@ -1,4 +1,4 @@
-package com.grm3355.zonie.commonlib.domain.message;
+package com.grm3355.zonie.commonlib.domain.message.entity;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+
+import com.grm3355.zonie.commonlib.domain.message.enums.MessageType;
 
 @Getter
 @Setter
