@@ -2,6 +2,8 @@ package com.grm3355.zonie.chatserver.controller;
 
 import java.util.Map;
 
+import jakarta.validation.Valid;
+
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -82,7 +84,7 @@ public class ChatRoomHandler {
 	@MessageMapping("/chat-rooms/{roomId}/send")
 	public void sendMessage(
 		@DestinationVariable String roomId,
-		@Payload MessageSendRequest request,
+		@Payload @Valid MessageSendRequest request,
 		// @AuthenticationPrincipal Principal principal,
 		StompHeaderAccessor accessor
 	) {
