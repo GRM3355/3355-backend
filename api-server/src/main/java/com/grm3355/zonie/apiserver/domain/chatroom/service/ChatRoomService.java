@@ -82,7 +82,7 @@ public class ChatRoomService {
 		//1. 토큰값 체크
 		boolean isTokenValidate = redisTokenService.validateLocationToken(userId);
 		if(!isTokenValidate) {
-			new BusinessException(ErrorCode.NOT_FOUND, "토큰이 유효하지 않습니다.");
+			throw new BusinessException(ErrorCode.NOT_FOUND, "토큰이 유효하지 않습니다.");
 		}
 
 		//2. 축제 존재여부체크
@@ -91,20 +91,21 @@ public class ChatRoomService {
 		//3. 축제 거리계산하기
 		LocationDto location1 = getUserPostion(userId);
 		LocationDto location2 = getFestivalPosition(festival);
-		boolean isValidDistince = festivalCaculator(location1, location2);
-		if(!isValidDistince)
-			new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설 반경이 아닙니다.");
+		boolean isValidDistance = festivalCaculator(location1, location2);
+		if(!isValidDistance) {
+			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설 반경이 아닙니다.");
+		}
 
 		//4. 채팅방 갯수 체크
 		if (festival.getChatRoomCount() >= MAX_PARTICIPANTS) {
-			new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설은 "+MAX_ROOM+"개까지 입니다.");
+			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설은 " + MAX_ROOM + "개까지 입니다.");
 		}
 
 		//5. 채팅방 저장
 		// 채팅룸 아이디 생성
 		String roomId = createRoomId();
 		// 위치 세팅
-		Point point = geometryFactory.createPoint(new Coordinate(location2.getLon(), location2.getLat()));
+		Point point = geometryFactory.createPoint(new Coordinate(location2.getLon(), location2.getLat())); // lon=X, lat=Y
 
 		ChatRoom chatRoom = ChatRoom.builder()
 			.chatRoomId(roomId)
@@ -113,22 +114,32 @@ public class ChatRoomService {
 			.title(request.getTitle())
 			.maxParticipants(MAX_PARTICIPANTS)
 			.radius(MAX_RADIUS)
-			.position(point).build();
-		ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
+			.position(point)
+			.participantCount(0L)
+			.build();
+		// ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
+
+		// 디버깅을 위해 일시적으로 saveAndFlush 사용함 - 추후 복구하기
+		try {
+			ChatRoom saveChatRoom = chatRoomRepository.saveAndFlush(chatRoom);
+		} catch (Exception e) {
+			log.error("채팅방 저장 중 DB 예외 발생: {}", e.getMessage(), e);
+			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 저장 중 오류가 발생했습니다.");
+		}
 
 		//festival에 채팅방갯수 저장 /festivalId
 		festivalInfoService.increaseChatRoomCount(festivalId);
 
 		//dto 변환
-		ChatRoomResponse chatRoomResponse = ChatRoomResponse.builder()
+		return ChatRoomResponse.builder()
 			.chatRoomId(roomId)
 			.festivalId(festivalId)
 			.userId(userId)
 			.title(request.getTitle())
-			.lat(chatRoom.getPosition().getY())
-			.lon(chatRoom.getPosition().getX())
+			.lat(0.0).lon(0.0)
+			// .lat(chatRoom.getPosition().getY())
+			// .lon(chatRoom.getPosition().getX())
 			.build();
-		return chatRoomResponse;
 	}
 
 	/**
@@ -137,7 +148,7 @@ public class ChatRoomService {
 	@Transactional
 	public Page<MyChatRoomResponse> getFestivalChatRoomList(long festivalId, ChatRoomSearchRequest req) {
 
-		Sort.Order order = Sort.Order.desc("createdAt");
+		Sort.Order order = Sort.Order.desc("created_at");
 		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), Sort.by(order));
 
 		// 1. PG에서 기본 정보 조회: ListType 내용 가져오기
@@ -150,7 +161,7 @@ public class ChatRoomService {
 		List<MyChatRoomResponse> dtoPage = pageList.stream()
 			.map(dto -> {
 				String lastContent = lastContentsMap.getOrDefault( // 마지막 대화 내용 포함
-					dto.chatRoom().getChatRoomId(),
+					dto.chatRoomId(),
 					null // 대화 내용이 없으면 null
 				);
 				// MyChatRoomResponse의 오버로딩된 fromDto 호출
@@ -168,7 +179,8 @@ public class ChatRoomService {
 		OrderType order =
 			(req.getOrder() != null) ? req.getOrder() : OrderType.PART_DESC;
 
-		String keyword = (req.getKeyword() != null ) ? req.getKeyword() : null;
+		// String keyword = (req.getKeyword() != null ) ? req.getKeyword() : null;
+		String keyword = (req.getKeyword() != null ) ? req.getKeyword() : "";
 
 		return switch (order) {
 			case PART_ASC -> chatRoomRepository
@@ -196,7 +208,7 @@ public class ChatRoomService {
 
 		System.out.println("===============>"+userId);
 
-		Sort.Order order = Sort.Order.desc("createdAt");
+		Sort.Order order = Sort.Order.desc("created_at");
 		Pageable pageable = PageRequest.of(req.getPage() - 1,
 			req.getPageSize(), Sort.by(order));
 
@@ -215,7 +227,8 @@ public class ChatRoomService {
 
 		OrderType order =
 			(req.getOrder() != null) ? req.getOrder() : OrderType.PART_DESC;
-		String keyword = (req.getKeyword() != null ) ? req.getKeyword() : null;
+		// String keyword = (req.getKeyword() != null ) ? req.getKeyword() : null;
+		String keyword = (req.getKeyword() != null ) ? req.getKeyword() : "";
 
 		System.out.println("===============>keyword===>"+keyword);
 		return switch (order) {
@@ -244,7 +257,7 @@ public class ChatRoomService {
 
 		// 1. RoomId 리스트 추출 (Redis 키 생성)
 		List<String> redisKeys = dtoList.stream()
-			.map(dto -> "chatroom:last_msg_content:" + dto.chatRoom().getChatRoomId())
+			.map(dto -> "chatroom:last_msg_content:" + dto.chatRoomId())
 			.toList();
 
 		// 2. Redis MGET
@@ -253,7 +266,7 @@ public class ChatRoomService {
 		// 3. Map<RoomId, Content>로 변환
 		Map<String, String> contentMap = new HashMap<>();
 		for (int i = 0; i < dtoList.size(); i++) {
-			String roomId = dtoList.get(i).chatRoom().getChatRoomId();
+			String roomId = dtoList.get(i).chatRoomId();
 			String content = (contents != null && i < contents.size() && contents.get(i) != null)
 				? contents.get(i)
 				: null;
@@ -270,7 +283,7 @@ public class ChatRoomService {
 	// 가능거리 계산
 	private boolean festivalCaculator(LocationDto locationDto, LocationDto festivalDto) {
 		double km = LocationService.getDistanceCalculator(locationDto, festivalDto);
-		return km > MAX_RADIUS;
+		return km <= MAX_RADIUS; // 로직: km이 MAX_RADIUS(1.0km)보다 작거나 같을 때 true 반환 (반경 내에 있을 때만 생성 가능)
 	}
 
 	//사용자 위치정보
