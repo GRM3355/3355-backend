@@ -26,10 +26,8 @@ spring:
   # --- JPA (운영용) ---
   jpa:
     hibernate:
-      # 운영에서는 DB 스키마를 절대 자동으로 변경/생성하지 않도록 'none'으로 설정
-      ddl-auto: none
-    # 운영 환경에서는 SQL 로그를 꺼서 성능 확보
-    show-sql: false
+      ddl-auto: create  # 운영 환경에서는 validate 또는 none 사용
+    show-sql: false     # 운영 환경에서는 SQL 로그를 꺼서 성능 확보
 
 logging:
   level:
