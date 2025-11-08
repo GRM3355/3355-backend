@@ -98,7 +98,6 @@ public class LocationService {
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 정보가 없습니다."));
 
 		LocationDto chatroomPosition = LocationDto.builder()
-			//.lat(0.0).lon(0.0)
 			.lat(chatRoom.getPosition().getY())
 			.lon(chatRoom.getPosition().getX())
 			.build();

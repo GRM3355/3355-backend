@@ -138,13 +138,12 @@ public class ChatRoomService {
 
 		//dto 변환
 		return ChatRoomResponse.builder()
-			.chatRoomId(saveChatRoom.getChatRoomId())
-			.festivalId(saveChatRoom.getFestival().getFestivalId())
-			.userId(saveChatRoom.getUser().getUserId())
-			.title(saveChatRoom.getTitle())
-			//.lat(0.0).lon(0.0)
-			.lat(saveChatRoom.getPosition().getY())
-			.lon(saveChatRoom.getPosition().getX())
+			.chatRoomId(roomId)
+			.festivalId(festivalId)
+			.userId(userId)
+			.title(request.getTitle())
+			.lat(chatRoom.getPosition().getY())
+			.lon(chatRoom.getPosition().getX())
 			.build();
 	}
 
@@ -157,7 +156,7 @@ public class ChatRoomService {
 		//정렬 순서
 		if (req.getOrder() == null)
 			req.setOrder(OrderType.DATE_ASC);
-		
+
 		Sort.Order order = getSortOrder(req.getOrder());
 
 		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), Sort.by(order));
