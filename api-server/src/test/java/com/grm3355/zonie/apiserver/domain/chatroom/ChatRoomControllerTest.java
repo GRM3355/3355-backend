@@ -1,6 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.chatroom;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grm3355.zonie.apiserver.BaseIntegrationTest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
@@ -32,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("채팅방 생성 통합테스트")
 @SpringBootTest
 @AutoConfigureMockMvc
-class ChatRoomControllerTest {
+class ChatRoomControllerTest extends BaseIntegrationTest {
 
 	@Autowired
 	private MockMvc mockMvc;

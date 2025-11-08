@@ -1,29 +1,16 @@
 # api-server/src/test/resources/application-test.yml
-
 # Testcontainers의 @DynamicPropertySource가 설정을 주입
-# spring:
-#  datasource:
-#    url: jdbc:h2:mem:testdb
-#    driver-class-name: org.h2.Driver
-#    username: sa
-#    password:
-#  jpa:
-#    hibernate:
-#      ddl-auto: create-drop
-#    show-sql: false
 
 logging:
   level:
     com.grm3355.zonie: DEBUG
 jwt:
-  secret: yourSecretKeyHeredjeknzlxfoefjflkasdkdkfsdlkwjfjlsdkjfaskldfjlasdkzidnakhdkasjbfkjsahdfndfkjhsadfnaskdfhSBfkjhsdfnasndfnkashdfasndf
+  secret: TEST_KEY_REQUIRED_FOR_CONTEXT_LOAD
   access-token-expiration-time: 86400000 # 24시간
   location-token-expiration-time: 600000 # 10분
 
-#cors
 cors:
   allowed-origins: "http://localhost:8082,http://example.com"
 
-#공공데이터 api
 openapi:
-  serviceKey: asdfasdfasdfdaldjfleuiuoahdflasdfjlasjdflasjkdfkl
+  serviceKey: TEST_KEY_REQUIRED_FOR_CONTEXT_LOAD

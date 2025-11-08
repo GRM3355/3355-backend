@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest(classes = BatchServerApplication.class)
-class BatchServerApplicationTests {
+class BatchServerApplicationTests extends BaseIntegrationTest {
 
 	@Test
 	void contextLoads() {
