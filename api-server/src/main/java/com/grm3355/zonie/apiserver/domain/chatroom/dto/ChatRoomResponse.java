@@ -1,8 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.dto;
 
-import org.locationtech.jts.geom.Point;
-
-import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
+import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -32,14 +30,23 @@ public class ChatRoomResponse {
 	@Schema(description = "경도", example = "123.233")
 	private double lon;
 
-	public static ChatRoomResponse fromEntity(ChatRoom chatRoom) {
+	@Schema(description = "축제명", example = "사과축제")
+	private String festivalTitle;
+
+	@Schema(description = "참석자수", example = "234")
+	private Long participantCount;
+
+	public static ChatRoomResponse fromEntity(ChatRoomInfoDto dto) {
 		return new ChatRoomResponse(
-			chatRoom.getChatRoomId(),
-			chatRoom.getFestival().getFestivalId(),
-			chatRoom.getUser().getUserId(),
-			chatRoom.getTitle(),
-			chatRoom.getPosition().getY(),
-			chatRoom.getPosition().getX()
+			dto.getChatRoomId(),
+			dto.getFestivalId(),
+			dto.getUserId(),
+			dto.getTitle(),
+			0,
+			0,
+			dto.getFestivalTitle(),
+			dto.getParticipantCount()
+
 		);
 	}
 

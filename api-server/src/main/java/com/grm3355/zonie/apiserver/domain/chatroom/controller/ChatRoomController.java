@@ -78,7 +78,6 @@ public class ChatRoomController {
 	public ResponseEntity<?> creteChatRoom(@PathVariable long festivalId,
 		@Valid @RequestBody ChatRoomRequest chatRoomRequest,  HttpServletRequest servlet,
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
-
 		// 현재 URL
 		URI location = URI.create(servlet.getRequestURL().toString());
 		ChatRoomResponse response = chatRoomService.setCreateChatRoom(festivalId, chatRoomRequest, userDetails);
@@ -158,6 +157,9 @@ public class ChatRoomController {
 		@Valid @ModelAttribute ChatRoomSearchRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails
 	) {
 		Page<MyChatRoomResponse> pageList = chatRoomService.getMyroomChatRoomList(userDetails, request);
+
+		System.out.println("===============>controller getChatRoomList userId="+userDetails.getUsername());
+
 		PageResponse<MyChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}

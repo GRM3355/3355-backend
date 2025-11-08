@@ -2,16 +2,16 @@ package com.grm3355.zonie.apiserver.domain.search.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.grm3355.zonie.apiserver.domain.chatroom.enums.OrderType;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
-import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalOrderType;
 import com.grm3355.zonie.apiserver.domain.search.dto.ListWithCount;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchDto;
@@ -32,27 +32,29 @@ public class TotalSearchService {
 
 	/**
 	 * 통합검색
-	 * @param request
+	 * @param req
 	 * @return
 	 */
-	public TotalSearchResponse getTotalSearch(TotalSearchDto request){
+	public TotalSearchResponse getTotalSearch(TotalSearchDto req){
 
-		String keyword = request.getKeyword();
+		String keyword = req.getKeyword();
 
 		//축제목록
 		FestivalSearchRequest festival = FestivalSearchRequest.builder()
 			.keyword(keyword)
-			.order(FestivalOrderType.DATE_ASC)
 			.build();
-		Page<Festival> festivalPageList = festivalService.getFestivalListType(festival, PageRequest.of(0, 10));
+		Pageable pageable = PageRequest.of(0, 10,
+			Sort.by(Sort.Order.asc("created_at")));
+		Page<Festival> festivalPageList = festivalService.getFestivalListType(festival, pageable);
 
 		//채팅방 목록
 		ChatRoomSearchRequest searchRequest = ChatRoomSearchRequest.builder()
 			.keyword(keyword)
-			.order(OrderType.DATE_ASC)
 			.build();
-		Page<ChatRoomInfoDto> chatroomPageList = chatRoomService.getFestivalListTypeUser(0, searchRequest,
-			PageRequest.of(0, 10));
+		Pageable pageable2 = PageRequest.of(0, 10,
+			Sort.by(Sort.Order.desc("participantCount")));
+		Page<ChatRoomInfoDto> chatroomPageList = chatRoomService.getFestivalListTypeUser(0,
+			searchRequest, pageable2);
 
 		//데이터 합치기
 		TotalSearchResponse response = new TotalSearchResponse(

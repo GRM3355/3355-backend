@@ -1,5 +1,8 @@
 package com.grm3355.zonie.apiserver.domain.search.dto;
 
+import org.geolatte.geom.Point;
+import org.geolatte.geom.Position;
+
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -37,15 +40,16 @@ public class TotalSearchChatRoomResponse {
 	private Long participantCount;
 
 	public static TotalSearchChatRoomResponse fromDto(ChatRoomInfoDto dto) {
+
 		return new TotalSearchChatRoomResponse(
-			dto.chatRoom().getChatRoomId(),
-			dto.chatRoom().getFestival().getFestivalId(),
-			dto.chatRoom().getUser().getUserId(),
-			dto.chatRoom().getTitle(),
-			dto.chatRoom().getPosition().getY(),
-			dto.chatRoom().getPosition().getX(),
-			dto.festivalTitle(),
-			dto.participantCount()
+			dto.getChatRoomId(),
+			dto.getFestivalId(),
+			dto.getUserId(),
+			dto.getTitle(),
+			dto.getLat(),
+			dto.getLon(),
+			dto.getFestivalTitle(),
+			dto.getParticipantCount()
 		);
 	}
 
