@@ -1,16 +1,13 @@
 package com.grm3355.zonie.apiserver.global.exception;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -84,15 +81,15 @@ public class GlobalExceptionHandler {
 		// 	.collect(Collectors.joining(", "));
 		// return ResponseEntity.badRequest().body(Map.of("error", errorMsg));
 
-		List<String> errorData  = ex.getBindingResult().getFieldErrors()
+		List<String> errorData = ex.getBindingResult().getFieldErrors()
 			.stream()
-			.map(e->e.getField() + " : "+e.getDefaultMessage())
+			.map(e -> e.getField() + " : " + e.getDefaultMessage())
 			.collect(Collectors.toList());
 
 		ApiResponse<Object> error = ApiResponse.failure(
 			HttpStatus.BAD_REQUEST.toString(),
 			ErrorCode.BAD_REQUEST.getMessage(),
-			errorData );
+			errorData);
 
 		return ResponseEntity.badRequest().body(error);
 	}
@@ -110,14 +107,14 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity.badRequest().body(ApiResponse.failure("BAD_REQUEST", message));
 
-
 	}
 
 	/* ======= HTTP 스펙 관련 ======= */
 	@ExceptionHandler(MissingServletRequestParameterException.class)
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleMissingParam(
 		MissingServletRequestParameterException ex, HttpServletRequest req) {
-		log.error("=================================> MissingServletRequestParameterException.class 에러로그 찍기", ex); // 예외 로그 찍기
+		log.error("=================================> MissingServletRequestParameterException.class 에러로그 찍기",
+			ex); // 예외 로그 찍기
 
 		Map<String, String> detail = Map.of(ex.getParameterName(), "required");
 		return build(ErrorCode.BAD_REQUEST, ex.getMessage(), detail, req);
@@ -136,7 +133,8 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleMethodNotAllowed(
 		HttpRequestMethodNotSupportedException ex, HttpServletRequest req) {
 
-		log.error("=================================> HttpRequestMethodNotSupportedException.class 에러로드 찍기", ex); // 예외 로그 찍기
+		log.error("=================================> HttpRequestMethodNotSupportedException.class 에러로드 찍기",
+			ex); // 예외 로그 찍기
 
 		return build(ErrorCode.METHOD_NOT_ALLOWED, ex.getMessage(), null, req);
 	}
@@ -145,7 +143,8 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleUnsupportedMediaType(
 		HttpMediaTypeNotSupportedException ex, HttpServletRequest req) {
 
-		log.error("=================================> HttpMediaTypeNotSupportedException.class 에러로드 찍기", ex); // 예외 로그 찍기
+		log.error("=================================> HttpMediaTypeNotSupportedException.class 에러로드 찍기",
+			ex); // 예외 로그 찍기
 
 		return build(ErrorCode.UNSUPPORTED_MEDIA_TYPE, ex.getMessage(), null, req);
 	}
@@ -249,7 +248,6 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse<Object>> CustomValidationException(CustomValidationException ex,
 		HttpServletRequest req) {
 		log.error("=================================> CustomValidationException.class 에러 로그 찍기", ex); // 예외 로그 찍기
-
 
 		ApiResponse<Object> error = ApiResponse.failure(
 			ErrorCode.BAD_REQUEST.getCode(),
