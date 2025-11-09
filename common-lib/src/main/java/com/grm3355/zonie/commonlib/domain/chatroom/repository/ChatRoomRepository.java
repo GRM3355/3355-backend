@@ -14,67 +14,65 @@ import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 @Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 
-	Optional<ChatRoom> findByChatRoomId(String chatRoomId);
-
 	// =========================================================================
 	// 공통 축제별 목록 조회 쿼리, 내 채팅방 목록 조회 쿼리
 	// Native Query로 LIKE 파라미터 캐스팅 문제 해결 (keyword::TEXT 사용)
 	// 반환타입은 DTO Projection: 서비스 레이어에 처리
 	// =========================================================================
 	String FESTIVAL_QUERY_BASE = """
-       SELECT 
-       c.chat_room_id as chatRoomId, 
-       f.festival_id as festivalId, 
-       c.title, 
-       c.participant_count as participantCount, 
-       (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt, 
-       f.title AS festivalTitle
+		     SELECT 
+		     c.chat_room_id as chatRoomId, 
+		     f.festival_id as festivalId, 
+		     c.title, 
+		     c.participant_count as participantCount, 
+		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt, 
+		     f.title AS festivalTitle
 		,ST_Y(c.position::geometry) AS lat
 		,ST_X(c.position::geometry) AS lon
-       FROM chat_rooms c
-       LEFT JOIN festivals f ON f.festival_id = c.festival_id
-       WHERE c.festival_id IS NOT NULL
-         AND (:festivalId = 0 OR c.festival_id = :festivalId)
-         AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
-    """;
+		     FROM chat_rooms c
+		     LEFT JOIN festivals f ON f.festival_id = c.festival_id
+		     WHERE c.festival_id IS NOT NULL
+		       AND (:festivalId = 0 OR c.festival_id = :festivalId)
+		       AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%')OR f.title LIKE ('%' || :keyword || '%') )
+		""";
 	String FESTIVAL_QUERY_BASE_COUNT = """
-       SELECT count(*)
-       FROM chat_rooms c
-       LEFT JOIN festivals f ON f.festival_id = c.festival_id
-       WHERE c.festival_id IS NOT NULL
-         AND (:festivalId = 0 OR c.festival_id = :festivalId)
-         AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
-    """;
+		   SELECT count(*)
+		   FROM chat_rooms c
+		   LEFT JOIN festivals f ON f.festival_id = c.festival_id
+		   WHERE c.festival_id IS NOT NULL
+		     AND (:festivalId = 0 OR c.festival_id = :festivalId)
+		     AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%'))
+		""";
 	String MY_ROOM_QUERY_BASE = """
-       SELECT 
-       c.chat_room_id as chatRoomId, 
-       f.festival_id as festivalId, 
-       c.title, 
-       c.participant_count as participantCount, 
-       (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt, 
-       f.title AS festivalTitle
+		     SELECT 
+		     c.chat_room_id as chatRoomId, 
+		     f.festival_id as festivalId, 
+		     c.title, 
+		     c.participant_count as participantCount, 
+		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt, 
+		     f.title AS festivalTitle
 		,ST_Y(c.position::geometry) AS lat
 		,ST_X(c.position::geometry) AS lon
-       FROM chat_rooms c
-       LEFT JOIN festivals f ON f.festival_id = c.festival_id
-       LEFT JOIN chat_room_user cru ON cru.chat_room_id = c.chat_room_id
-       WHERE c.chat_room_id IS NOT NULL
-         AND (cru.user_id = :userId)
-         AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
-       GROUP BY c.chat_room_id, f.festival_id, c.title, c.participant_count, c.last_message_at, f.title
-    """; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시
-
+		     FROM chat_rooms c
+		     LEFT JOIN festivals f ON f.festival_id = c.festival_id
+		     LEFT JOIN chat_room_user cru ON cru.chat_room_id = c.chat_room_id
+		     WHERE c.chat_room_id IS NOT NULL
+		       AND (cru.user_id = :userId)
+		       AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%') )
+		     GROUP BY c.chat_room_id, f.festival_id, c.title, c.participant_count, c.last_message_at, f.title
+		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시
 	String MY_ROOM_QUERY_BASE_COUNT = """
-       SELECT count(*)
-       FROM chat_rooms c
-       LEFT JOIN festivals f ON f.festival_id = c.festival_id
-       LEFT JOIN chat_room_user cru ON cru.chat_room_id = c.chat_room_id
-       WHERE c.chat_room_id IS NOT NULL
-         AND (cru.user_id = :userId)
-         AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
-       GROUP BY c.chat_room_id, f.festival_id, c.title, c.participant_count, c.last_message_at, f.title
-    """; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시
+		   SELECT count(*)
+		   FROM chat_rooms c
+		   LEFT JOIN festivals f ON f.festival_id = c.festival_id
+		   LEFT JOIN chat_room_user cru ON cru.chat_room_id = c.chat_room_id
+		   WHERE c.chat_room_id IS NOT NULL
+		     AND (cru.user_id = :userId)
+		     AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%') )
+		   GROUP BY c.chat_room_id, f.festival_id, c.title, c.participant_count, c.last_message_at, f.title
+		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시
 
+	Optional<ChatRoom> findByChatRoomId(String chatRoomId);
 
 	/**
 	 * 축제별 채팅 관련 Native Query (festivalId로 조회)

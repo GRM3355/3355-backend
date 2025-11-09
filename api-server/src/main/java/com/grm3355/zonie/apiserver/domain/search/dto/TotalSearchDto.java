@@ -1,14 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.search.dto;
 
-import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-
-import org.hibernate.annotations.ColumnDefault;
-
-import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalOrderType;
-import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalStatus;
-import com.grm3355.zonie.commonlib.global.enums.Region;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;

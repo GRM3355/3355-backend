@@ -1,6 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
 import java.net.URI;
+import java.util.Objects;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -67,10 +68,10 @@ public class AuthController {
 	@PostMapping("/token-register")
 	public ResponseEntity<?> register(@Valid @RequestBody LocationDto locationDto, HttpServletRequest request) {
 		String path = request != null ? request.getRequestURI() : null;
-		URI location = URI.create(path);
+		URI location = URI.create(Objects.requireNonNull(path));
 
 		// 토큰이 없으면 register 처리
-		AuthResponse response2 = authService.register(locationDto, request);
+		AuthResponse response2 = authService.register(locationDto);
 		return ResponseEntity.created(location).body(ApiResponse.success(response2));
 
 	}

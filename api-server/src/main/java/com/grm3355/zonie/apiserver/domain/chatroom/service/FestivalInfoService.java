@@ -1,7 +1,5 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.service;
 
-import java.time.LocalDate;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +21,7 @@ public class FestivalInfoService {
 	public Festival getDataValid(long festivalId, int dayNum) {
 		return festivalRepository
 			.findByIsValidFestival(festivalId, dayNum)
-			.orElseThrow(()-> new BusinessException(ErrorCode.NOT_FOUND,"축제 관련정보가 없습니다."));
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "축제 관련정보가 없습니다."));
 	}
 
 	//채팅방 등록시 chatRoomCount +1

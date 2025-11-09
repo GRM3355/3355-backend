@@ -1,7 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.festival.dto;
 
 import jakarta.validation.constraints.Digits;
-import jakarta.validation.constraints.NotNull;
 
 import org.hibernate.annotations.ColumnDefault;
 import org.springframework.validation.annotation.Validated;

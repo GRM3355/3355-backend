@@ -6,18 +6,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
-import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
+import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
 import com.grm3355.zonie.apiserver.domain.search.dto.ListWithCount;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchDto;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchResponse;
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
+import com.grm3355.zonie.commonlib.global.exception.BusinessException;
+import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 
 @Service
 public class TotalSearchService {
@@ -32,10 +34,10 @@ public class TotalSearchService {
 
 	/**
 	 * 통합검색
-	 * @param req
-	 * @return
+	 * @param req 검색 dto
+	 * @return TotalSearchResponse 응답
 	 */
-	public TotalSearchResponse getTotalSearch(TotalSearchDto req){
+	public TotalSearchResponse getTotalSearch(TotalSearchDto req) {
 
 		String keyword = req.getKeyword();
 
@@ -57,21 +59,23 @@ public class TotalSearchService {
 			searchRequest, pageable2);
 
 		//데이터 합치기
-		TotalSearchResponse response = new TotalSearchResponse(
+		return new TotalSearchResponse(
 			new ListWithCount<>(festivalPageList.getTotalElements(),
 				festivalPageList.stream().map(FestivalResponse::fromEntity).toList()),
 			new ListWithCount<>(chatroomPageList.getTotalElements(),
-			chatroomPageList.stream().map(TotalSearchChatRoomResponse::fromDto).toList())
+				chatroomPageList.stream().map(TotalSearchChatRoomResponse::fromDto).toList())
 		);
-		return response;
 	}
 
 	/**
 	 * 통합검색 - 페스티벌
-	 * @param request
-	 * @return
+	 * @param request 검색dto
+	 * @return Page<FestivalResponse>
 	 */
-	public Page<FestivalResponse> getFestivalTotalSearch(FestivalSearchRequest request){
+	public Page<FestivalResponse> getFestivalTotalSearch(FestivalSearchRequest request) {
+
+		//키워드 체크
+		checkKeyWord(request.getKeyword());
 
 		//축제목록
 		return festivalService.getFestivalList(request);
@@ -79,14 +83,26 @@ public class TotalSearchService {
 
 	/**
 	 * 통합검색 - 채팅방
-	 * @param request
-	 * @return
+	 * @param request 검색dto
+	 * @return Page<MyChatRoomResponse>
 	 */
-	public Page<MyChatRoomResponse> getChatroomTotalSearch(ChatRoomSearchRequest request){
+	public Page<MyChatRoomResponse> getChatroomTotalSearch(ChatRoomSearchRequest request) {
 
+		//키워드 체크
+		checkKeyWord(request.getKeyword());
+		
 		//채팅방 목록
 		//축제가 없으면 0으로 처리해서 전체 데이터를 가져온다.
 		return chatRoomService.getFestivalChatRoomList(0, request);
+	}
+
+	//키워드 체크
+	private void checkKeyWord(String keyword) {
+
+		//키워드 체크
+		if (keyword == null || keyword.isEmpty()) {
+			throw new BusinessException(ErrorCode.BAD_REQUEST, "검색어는 필수입니다.");
+		}
 	}
 
 }

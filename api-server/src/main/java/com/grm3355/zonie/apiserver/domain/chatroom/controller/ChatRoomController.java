@@ -17,13 +17,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.grm3355.zonie.apiserver.global.dto.PageResponse;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
-import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
+import com.grm3355.zonie.apiserver.global.dto.PageResponse;
+import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -76,7 +76,7 @@ public class ChatRoomController {
 	@PreAuthorize("hasRole('GUEST')")
 	@PostMapping("/festivals/{festivalId}/chat-rooms")
 	public ResponseEntity<?> createChatRoom(@PathVariable long festivalId,
-		@Valid @RequestBody ChatRoomRequest chatRoomRequest,  HttpServletRequest servlet,
+		@Valid @RequestBody ChatRoomRequest chatRoomRequest, HttpServletRequest servlet,
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
 		// 현재 URL
 		URI location = URI.create(servlet.getRequestURL().toString());
@@ -116,7 +116,7 @@ public class ChatRoomController {
 	@GetMapping("/festivals/{festivalId}/chat-rooms")
 	public ResponseEntity<?> getChatRoomList(@PathVariable long festivalId,
 		@Valid @ModelAttribute ChatRoomSearchRequest request
-		) {
+	) {
 		Page<MyChatRoomResponse> pageList = chatRoomService.getFestivalChatRoomList(festivalId, request);
 		PageResponse<MyChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
@@ -125,7 +125,7 @@ public class ChatRoomController {
 	@Operation(summary = "내 채팅방 목록", description = "사용자의 토큰을 입력받아서 본인이 등록한 채팅방 목록을 본다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "토큰 발급성공", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class)
-			)),
+		)),
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 유효성 검증 실패", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 			examples = @ExampleObject(
 				name = "BAD_REQUEST",
@@ -156,7 +156,7 @@ public class ChatRoomController {
 	public ResponseEntity<ApiResponse<PageResponse<MyChatRoomResponse>>> getChatRoomList(
 		@Valid @ModelAttribute ChatRoomSearchRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails
 	) {
-		Page<MyChatRoomResponse> pageList = chatRoomService.getMyroomChatRoomList(userDetails, request);
+		Page<MyChatRoomResponse> pageList = chatRoomService.getMyRoomChatRoomList(userDetails, request);
 		PageResponse<MyChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}

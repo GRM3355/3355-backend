@@ -1,12 +1,8 @@
 package com.grm3355.zonie.apiserver.domain.festival.dto;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
-import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
-import com.grm3355.zonie.commonlib.global.enums.Region;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -58,7 +54,6 @@ public class FestivalResponse {
 	//@Schema(description = "접근거리", example = "1.0")
 	//private double radius;
 
-
 	public static FestivalResponse fromEntity(Festival festival) {
 
 		LocalDate startDateTime = festival.getEventStartDate();
@@ -77,6 +72,5 @@ public class FestivalResponse {
 			festival.getChatRoomCount()
 		);
 	}
-
 
 }

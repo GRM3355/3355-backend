@@ -10,12 +10,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.grm3355.zonie.apiserver.global.dto.PageResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
-import com.grm3355.zonie.commonlib.global.enums.Region;
+import com.grm3355.zonie.apiserver.global.dto.PageResponse;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,7 +40,7 @@ public class FestivalController {
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록표시", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class)
 		)),
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 유효성 검증 실패", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
+			examples = @ExampleObject(
 				name = "BAD_REQUEST",
 				value = "{\"success\":false,\"status\":400,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 			)
@@ -64,7 +63,7 @@ public class FestivalController {
 				value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
 			)
 		))
-	})	//축제목록
+	})    //축제목록
 	@GetMapping("/festivals")
 	public ResponseEntity<?> getFestivalList(@ModelAttribute FestivalSearchRequest request
 	) {
@@ -101,7 +100,7 @@ public class FestivalController {
 				value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
 			)
 		))
-	})		//축제내용
+	})        //축제내용
 	@GetMapping("/festivals/{festivalId}")
 	public ResponseEntity<?> gefFestivalContent(@PathVariable long festivalId,
 		@ModelAttribute ChatRoomSearchRequest request
@@ -138,10 +137,10 @@ public class FestivalController {
 				value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
 			)
 		))
-	})	//지역목록
+	})    //지역목록
 	@GetMapping("/festivals/region")
 	public ResponseEntity<?> getFestivalRegion() {
-		List<Region> response = festivalService.getRegionList();
+		List<?> response = festivalService.getRegionList();
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 

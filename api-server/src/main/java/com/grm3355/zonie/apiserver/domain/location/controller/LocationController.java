@@ -10,13 +10,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
-import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.apiserver.domain.location.dto.ChatRoomZoneVarifyResponse;
 import com.grm3355.zonie.apiserver.domain.location.dto.FestivalZoneVarifyResponse;
 import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
+import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +32,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class LocationController {
 
-	private final RedisTokenService redisTokenService;
 	private final LocationService locationService;
 
 	@Operation(summary = "location 토큰의 위치정보 업데이트", description = "위도, 경도, accessToken을 받아서 Redis에서 정보를 수정한다.")
@@ -140,7 +138,8 @@ public class LocationController {
 		))
 	})
 	@GetMapping("/chatroomVerify")
-	public ResponseEntity<?> getChatRoomVerify(@AuthenticationPrincipal UserDetailsImpl userDetails, String chatroomId) {
+	public ResponseEntity<?> getChatRoomVerify(@AuthenticationPrincipal UserDetailsImpl userDetails,
+		String chatroomId) {
 		ChatRoomZoneVarifyResponse response = locationService
 			.getChatroomVerify(userDetails, chatroomId);
 		return ResponseEntity.ok(ApiResponse.success(response));
