@@ -1,19 +1,14 @@
 package com.grm3355.zonie.apiserver.domain.festival.controller;
 
-import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
-import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
-import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
-import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
-import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
-import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
-import com.grm3355.zonie.apiserver.global.dto.PageResponse;
-import com.grm3355.zonie.commonlib.global.enums.Region;
-import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
+import static org.mockito.ArgumentMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -27,12 +22,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
+import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
+import com.grm3355.zonie.apiserver.global.dto.PageResponse;
+import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
+import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
+import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
+import com.grm3355.zonie.commonlib.global.enums.Region;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 @WebMvcTest(
 	controllers = FestivalController.class,
@@ -114,8 +112,8 @@ class FestivalControllerTest {
 	void testGetFestivalRegion() throws Exception {
 		// given
 		List<Region> regions = List.of(Region.SEOUL, Region.JEOLLA);
-		Mockito.when(festivalService.getRegionList()).thenReturn(regions);
-
+		Mockito.when(festivalService.getRegionList())
+			.thenReturn((List)regions);
 		// when & then
 		mockMvc.perform(get("/api/v1/festivals/region")
 				.contentType(MediaType.APPLICATION_JSON)
