@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.grm3355.zonie.apiserver.common.dto.PageResponse;
+import com.grm3355.zonie.apiserver.global.dto.PageResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;

@@ -1,19 +1,25 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.apiserver.common.service.RateLimitingService;
+import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
+import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
+import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.service.AuthService;
 import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -23,7 +29,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @DisplayName("토큰 발행 통합테스트")
-@WebMvcTest(AuthController.class)
+@WebMvcTest(
+	controllers = AuthController.class,
+	excludeAutoConfiguration = {
+		DataSourceAutoConfiguration.class,
+		JpaRepositoriesAutoConfiguration.class
+	}
+)
 @AutoConfigureMockMvc(addFilters = false) //시큐리티 제외
 class AuthControllerTest {
 
@@ -38,6 +50,18 @@ class AuthControllerTest {
 
 	@MockitoBean
 	private AuthService authService;
+
+	@MockitoBean
+	private UserDetailsService userDetailsService;
+
+	@MockitoBean
+	private JwtTokenProvider jwtTokenProvider;
+
+	@MockitoBean
+	private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
+	@MockitoBean
+	private JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
 	@Test
 	void registerToken_Success() throws Exception {

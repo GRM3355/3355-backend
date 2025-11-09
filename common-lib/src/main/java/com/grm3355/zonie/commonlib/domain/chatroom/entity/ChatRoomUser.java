@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 	name = "chat_room_user",
 	uniqueConstraints = {
 		@UniqueConstraint(
-			columnNames = {"chat_room_id", "nickname"}
+			columnNames = {"chat_room_id", "nick_name"}
 		)
 	}
 )

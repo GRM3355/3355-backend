@@ -1,5 +1,6 @@
 package com.grm3355.zonie.commonlib.domain.chatroom.entity;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.Column;
@@ -12,6 +13,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+import org.hibernate.annotations.ColumnDefault;
 import org.locationtech.jts.geom.Point;
 
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
@@ -65,6 +67,17 @@ public class ChatRoom extends BaseTimeEntity {
 	@Column(name = "position", columnDefinition = "geography(Point, 4326)")
 	private Point position;
 
+	/**
+	 * 실시간 참여자 수 (RedisToDbSyncJob이 1분마다 갱신)
+	 * DB에서 직접 COUNT()하는 부하를 막기 위한 비정규화 컬럼
+	 */
+	@ColumnDefault("0")
+	@Column(name = "participant_count", nullable = false)
+	private Long participantCount;
 
-
+	/**
+	 * 마지막 대화 시각 (RedisToDbSyncJob이 1분마다 갱신)
+	 */
+	@Column(name = "last_message_at")
+	private LocalDateTime lastMessageAt;
 }

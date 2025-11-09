@@ -2,48 +2,40 @@ package com.grm3355.zonie.apiserver.domain.chatroom.dto;
 
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
 public class MyChatRoomResponse {
-	@Schema(description = "채팅방 아이디", example = "room:abc-def-ghi")
-	private String chatRoomId;
+	String chatRoomId;
+	Long festivalId;
+	String title;
+	double lat;
+	double lon;
+	String festivalTitle;
+	Long participantCount;
+	Long lastMessageAt;
+	String lastContent;
 
-	@Schema(description = "축제 아이디", example = "1")
-	private Long festivalId;
-
-	@Schema(description = "사용자 아이디", example = "user:aaa-bbb-ccc")
-	private String userId;
-
-	@Schema(description = "제목", example = "채팅방 제목입니다.")
-	private String title;
-
-	@Schema(description = "위도", example = "(123.233, 26.223)")
-	private double lat;
-
-	@Schema(description = "경도", example = "123.233")
-	private double lon;
-
-	@Schema(description = "축제명", example = "사과축제")
-	private String festivalTitle;
-
-	@Schema(description = "참석자수", example = "234")
-	private Long participantCount;
-
-	public static MyChatRoomResponse fromDto(ChatRoomInfoDto dto) {
-		return new MyChatRoomResponse(
-			dto.getChatRoomId(),
-			dto.getFestivalId(),
-			dto.getUserId(),
-			dto.getTitle(),
-			dto.getLat(),
-			dto.getLon(),
-			dto.getFestivalTitle(),
-			dto.getParticipantCount()
-		);
+	public static MyChatRoomResponse fromDto(ChatRoomInfoDto dto, String lastContent) {
+		return MyChatRoomResponse.builder()
+			.chatRoomId(dto.chatRoomId())
+			.festivalId(dto.festivalId())
+			// .userId(dto.chatRoom().getUser().getUserId())
+			.title(dto.title())
+			// dto.chatRoom().getPosition().getY(),
+			// dto.chatRoom().getPosition().getX(),
+			.lat(0.0)
+			.lon(0.0)
+			.festivalTitle(dto.festivalTitle())
+			.participantCount(dto.participantCount())
+			.lastMessageAt(dto.lastMessageAt())
+			.lastContent(lastContent)
+			.build();
 	}
 
+	public static MyChatRoomResponse fromDto(ChatRoomInfoDto dto) {
+		return fromDto(dto, null);
+	}
 }

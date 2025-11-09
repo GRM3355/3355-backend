@@ -1,6 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.dto;
 
-import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
+import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -10,7 +10,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-public class ChatRoomResponse {
+public class ChatRoomResponse { // 채팅방 생성 시점에서의 채팅방 정보 응답
 
 	@Schema(description = "채팅방 아이디", example = "room:abc-def-ghi")
 	private String chatRoomId;
@@ -30,23 +30,15 @@ public class ChatRoomResponse {
 	@Schema(description = "경도", example = "123.233")
 	private double lon;
 
-	@Schema(description = "축제명", example = "사과축제")
-	private String festivalTitle;
-
-	@Schema(description = "참석자수", example = "234")
-	private Long participantCount;
-
-	public static ChatRoomResponse fromEntity(ChatRoomInfoDto dto) {
+	public static ChatRoomResponse fromEntity(ChatRoom chatRoom) {
 		return new ChatRoomResponse(
-			dto.getChatRoomId(),
-			dto.getFestivalId(),
-			dto.getUserId(),
-			dto.getTitle(),
-			dto.getLat(),
-			dto.getLon(),
-			dto.getFestivalTitle(),
-			dto.getParticipantCount()
-
+			chatRoom.getChatRoomId(),
+			chatRoom.getFestival().getFestivalId(),
+			chatRoom.getUser().getUserId(),
+			chatRoom.getTitle(),
+			0.0, 0.0
+			// chatRoom.getPosition().getY(),
+			// chatRoom.getPosition().getX()
 		);
 	}
 

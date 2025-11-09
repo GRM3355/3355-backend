@@ -1,34 +1,11 @@
 # chat-server/src/test/resources/application-test.yml
-
-#spring:
-#  # --- 1. RDS(JPA) 설정: H2 (in-memory) DB 사용 ---
-#  datasource:
-#    # H2 DB를 사용하도록 드라이버와 URL 설정
-#    driver-class-name: org.h2.Driver
-#    # 'mem:testdb'는 H2가 메모리에 'testdb'라는 이름으로 DB를 만들라는 뜻
-#    url: jdbc:h2:mem:testdb
-#    username: sa
-#    password:
-#  jpa:
-#    hibernate:
-#      ddl-auto: create-drop # 테스트가 끝나면 DB 자동 삭제
-#    properties:
-#      hibernate:
-#        # H2 DB는 PostgreSQL 문법을 흉내 낼 수 있음
-#        dialect: org.hibernate.dialect.H2Dialect
-#
-#  data:
-#    # --- 2. MongoDB 설정: Embedded Mongo 사용 ---
-#    mongodb:
-#      # uri: 비워두면 de.flapdoodle.embed 라이브러리가 알아서 가짜 Mongo를 띄움
-#    # --- 3. Redis 설정: Embedded Redis 사용 ---
-#    redis:
-#      host: localhost
-#      port: 6379
+# Testcontainers의 @DynamicPropertySource가 설정을 주입
 
 logging:
   level:
     com.grm3355.zonie: DEBUG
 
 jwt:
-  secret: "ci-test-fake-secret-key-that-is-long-enough-for-the-test-to-pass"
+  secret: dGhpcy1pcy1hLWxvY2FsLXRlc3Qtc2VjcmV0LWtleS1mb3ItYWxsLW1vZHVsZXMtMzItYnl0ZXMK
+  access-token-expiration-time: 86400000 # 24시간
+  location-token-expiration-time: 600000 # 10분

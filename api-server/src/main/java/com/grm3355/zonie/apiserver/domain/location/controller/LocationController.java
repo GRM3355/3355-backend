@@ -5,13 +5,12 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.grm3355.zonie.apiserver.common.jwt.UserDetailsImpl;
+import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
