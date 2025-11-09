@@ -39,3 +39,10 @@ jwt:
   secret: ${JWT_SECRET_KEY}
   access-token-expiration-time: 86400000 # 24시간
   location-token-expiration-time: 600000 # 10분
+#채팅 기본정보
+chat:
+  max-chat-person:  500
+  max-chat-room:  30
+  radius: 1.0 #km
+  pre-create-day: 7 #7일전부터 생성 가능
+  pre-view-day: 7 #7일전부터 축제보기 가능

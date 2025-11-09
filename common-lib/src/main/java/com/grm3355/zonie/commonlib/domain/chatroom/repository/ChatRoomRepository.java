@@ -77,16 +77,20 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 
 
 	/**
-	 * 축제별 채팅 관련 JPQL (festivalId로 조회)
+	 * 축제별 채팅 관련 Native Query (festivalId로 조회)
 	 */
 	//종합 쿼리문
 	@Query(value = FESTIVAL_QUERY_BASE, countQuery = FESTIVAL_QUERY_BASE_COUNT, nativeQuery = true)
 	Page<ChatRoomInfoDto> chatFestivalRoomList
 	(long festivalId, String keyword, Pageable pageable);
+
+	/**
+	 * 축제별 채팅 관련 JPQL (festivalId로 조회)
+	 */
 /*
 	//채팅방 참여자수 오름차순 정렬
 	@Query(value = FESTIVAL_QUERY_BASE + " ORDER BY c.participant_count ASC", nativeQuery = true)
-	Page<ChatRoomInfoDto> chat FestivalRoomList_PART_ASC
+	Page<ChatRoomInfoDto> chatFestivalRoomList_PART_ASC
 	(long festivalId, String keyword, Pageable pageable);
 
 	//채팅방 참여자수 내림차순 정렬
@@ -116,13 +120,16 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 	*/
 
 	/**
-	 * 내 채팅 관련 JPQL(userId로 조회)
+	 * 내 채팅 관련 Native Query(userId로 조회)
 	 */
 	// 채팅방 종합쿼리문
 	@Query(value = MY_ROOM_QUERY_BASE, countQuery = MY_ROOM_QUERY_BASE_COUNT, nativeQuery = true)
 	Page<ChatRoomInfoDto> chatMyRoomList
 	(String userId, String keyword, Pageable pageable);
 
+	/**
+	 * 내 채팅 관련 JPQL(userId로 조회)
+	 */
 /*
 	// 채팅방 참여자수 오름차순 정렬
 	@Query(value = MY_ROOM_QUERY_BASE + " ORDER BY c.participant_count ASC", nativeQuery = true)
