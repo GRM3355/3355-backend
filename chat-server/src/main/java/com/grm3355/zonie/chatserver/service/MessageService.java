@@ -55,6 +55,8 @@ public class MessageService {
 			.content(content)
 			.type(MessageType.TEXT)
 			.createdAt(LocalDateTime.now())
+			.likeCount(0)
+			.likedByUserIds(new java.util.HashSet<>())
 			.build();
 		messageRepository.save(message);
 
