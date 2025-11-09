@@ -22,6 +22,7 @@ dependencies {
     // common-lib에서 설정했지만 api-server에서도 명시
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'      // 좋아요 관련 배치
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.hibernate.orm:hibernate-spatial:6.5.2.Final'
     implementation 'org.locationtech.jts:jts-core:1.19.0'

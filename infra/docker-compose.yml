@@ -48,6 +48,14 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    healthcheck:
+      test: |
+        mongosh --eval 'try { rs.status().ok } catch (e) { db.adminCommand("ping").ok }' \
+        --quiet --authenticationDatabase admin
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
     networks:
       - zonie-net
 
@@ -72,7 +80,7 @@ services:
       redis_cache:
         condition: service_started
       mongo_db:
-        condition: service_started
+        condition: service_healthy
     networks:
       - zonie-net
 
@@ -96,7 +104,7 @@ services:
       redis_cache:
         condition: service_started
       mongo_db:
-        condition: service_started
+        condition: service_healthy
     networks:
       - zonie-net
 
@@ -110,11 +118,14 @@ services:
       - SPRING_PROFILES_ACTIVE=local
       - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres_db:5432/zonie_main
       - SPRING_DATA_REDIS_HOST=redis_cache
+      - SPRING_DATA_MONGODB_URI=mongodb://mongo_db:27017/zonie_chat
     depends_on:
       postgres_db:
         condition: service_healthy # PG에는 써야 하므로 Healthy
       redis_cache:
         condition: service_started # Redis에서는 읽기만 하므로 Started
+      mongo_db:
+        condition: service_healthy
     networks:
       - zonie-net
 

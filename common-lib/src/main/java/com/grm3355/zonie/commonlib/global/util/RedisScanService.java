@@ -95,6 +95,29 @@ public class RedisScanService {
 	}
 
 	/**
+	 * likedByKeys 키(Set) 목록을 받아, 각 키의 모든 멤버를 파이프라인으로 일괄 조회합니다. (SMEMBERS)
+	 *
+	 * @param keys (예: "message:liked_by:msg1", "message:liked_by:msg2", ...)
+	 * @return Map<String, Set<String>> (예: {"message:liked_by:msg1": {"user1", "user2"}, ...})
+	 */
+	public Map<String, Set<String>> getSetMembers(Set<String> keys) {
+		List<Object> results = stringRedisTemplate.executePipelined((RedisConnection connection) -> {
+			StringRedisConnection stringConnection = (StringRedisConnection) connection;
+			for (String key : keys) {
+				stringConnection.sMembers(key);
+			}
+			return null;
+		});
+
+		Map<String, Set<String>> membersMap = new HashMap<>();
+		int i = 0;
+		for (String key : keys) {
+			membersMap.put(key, (Set<String>) results.get(i++));
+		}
+		return membersMap;
+	}
+
+	/**
 	 * 주어진 키 목록을 파이프라인으로 일괄 삭제합니다. (DEL)
 	 *
 	 * @param keys 삭제할 키 Set
