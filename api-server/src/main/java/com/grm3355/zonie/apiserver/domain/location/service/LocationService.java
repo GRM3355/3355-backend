@@ -50,7 +50,7 @@ public class LocationService {
 		double distance = R * c; // 단위: km
 
 		// 소수점 첫째 자리까지 반올림
-		return Math.round(distance * 10) / 100.0;
+		return Math.round(distance * 100.0) / 100.0;
 	}
 
 	@Transactional
