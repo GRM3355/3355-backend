@@ -52,7 +52,7 @@ public class TotalSearchService {
 			.keyword(keyword)
 			.build();
 		Pageable pageable2 = PageRequest.of(0, 10,
-			Sort.by(Sort.Order.desc("participantCount")));
+			Sort.by(Sort.Order.desc("participant_count")));
 		Page<ChatRoomInfoDto> chatroomPageList = chatRoomService.getFestivalListTypeUser(0,
 			searchRequest, pageable2);
 

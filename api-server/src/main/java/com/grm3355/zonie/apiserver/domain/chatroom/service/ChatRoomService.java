@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -46,9 +47,22 @@ import lombok.extern.slf4j.Slf4j;
 public class ChatRoomService {
 
 	private static final String PRE_FIX = "room:";
-	private static final int MAX_PARTICIPANTS = 300; // 최대인원수
-	private static final int MAX_ROOM = 30; // 최대인원수
-	private static final double MAX_RADIUS = 1.0; // km
+
+	@Value("${chat.pre-create-day}")
+	private int PRE_CREATE_DAYS; //시작하기전 몇일전부터 생성가능
+
+	@Value("${chat.max-chat-person}")
+	private int MAX_PARTICIPANTS; //최대인원스
+
+	@Value("${chat.max-chat-room}")
+	private int MAX_ROOM; //최개 채팅방 갯수
+
+	@Value("${chat.radius}")
+	private double MAX_RADIUS; //최대km
+
+	//private static final int MAX_PARTICIPANTS = 300; // 최대인원수
+	//private static final int MAX_ROOM = 30; // 최대인원수
+	//private static final double MAX_RADIUS = 1.0; // km
 
 	private final RedisTokenService redisTokenService;
 	private final FestivalInfoService festivalInfoService;
@@ -86,7 +100,7 @@ public class ChatRoomService {
 		}
 
 		//2. 축제 존재여부체크
-		Festival festival = festivalInfoService.getDataValid(festivalId);
+		Festival festival = festivalInfoService.getDataValid(festivalId, PRE_CREATE_DAYS);
 
 		//3. 축제 거리계산하기
 		LocationDto location1 = getUserPostion(userId);
@@ -97,7 +111,7 @@ public class ChatRoomService {
 		}
 
 		//4. 채팅방 갯수 체크
-		if (festival.getChatRoomCount() >= MAX_PARTICIPANTS) {
+		if (festival.getChatRoomCount() >= MAX_ROOM) {
 			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설은 " + MAX_ROOM + "개까지 입니다.");
 		}
 
@@ -120,8 +134,9 @@ public class ChatRoomService {
 		// ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
 
 		// 디버깅을 위해 일시적으로 saveAndFlush 사용함 - 추후 복구하기
+		ChatRoom saveChatRoom;
 		try {
-			ChatRoom saveChatRoom = chatRoomRepository.saveAndFlush(chatRoom);
+			saveChatRoom = chatRoomRepository.saveAndFlush(chatRoom);
 		} catch (Exception e) {
 			log.error("채팅방 저장 중 DB 예외 발생: {}", e.getMessage(), e);
 			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 저장 중 오류가 발생했습니다.");
@@ -132,13 +147,13 @@ public class ChatRoomService {
 
 		//dto 변환
 		return ChatRoomResponse.builder()
-			.chatRoomId(roomId)
-			.festivalId(festivalId)
-			.userId(userId)
-			.title(request.getTitle())
-			.lat(0.0).lon(0.0)
-			// .lat(chatRoom.getPosition().getY())
-			// .lon(chatRoom.getPosition().getX())
+			.chatRoomId(saveChatRoom.getChatRoomId())
+			.festivalId(saveChatRoom.getFestival().getFestivalId())
+			.userId(saveChatRoom.getUser().getUserId())
+			.title(saveChatRoom.getTitle())
+			//.lat(0.0).lon(0.0)
+			.lat(saveChatRoom.getPosition().getY())
+			.lon(saveChatRoom.getPosition().getX())
 			.build();
 	}
 
@@ -149,6 +164,21 @@ public class ChatRoomService {
 	public Page<MyChatRoomResponse> getFestivalChatRoomList(long festivalId, ChatRoomSearchRequest req) {
 
 		Sort.Order order = Sort.Order.desc("created_at");
+
+		if (req.getOrder() == OrderType.PART_ASC) {	//채팅방 참여자수 내림차순 정렬
+			order = Sort.Order.asc("participant_count");
+		}else if (req.getOrder() == OrderType.PART_DESC){	//채팅방 참여자수 내림차순 정렬
+			order = Sort.Order.desc("participant_count");
+		}else if (req.getOrder() == OrderType.DATE_ASC){	// 채팅방 최신순 오름차순 정렬
+			order = Sort.Order.asc("created_at");
+		}else if (req.getOrder() == OrderType.DATE_DESC) {	// 채팅방 최신순 내림차순 정렬
+			order = Sort.Order.desc("created_at");
+		}else if (req.getOrder() == OrderType.ACTIVE_ASC) {	// 채팅방 활성화순 오름차순 정렬
+			order = Sort.Order.asc("last_message_at");
+		}else if (req.getOrder() == OrderType.ACTIVE_DESC) {	// 채팅방 활성화순 내림차순 정렬
+			order = Sort.Order.desc("last_message_at");
+		}
+
 		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), Sort.by(order));
 
 		// 1. PG에서 기본 정보 조회: ListType 내용 가져오기
@@ -176,12 +206,14 @@ public class ChatRoomService {
 	public Page<ChatRoomInfoDto> getFestivalListTypeUser(
 		long festivalId, ChatRoomSearchRequest req, Pageable pageable) {
 
-		OrderType order =
-			(req.getOrder() != null) ? req.getOrder() : OrderType.PART_DESC;
+		//OrderType order = (req.getOrder() != null) ? req.getOrder() : OrderType.PART_DESC;
 
 		// String keyword = (req.getKeyword() != null ) ? req.getKeyword() : null;
 		String keyword = (req.getKeyword() != null ) ? req.getKeyword() : "";
 
+		return chatRoomRepository.chatFestivalRoomList(festivalId, keyword, pageable);
+
+		/*
 		return switch (order) {
 			case PART_ASC -> chatRoomRepository
 				.chatFestivalRoomList_PART_ASC(festivalId, keyword, pageable);
@@ -196,6 +228,8 @@ public class ChatRoomService {
 			case ACTIVE_DESC -> chatRoomRepository
 				.chatFestivalRoomList_ACTIVE_DESC(festivalId, keyword, pageable);
 		};
+		*/
+
 	}
 
 	/**
@@ -207,8 +241,22 @@ public class ChatRoomService {
 		String userId = userDetails.getUsername();
 
 		System.out.println("===============>"+userId);
-
 		Sort.Order order = Sort.Order.desc("created_at");
+
+		if (req.getOrder() == OrderType.PART_ASC) {	//채팅방 참여자수 내림차순 정렬
+			order = Sort.Order.asc("participant_count");
+		}else if (req.getOrder() == OrderType.PART_DESC){	//채팅방 참여자수 내림차순 정렬
+			order = Sort.Order.desc("participant_count");
+		}else if (req.getOrder() == OrderType.DATE_ASC){	// 채팅방 최신순 오름차순 정렬
+			order = Sort.Order.asc("created_at");
+		}else if (req.getOrder() == OrderType.DATE_DESC) {	// 채팅방 최신순 내림차순 정렬
+			order = Sort.Order.desc("created_at");
+		}else if (req.getOrder() == OrderType.ACTIVE_ASC) {	// 채팅방 활성화순 오름차순 정렬
+			order = Sort.Order.asc("last_message_at");
+		}else if (req.getOrder() == OrderType.ACTIVE_DESC) {	// 채팅방 활성화순 내림차순 정렬
+			order = Sort.Order.desc("last_message_at");
+		}
+
 		Pageable pageable = PageRequest.of(req.getPage() - 1,
 			req.getPageSize(), Sort.by(order));
 
@@ -225,12 +273,13 @@ public class ChatRoomService {
 	//축제별 채팅방 검색조건별 목록 가져오기
 	private Page<ChatRoomInfoDto> getMyroomListTypeUser(String userId, ChatRoomSearchRequest req, Pageable pageable) {
 
-		OrderType order =
-			(req.getOrder() != null) ? req.getOrder() : OrderType.PART_DESC;
+		//OrderType order = (req.getOrder() != null) ? req.getOrder() : OrderType.PART_DESC;
 		// String keyword = (req.getKeyword() != null ) ? req.getKeyword() : null;
 		String keyword = (req.getKeyword() != null ) ? req.getKeyword() : "";
 
 		System.out.println("===============>keyword===>"+keyword);
+		return chatRoomRepository.chatMyRoomList(userId, keyword, pageable);
+		/*
 		return switch (order) {
 			case PART_ASC -> chatRoomRepository
 				.chatMyRoomList_PART_ASC(userId, keyword, pageable);
@@ -245,6 +294,8 @@ public class ChatRoomService {
 			case ACTIVE_DESC -> chatRoomRepository
 				.chatMyRoomList_ACTIVE_DESC(userId, keyword, pageable);
 		};
+		*/
+
 	}
 
 	/**

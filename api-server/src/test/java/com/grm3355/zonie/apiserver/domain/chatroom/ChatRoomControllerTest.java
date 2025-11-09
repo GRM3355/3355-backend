@@ -69,20 +69,26 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 	@Test
 	@DisplayName("축제별 채팅방 목록 조회")
 	void getChatRoomListByFestivalTest() throws Exception {
-		// ChatRoomResponse chatRoom = ChatRoomResponse.builder()
-		// 	.chatRoomId(String.valueOf(1L))
-		// 	.title("테스트 채팅방")
-		// 	.build();
-		//
-		// when(chatRoomService.getFestivalChatRoomList(anyLong(), any()))
-		// 	.thenReturn(new PageImpl<>(List.of(chatRoom), PageRequest.of(0, 10), 1));
-		//
-		// mockMvc.perform(get("/api/v1/festivals/1/chat-rooms")
-		// 		.param("page", "0")
-		// 		.param("size", "10"))
-		// 	.andExpect(status().isOk())
-		// 	.andExpect(jsonPath("$.data.content[0].chatRoomId").value(1L))
-		// 	.andExpect(jsonPath("$.data.content[0].title").value("테스트 채팅방"));
+		MyChatRoomResponse chatRoom = MyChatRoomResponse.builder()
+			.chatRoomId(String.valueOf(1L))
+			.title("테스트 채팅방")
+			.build();
+
+		Page<MyChatRoomResponse> mockPage = new PageImpl<>(
+			List.of(chatRoom),
+			PageRequest.of(0, 10),
+			1
+		);
+
+		when(chatRoomService.getFestivalChatRoomList(anyLong(), any()))
+			.thenReturn(mockPage);
+
+		mockMvc.perform(get("/api/v1/festivals/1/chat-rooms")
+				.param("page", "1")
+				.param("pageSize", "10"))
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.data.content[0].chatRoomId").value(1L))
+			.andExpect(jsonPath("$.data.content[0].title").value("테스트 채팅방"));
 	}
 
 	@Test

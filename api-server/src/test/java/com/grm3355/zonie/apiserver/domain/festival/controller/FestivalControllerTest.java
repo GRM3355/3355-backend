@@ -7,6 +7,7 @@ import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
 import com.grm3355.zonie.apiserver.global.dto.PageResponse;
+import com.grm3355.zonie.commonlib.global.enums.Region;
 import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 import org.junit.jupiter.api.DisplayName;
@@ -108,21 +109,21 @@ class FestivalControllerTest {
 			.andExpect(jsonPath("$.data").exists());
 	}
 
-	// @Test
-	// @DisplayName("지역 목록 조회 테스트")
-	// void testGetFestivalRegion() throws Exception {
-	// 	// given
-	// 	List<Region> regions = List.of(Region.SEOUL, Region.BUSAN);
-	// 	Mockito.when(festivalService.getRegionList()).thenReturn(regions);
-	//
-	// 	// when & then
-	// 	mockMvc.perform(get("/api/v1/festivals/region")
-	// 			.contentType(MediaType.APPLICATION_JSON)
-	// 		)
-	// 		.andExpect(status().isOk())
-	// 		.andExpect(jsonPath("$.success").value(true))
-	// 		.andExpect(jsonPath("$.data").isArray())
-	// 		.andExpect(jsonPath("$.data[0]").value("SEOUL"))
-	// 		.andExpect(jsonPath("$.data[1]").value("BUSAN"));
-	// }
+	@Test
+	@DisplayName("지역 목록 조회 테스트")
+	void testGetFestivalRegion() throws Exception {
+		// given
+		List<Region> regions = List.of(Region.SEOUL, Region.JEOLLA);
+		Mockito.when(festivalService.getRegionList()).thenReturn(regions);
+
+		// when & then
+		mockMvc.perform(get("/api/v1/festivals/region")
+				.contentType(MediaType.APPLICATION_JSON)
+			)
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.data").isArray())
+			.andExpect(jsonPath("$.data[0]").value("SEOUL"))
+			.andExpect(jsonPath("$.data[1]").value("JEOLLA"));
+	}
 }
