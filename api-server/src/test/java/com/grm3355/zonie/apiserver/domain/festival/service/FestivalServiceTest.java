@@ -2,6 +2,9 @@ package com.grm3355.zonie.apiserver.domain.festival.service;
 
 
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
+import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalOrderType;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
 import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository;
 import com.grm3355.zonie.commonlib.global.enums.Region;
@@ -41,7 +44,7 @@ public class FestivalServiceTest {
 		req.setPage(1);
 		req.setPageSize(10);
 
-		Festival mockFestival = new Festival();
+		Festival mockFestival = Festival.builder().build();
 		Page<Festival> mockPage = new PageImpl<>(List.of(mockFestival));
 
 		when(festivalRepository.getFestivalList(
@@ -63,7 +66,7 @@ public class FestivalServiceTest {
 	void getFestivalContent_Success() {
 		// given
 		long festivalId = 100L;
-		Festival mockFestival = new Festival();
+		Festival mockFestival = Festival.builder().build();
 		when(festivalRepository.findById(festivalId))
 			.thenReturn(Optional.of(mockFestival));
 

@@ -76,7 +76,7 @@ class LocationServiceTest {
 		LocationTokenResponse response = locationService.update(locationDto, user);
 
 		// then
-		assertThat(response.getMessage()).isEqualTo("갱신되었습니다.");
+		assertThat(response).isEqualTo("갱신되었습니다.");
 		verify(redisTokenService, times(1)).updateLocationInfo(locationDto, "user123");
 	}
 
@@ -91,7 +91,7 @@ class LocationServiceTest {
 
 		LocationTokenResponse response = locationService.update(locationDto, user);
 
-		assertThat(response.getMessage()).isEqualTo("갱신에 실패하였습니다.");
+		assertThat(response).isEqualTo("갱신에 실패하였습니다.");
 	}
 
 	// =============================================
@@ -105,7 +105,7 @@ class LocationServiceTest {
 		when(user.getUsername()).thenReturn("user1");
 
 		// Redis mock 데이터
-		UserTokenDto userToken = new UserTokenDto("user1", 37.5665, 126.9780);
+		UserTokenDto userToken = UserTokenDto.builder().userId("user1").lat(37.5665).lon(126.9780).build();
 		when(redisTokenService.getLocationInfo("user1")).thenReturn(userToken);
 
 		// Festival mock (위치 거의 동일)
