@@ -39,6 +39,7 @@ public class FestivalController {
 	}
 
 	@Operation(summary = "축제 목록", description = "해당 축제의 목록을 볼 수 있다.")
+
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
