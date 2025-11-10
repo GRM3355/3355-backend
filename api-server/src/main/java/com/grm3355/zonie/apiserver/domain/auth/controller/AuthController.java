@@ -1,5 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
+import com.grm3355.zonie.apiserver.domain.auth.dto.LoginRequest;
+import com.grm3355.zonie.apiserver.domain.auth.dto.LoginResponse;
 import java.net.URI;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -75,4 +77,10 @@ public class AuthController {
 
 	}
 
+	@PostMapping("/login")
+	public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+		LoginResponse response = authService.login(request.code());
+		return ResponseEntity.ok()
+				.body(response);
+	}
 }

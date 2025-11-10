@@ -1,6 +1,8 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grm3355.zonie.apiserver.domain.auth.dto.LoginRequest;
+import com.grm3355.zonie.apiserver.domain.auth.dto.LoginResponse;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
 import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
@@ -25,7 +27,11 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @DisplayName("토큰 발행 통합테스트")
@@ -98,4 +104,24 @@ class AuthControllerTest {
 	// 			.content(objectMapper.writeValueAsString(invalidDto)))
 	// 		.andExpect(status().isBadRequest());
 	// }
+
+	@Test
+	void 로그인을_한다() throws Exception {
+		LoginResponse expected = new LoginResponse("accesstoken", "nickname");
+		given(authService.login(anyString()))
+				.willReturn(expected);
+		LoginRequest request = new LoginRequest("code");
+
+		String response = mockMvc.perform(post("/api/v1/auth/login")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(objectMapper.writeValueAsString(request)))
+				.andExpect(status().isOk())
+				.andDo(print())
+				.andReturn()
+				.getResponse()
+				.getContentAsString();
+		LoginResponse actual = objectMapper.readValue(response, LoginResponse.class);
+
+		assertThat(actual).isEqualTo(expected);
+	}
 }
