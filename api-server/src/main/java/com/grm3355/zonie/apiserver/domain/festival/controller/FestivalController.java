@@ -56,7 +56,7 @@ public class FestivalController {
 				mediaType = "application/json",
 				schema = @Schema(implementation = ApiResponse.class),
 				examples = @ExampleObject(
-					name  = "BAD_REQUEST",
+					name = "BAD_REQUEST",
 					value = "{\"success\":false,\"status\":400,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 				)
 			)
@@ -68,7 +68,7 @@ public class FestivalController {
 				mediaType = "application/json",
 				schema = @Schema(implementation = ApiResponse.class),
 				examples = @ExampleObject(
-					name  = "METHOD_NOT_ALLOWED",
+					name = "METHOD_NOT_ALLOWED",
 					value = "{\"success\":false,\"status\":405,\"error\":{\"code\":\"METHOD_NOT_ALLOWED\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 				)
 			)
@@ -80,7 +80,7 @@ public class FestivalController {
 				mediaType = "application/json",
 				schema = @Schema(implementation = ApiResponse.class),
 				examples = @ExampleObject(
-					name  = "UNSUPPORTED_MEDIA_TYPE",
+					name = "UNSUPPORTED_MEDIA_TYPE",
 					value = "{\"success\":false,\"status\":415,\"error\":{\"code\":\"UNSUPPORTED_MEDIA_TYPE\",\"message\":\"잘못된 콘텐츠 타입입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 				)
 			)
@@ -92,7 +92,7 @@ public class FestivalController {
 				mediaType = "application/json",
 				schema = @Schema(implementation = ApiResponse.class),
 				examples = @ExampleObject(
-					name  = "TOO_MANY_REQUESTS",
+					name = "TOO_MANY_REQUESTS",
 					value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
 				)
 			)
@@ -234,7 +234,7 @@ public class FestivalController {
 			)
 		)
 	})
-	@GetMapping("/festivals/locationBased")
+	@GetMapping("/festivals/locationBasedList")
 	public ResponseEntity<?> getFestivalLocationBased(@Valid @ModelAttribute FestivalLocationBasedRequest request) {
 		Page<FestivalResponse> pageList = festivalService.getFestivalLocationBased(request);
 		PageResponse<FestivalResponse> response = new PageResponse<>(pageList, request.getPageSize());
