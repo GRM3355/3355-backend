@@ -120,7 +120,7 @@ class FestivalControllerTest {
 			.thenReturn(pageList);
 
 		// when & then
-		mockMvc.perform(get("/api/v1/festivals/locationBased")
+		mockMvc.perform(get("/api/v1/festivals/locationBasedList")
 				.param("page", "0")
 				.param("pageSize", "10")
 				.param("lat", "37.563446")
