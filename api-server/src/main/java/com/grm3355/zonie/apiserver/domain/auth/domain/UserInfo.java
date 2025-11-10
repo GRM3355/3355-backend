@@ -14,12 +14,12 @@ public record UserInfo(
     public User toUser() {
         return User.builder()
                 .userId(socialId + "kakao")
-                .password(null)
+                .password("null")
                 .role(Role.USER)
                 .profileNickName(nickname)
                 .accountEmail(null)
                 .profileImage(profileImage)
-                .provider(providerType)
+                .providerType(providerType)
                 .socialId(socialId)
                 .build();
     }

@@ -31,7 +31,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @Tag(name = "Auth & User", description = "사용자 토큰 발급")
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 	private final AuthService authService;
@@ -87,7 +87,7 @@ public class AuthController {
 				.body(response);
 	}
 
-	@GetMapping("/oauth2/kakao")
+	@GetMapping("/kakao/callback")
 	public ResponseEntity<LoginResponse> loginWithKakao(@RequestParam("code") String code) {
 		LoginResponse response = authService.login(new LoginRequest(ProviderType.KAKAO, code));
 		return ResponseEntity.ok()

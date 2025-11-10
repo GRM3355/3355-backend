@@ -114,7 +114,7 @@ class AuthControllerTest {
         given(authService.login(any(LoginRequest.class)))
                 .willReturn(expected);
 
-        String response = mockMvc.perform(get("/api/v1/auth/oauth2/kakao")
+        String response = mockMvc.perform(get("/api/auth/kakao/callback")
                         .param("code", "code"))
                 .andExpect(status().isOk())
                 .andDo(print())
