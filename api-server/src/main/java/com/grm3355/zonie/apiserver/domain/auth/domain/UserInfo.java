@@ -23,11 +23,4 @@ public record UserInfo(
                 .socialId(socialId)
                 .build();
     }
-
-    public static UserInfo fromKakao(KakaoUserInfo kakaoUserInfo) {
-        return new UserInfo(kakaoUserInfo.id(),
-                ProviderType.KAKAO,
-                kakaoUserInfo.kakaoAccount().profile().nickname(),
-                kakaoUserInfo.kakaoAccount().profile().thumbnailImageUrl());
-    }
 }
