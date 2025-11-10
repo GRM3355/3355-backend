@@ -95,7 +95,6 @@ public class AuthController {
 			)
 		)
 	})
-	 
 	@PostMapping("/token-register")
 	public ResponseEntity<?> register(@Valid @RequestBody LocationDto locationDto, HttpServletRequest request) {
 		String path = request != null ? request.getRequestURI() : null;
