@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.domain.auth.dto;
+package com.grm3355.zonie.apiserver.domain.auth.dto.auth;
 
 import com.grm3355.zonie.commonlib.global.enums.ProviderType;
 import jakarta.validation.constraints.NotBlank;

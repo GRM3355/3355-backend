@@ -1,8 +1,8 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.apiserver.domain.auth.dto.LoginRequest;
-import com.grm3355.zonie.apiserver.domain.auth.dto.LoginResponse;
+import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
+import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
 import com.grm3355.zonie.apiserver.global.service.RateLimitingService;

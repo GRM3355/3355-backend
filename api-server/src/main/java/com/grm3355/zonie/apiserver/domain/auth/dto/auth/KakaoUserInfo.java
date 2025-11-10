@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.domain.auth.dto;
+package com.grm3355.zonie.apiserver.domain.auth.dto.auth;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.grm3355.zonie.apiserver.domain.auth.domain.UserInfo;

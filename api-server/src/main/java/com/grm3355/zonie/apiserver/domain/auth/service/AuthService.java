@@ -3,7 +3,7 @@ package com.grm3355.zonie.apiserver.domain.auth.service;
 import com.grm3355.zonie.apiserver.domain.auth.domain.AuthProvider;
 import com.grm3355.zonie.apiserver.domain.auth.domain.OAuth2Client;
 import com.grm3355.zonie.apiserver.domain.auth.domain.UserInfo;
-import com.grm3355.zonie.apiserver.domain.auth.dto.LoginResponse;
+import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 import java.util.UUID;
 
 import jakarta.servlet.http.HttpServletRequest;

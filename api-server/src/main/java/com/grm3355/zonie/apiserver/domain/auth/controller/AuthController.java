@@ -1,7 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
-import com.grm3355.zonie.apiserver.domain.auth.dto.LoginRequest;
-import com.grm3355.zonie.apiserver.domain.auth.dto.LoginResponse;
+import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
+import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 import java.net.URI;
 
 import jakarta.servlet.http.HttpServletRequest;
