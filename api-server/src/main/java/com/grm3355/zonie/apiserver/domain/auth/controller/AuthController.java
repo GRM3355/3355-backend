@@ -95,6 +95,7 @@ public class AuthController {
 			)
 		)
 	})
+	 
 	@PostMapping("/token-register")
 	public ResponseEntity<?> register(@Valid @RequestBody LocationDto locationDto, HttpServletRequest request) {
 		String path = request != null ? request.getRequestURI() : null;
@@ -103,7 +104,5 @@ public class AuthController {
 		// 토큰이 없으면 register 처리
 		AuthResponse response2 = authService.register(locationDto);
 		return ResponseEntity.created(location).body(ApiResponse.success(response2));
-
 	}
-
 }
