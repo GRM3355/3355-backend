@@ -89,22 +89,25 @@ public class ChatRoomService {
 		User user = userRepository.findByUserId(userId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자 정보가 유효하지 않습니다."));
 
-		//1. 토큰값 체크
-		boolean isTokenValidate = redisTokenService.validateLocationToken(userId);
+		String festivalIdStr = String.valueOf(festivalId);
+
+		// 1. 토큰값 체크
+		// 거리 계산 대신, festivalId에 대한 유효한 토큰이 있는지 검사
+		boolean isTokenValidate = redisTokenService.validateLocationToken(userId, festivalIdStr);
 		if (!isTokenValidate) {
-			throw new BusinessException(ErrorCode.NOT_FOUND, "토큰이 유효하지 않습니다.");
+			throw new BusinessException(ErrorCode.FORBIDDEN, "축제 위치 인증이 없거나 만료되었습니다.");
 		}
 
 		//2. 축제 존재여부체크
 		Festival festival = festivalInfoService.getDataValid(festivalId, pre_create_days);
 
 		//3. 축제 거리계산하기
-		LocationDto location1 = getUserPosition(userId);
-		LocationDto location2 = getFestivalPosition(festival);
-		boolean isValidDistance = festivalCalculator(location1, location2);
-		if (!isValidDistance) {
-			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설 반경이 아닙니다.");
-		}
+		// LocationDto location1 = getUserPosition(userId);
+		// LocationDto location2 = getFestivalPosition(festival);
+		// boolean isValidDistance = festivalCalculator(location1, location2);
+		// if (!isValidDistance) {
+		// 	throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설 반경이 아닙니다.");
+		// }
 
 		//4. 채팅방 갯수 체크
 		if (festival.getChatRoomCount() >= max_room) {
@@ -112,12 +115,21 @@ public class ChatRoomService {
 		}
 
 		//5. 채팅방 저장
-		// 채팅룸 아이디 생성
-		String roomId = createRoomId();
-		// 위치 세팅
-		Point point = geometryFactory.createPoint(
-			new Coordinate(location2.getLon(), location2.getLat())); // lon=X, lat=Y
+		// 채팅방의 위치(Point)를 어디로 할지
 
+		// 1) 토큰에 저장된 사용자 위치
+		UserTokenDto userTokenDto = redisTokenService.getLocationInfo(userId, festivalIdStr);
+		if (userTokenDto == null) {
+			// 토큰 검증은 통과했는데 정보가 없는 경우 (예외 처리용)
+			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "토큰 정보를 읽을 수 없습니다.");
+		}
+		Point point = geometryFactory.createPoint(
+			new Coordinate(userTokenDto.getLon(), userTokenDto.getLat())); // lon=X, lat=Y
+		// 2) 축제 중심 위치
+		// Point point = geometryFactory.createPoint(
+		// 	new Coordinate(festival.getPosition().getX(), festival.getPosition().getY()));
+
+		String roomId = createRoomId();
 		ChatRoom chatRoom = ChatRoom.builder()
 			.chatRoomId(roomId)
 			.festival(festival)
@@ -128,16 +140,16 @@ public class ChatRoomService {
 			.position(point)
 			.participantCount(0L)
 			.build();
-		// ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
 
-		// 디버깅을 위해 일시적으로 saveAndFlush 사용함 - 추후 복구하기
-		ChatRoom saveChatRoom;
-		try {
-			saveChatRoom = chatRoomRepository.saveAndFlush(chatRoom);
-		} catch (Exception e) {
-			log.error("채팅방 저장 중 DB 예외 발생: {}", e.getMessage(), e);
-			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 저장 중 오류가 발생했습니다.");
-		}
+		ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
+		// 디버깅용
+		// ChatRoom saveChatRoom;
+		// try {
+		// 	saveChatRoom = chatRoomRepository.saveAndFlush(chatRoom);
+		// } catch (Exception e) {
+		// 	log.error("채팅방 저장 중 DB 예외 발생: {}", e.getMessage(), e);
+		// 	throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 저장 중 오류가 발생했습니다.");
+		// }
 
 		//festival에 채팅방갯수 저장 /festivalId
 		festivalInfoService.increaseChatRoomCount(festivalId);
@@ -321,23 +333,26 @@ public class ChatRoomService {
 		return PRE_FIX + UUID.randomUUID();
 	}
 
-	// 가능거리 계산
-	private boolean festivalCalculator(LocationDto locationDto, LocationDto festivalDto) {
-		double km = LocationService.getDistanceCalculator(locationDto, festivalDto);
-		return km <= max_radius; // 로직: km이 MAX_RADIUS(1.0km)보다 작거나 같을 때 true 반환 (반경 내에 있을 때만 생성 가능)
-	}
 
-	//사용자 위치정보
-	private LocationDto getUserPosition(String userId) {
-		System.out.println("=======> userId=" + userId);
-		UserTokenDto userTokenDto = redisTokenService.getLocationInfo(userId);
-		return LocationDto.builder().lat(userTokenDto.getLat()).lon(userTokenDto.getLon()).build();
-	}
 
-	//축제위치정보
-	private LocationDto getFestivalPosition(Festival festival) {
-		return LocationDto.builder()
-			.lat(festival.getPosition().getY())
-			.lon(festival.getPosition().getX()).build();
-	}
+	//
+	// // 가능거리 계산
+	// private boolean festivalCalculator(LocationDto locationDto, LocationDto festivalDto) {
+	// 	double km = LocationService.getDistanceCalculator(locationDto, festivalDto);
+	// 	return km <= max_radius; // 로직: km이 MAX_RADIUS(1.0km)보다 작거나 같을 때 true 반환 (반경 내에 있을 때만 생성 가능)
+	// }
+	//
+	// //사용자 위치정보
+	// private LocationDto getUserPosition(String userId) {
+	// 	System.out.println("=======> userId=" + userId);
+	// 	UserTokenDto userTokenDto = redisTokenService.getLocationInfo(userId);
+	// 	return LocationDto.builder().lat(userTokenDto.getLat()).lon(userTokenDto.getLon()).build();
+	// }
+	//
+	// //축제위치정보
+	// private LocationDto getFestivalPosition(Festival festival) {
+	// 	return LocationDto.builder()
+	// 		.lat(festival.getPosition().getY())
+	// 		.lon(festival.getPosition().getX()).build();
+	// }
 }

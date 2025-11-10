@@ -5,10 +5,7 @@ import java.util.Map;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
-import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
-import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository;
 import com.grm3355.zonie.commonlib.domain.message.entity.Message;
@@ -83,38 +80,31 @@ public class MessageLikeService {
 
 	/**
 	 * '좋아요'를 누르기 전, 사용자가 해당 채팅방 반경 내에 있는지 검증
+	 * : 거리 계산 대신, '축제'에 대한 위치인증 토큰이 유효한지만 검사
 	 */
 	private void validateLocation(String userId, String messageId) {
 
-		// 1. 사용자 현재 위치 (Redis)
-		UserTokenDto userLocationDto = redisTokenService.getLocationInfo(userId);
-		if (userLocationDto == null) {
-			throw new BusinessException(ErrorCode.FORBIDDEN, "위치 인증이 만료되었거나 없습니다. 위치 갱신이 필요합니다.");
-		}
-		LocationDto userLocation = new LocationDto(userLocationDto.getLat(), userLocationDto.getLon());
-
-		// 2. 메시지가 속한 채팅방 위치 (Mongo -> JPA)
-		log.info("Attempting to find message with ID: {}", messageId);
+		// 1. 메시지가 속한 채팅방 -> 축제 ID 조회
 		Message message = messageRepository.findById(messageId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "메시지를 찾을 수 없습니다."));
 		ChatRoom chatRoom = chatRoomRepository.findById(message.getChatRoomId())
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
-		log.info("Message found successfully. ChatRoomId: {}", message.getChatRoomId());
 
-		LocationDto chatRoomLocation = new LocationDto(
-			chatRoom.getPosition().getY(), // lat
-			chatRoom.getPosition().getX()  // lon
-		);
+		// chatRoom 엔티티에서 festivalId를 가져옵니다.
+		Long festivalId = chatRoom.getFestival().getFestivalId();
+		if (festivalId == null) {
+			log.error("치명적 오류: ChatRoom(ID: {})에 Festival이 연결되지 않았습니다.", chatRoom.getChatRoomId());
+			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 정보가 올바르지 않습니다.");
+		}
 
-		// 3. 거리 계산
-		double distance = LocationService.getDistanceCalculator(userLocation, chatRoomLocation);
-		double allowedRadius = chatRoom.getRadius(); // km
+		// 2. 토큰 유효성 검사 (festivalId 기준)
+		boolean isTokenValidate = redisTokenService.validateLocationToken(userId, String.valueOf(festivalId));
 
-		if (distance > allowedRadius) {
-			log.warn("Like location validation failed for user {}. Distance: {}km, Allowed: {}km",
-				userId, distance, allowedRadius);
+		if (!isTokenValidate) {
+			log.warn("Like location validation failed for user {}. No valid token for festivalId {}.",
+				userId, festivalId);
 			throw new BusinessException(ErrorCode.FORBIDDEN,
-				String.format("채팅방 반경 %.1fkm 이내에서만 '좋아요'를 누를 수 있습니다.", allowedRadius));
+				"위치 인증이 만료되었습니다. (축제 반경 내에서 인증 필요)");
 		}
 	}
 }
