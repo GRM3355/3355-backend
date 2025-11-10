@@ -3,16 +3,16 @@ package com.grm3355.zonie.batchserver.job;
 import java.time.LocalDate;
 
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.grm3355.zonie.batchserver.BaseIntegrationTest;
 import com.grm3355.zonie.batchserver.BatchServerApplication;
 
 @SpringBootTest(classes = BatchServerApplication.class)
 @ActiveProfiles("test")
-class FestivalDataSyncJobTest {
+class FestivalDataSyncJobTest extends BaseIntegrationTest {
 
 	@Autowired
 	private FestivalDataSyncJob festivalDataSyncJob;

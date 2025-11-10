@@ -12,7 +12,7 @@ import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 
-import com.grm3355.zonie.commonlib.domain.auth.JwtTokenProvider;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 import io.jsonwebtoken.JwtException;
 import lombok.RequiredArgsConstructor;

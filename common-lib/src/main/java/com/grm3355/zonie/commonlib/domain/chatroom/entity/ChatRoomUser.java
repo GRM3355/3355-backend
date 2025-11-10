@@ -30,7 +30,7 @@ import lombok.NoArgsConstructor;
 	name = "chat_room_user",
 	uniqueConstraints = {
 		@UniqueConstraint(
-			columnNames = {"chat_room_id", "nickname"}
+			columnNames = {"chat_room_id", "nick_name"}
 		)
 	}
 )
@@ -41,7 +41,7 @@ public class ChatRoomUser extends BaseTimeEntity {
 	@Column(name = "chat_room_user_id", nullable = false, unique = true, updatable = false)
 	private Long chatRoomUserId;
 
-	@JoinColumn(name = "chat_room_id", nullable = false)
+	@JoinColumn(name = "chat_room_id", referencedColumnName = "chat_room_id", nullable = false)
 	@ManyToOne
 	private ChatRoom chatRoom;
 

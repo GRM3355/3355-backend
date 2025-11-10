@@ -9,11 +9,25 @@ description = 'api-server'
 dependencies {
     // 모듈별 의존성
     implementation project(':common-lib')
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.postgresql:postgresql'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis-reactive'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb-reactive'
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+
+    // common-lib에서 설정했지만 api-server에서도 명시
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    implementation 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.hibernate.orm:hibernate-spatial:6.5.2.Final'
+    implementation 'org.locationtech.jts:jts-core:1.19.0'
 
     // --- 테스트 ---
     testImplementation 'io.projectreactor:reactor-test'
@@ -22,28 +36,7 @@ dependencies {
     testImplementation 'org.testcontainers:postgresql:1.20.0'
     testImplementation 'org.testcontainers:mongodb:1.20.0'
     testImplementation 'org.springframework.security:spring-security-test'
-    //testImplementation 'it.ozimov:embedded-redis:0.7.3' //test에서 임시redis 테스트
-    testImplementation 'org.testcontainers:testcontainers:1.21.3' // 또는 최신
+    testImplementation 'org.testcontainers:testcontainers:1.21.3'
     testImplementation 'org.testcontainers:junit-jupiter:1.21.3'
-
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
-
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
-
-    // Redis 캐싱 의존성
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'org.springframework.boot:spring-boot-starter-cache'
-
-    // PostGIS 의존성, PostgreSQL 드라이버 추가
-    implementation 'org.hibernate:hibernate-spatial:6.2.7.Final'
-    implementation 'org.locationtech.jts:jts-core:1.19.0' // JTS Core Library
-    runtimeOnly 'org.postgresql:postgresql'
-
-    //jwt
-    implementation 'io.jsonwebtoken:jjwt-impl:0.13.0'
-    implementation 'io.jsonwebtoken:jjwt-jackson:0.13.0'
-    implementation 'io.jsonwebtoken:jjwt-api:0.13.0'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }

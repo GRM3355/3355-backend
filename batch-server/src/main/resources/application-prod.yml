@@ -1,0 +1,47 @@
+spring:
+  # --- RDS (PostgreSQL) (운영용) ---
+  datasource:
+    url: ${DB_PROD_URL}
+    username: ${DB_PROD_USERNAME}
+    password: ${DB_PROD_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  # --- ElastiCache (Redis) (운영용) ---
+  data:
+    redis:
+      host: ${REDIS_PROD_HOST}
+      port: 6379
+      password: ${REDIS_PROD_PASSWORD}
+      ssl:
+        enabled: true
+
+  # --- JPA (운영용) ---
+  jpa:
+    hibernate:
+      ddl-auto: create # 운영 환경에서는 validate 또는 none 사용
+    show-sql: false
+
+  # --- Spring Batch ---
+  batch:
+    jdbc:
+      initialize-schema: always # BATCH_* 테이블(메타데이터)을 항상 생성하도록 설정
+
+logging:
+  level:
+    root: INFO
+    com.grm3355.zonie: INFO
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  access-token-expiration-time: 86400000 # 24시간
+  location-token-expiration-time: 600000 # 10분
+
+openapi:
+  serviceKey: ${OPENAPI_SERVICE_KEY}
+
+chat:
+  max-chat-person: 500
+  max-chat-room: 30
+  radius: 1.0 #km
+  pre-create-day: 7 #7일전부터 생성 가능
+  pre-view-day: 7 #7일전부터 축제보기 가능

@@ -2,33 +2,57 @@ package com.grm3355.zonie.apiserver.domain.chatroom.dto;
 
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
 public class MyChatRoomResponse {
-	String chatRoomId;
-	Long festivalId;
-	String userId;
-	String title;
-	double lat;
-	double lon;
-	String festivalTitle;
-	Long participantCount;
 
+	@Schema(description = "채팅방 아이디", example = "room:abc-def-ghi")
+	private String chatRoomId;
 
-	public static MyChatRoomResponse fromDto(ChatRoomInfoDto dto) {
-		return new MyChatRoomResponse(
-			dto.chatRoom().getChatRoomId(),
-			dto.chatRoom().getFestival().getFestivalId(),
-			dto.chatRoom().getUser().getUserId(),
-			dto.chatRoom().getTitle(),
-			dto.chatRoom().getPosition().getY(),
-			dto.chatRoom().getPosition().getX(),
-			dto.festivalTitle(),
-			dto.participantCount()
-		);
+	@Schema(description = "축제 아이디", example = "1")
+	private Long festivalId;
+
+	@Schema(description = "제목", example = "채팅방 제목입니다.")
+	private String title;
+
+	@Schema(description = "위도", example = "(123.233, 26.223)")
+	private double lat;
+
+	@Schema(description = "경도", example = "123.233")
+	private double lon;
+
+	@Schema(description = "축제명", example = "사과축제")
+	private String festivalTitle;
+
+	@Schema(description = "참석자수", example = "234")
+	private Long participantCount;
+
+	@Schema(description = "마지막 메시지 날짜", example = "2025-11-02 00:00:00")
+	private Long lastMessageAt;
+
+	@Schema(description = "마지막 메시지", example = "마지막 메시지입니다.")
+	private String lastContent;
+
+	public static MyChatRoomResponse fromDto(ChatRoomInfoDto dto, String lastContent) {
+		return MyChatRoomResponse.builder()
+			.chatRoomId(dto.chatRoomId())
+			.festivalId(dto.festivalId())
+			// .userId(dto.chatRoom().getUser().getUserId())
+			.title(dto.title())
+			.lat(dto.lat())
+			.lon(dto.lon())
+			.festivalTitle(dto.festivalTitle())
+			.participantCount(dto.participantCount())
+			.lastMessageAt(dto.lastMessageAt())
+			.lastContent(lastContent)
+			.build();
 	}
 
+	public static MyChatRoomResponse fromDto(ChatRoomInfoDto dto) {
+		return fromDto(dto, null);
+	}
 }
