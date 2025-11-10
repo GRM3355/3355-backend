@@ -100,19 +100,19 @@ public class MessageLikeSyncJob {
 		}
 
 		// 7. Redis 키 삭제
-		try {
-			Set<String> allKeysToDelete = Stream.concat(
-				likedByKeys.stream(),
-				likeCountKeys.stream()
-			).collect(Collectors.toSet());
-
-			if (!allKeysToDelete.isEmpty()) {
-				redisScanService.deleteKeys(allKeysToDelete);
-				log.info("Redis '좋아요' 캐시 정리 완료: 총 {}개의 키 삭제", allKeysToDelete.size());
-			}
-		} catch (Exception e) {
-			log.error("MongoDB 동기화는 성공했으나 Redis 키 삭제 중 오류 발생.", e);
-		}
+		// try {
+		// 	Set<String> allKeysToDelete = Stream.concat(
+		// 		likedByKeys.stream(),
+		// 		likeCountKeys.stream()
+		// 	).collect(Collectors.toSet());
+		//
+		// 	if (!allKeysToDelete.isEmpty()) {
+		// 		redisScanService.deleteKeys(allKeysToDelete);
+		// 		log.info("Redis '좋아요' 캐시 정리 완료: 총 {}개의 키 삭제", allKeysToDelete.size());
+		// 	}
+		// } catch (Exception e) {
+		// 	log.error("MongoDB 동기화는 성공했으나 Redis 키 삭제 중 오류 발생.", e);
+		// }
 
 		log.info("MessageLikeSyncJob 완료.");
 	}
