@@ -38,7 +38,7 @@ public class LocationService {
 		double lat2 = location2.getLat();
 		double lon2 = location2.getLon();
 
-		double R = 6371; // 지구 반지름 (km)
+		double radius = 6371; // 지구 반지름 (km)
 		double dLat = Math.toRadians(lat2 - lat1);
 		double dLon = Math.toRadians(lon2 - lon1);
 
@@ -47,7 +47,7 @@ public class LocationService {
 			* Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
 		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		double distance = R * c; // 단위: km
+		double distance = radius * c; // 단위: km
 
 		// 소수점 첫째 자리까지 반올림
 		return Math.round(distance * 10) / 100.0;

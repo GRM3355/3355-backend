@@ -51,10 +51,10 @@ public class LocationDto {
 
 	@Override
 	public String toString() {
-		return "LocationDto{" +
-			"lat=" + lat +
-			", lon=" + lon +
-			'}';
+		return "LocationDto{"
+			+ "lat=" + lat
+			+ ", lon=" + lon
+			+ '}';
 	}
 
 	@AssertTrue(message = "위도, 경도 값이 0일 수 없습니다.")
