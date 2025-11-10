@@ -64,4 +64,14 @@ public class User extends BaseTimeEntity {
 
 	// SNS가 제공하는 고유 ID (sub, id 등)
 	private String socialId;
+
+	public void updateEmail(String email) {
+		this.accountEmail = email;
+	}
+
+
+	//todo 휴대폰번호 컬럼 추가필요
+//	public void updatePhoneNumber(String phoneNumber) {
+//		this.phoneNumber = phoneNumber;
+//	}
 }

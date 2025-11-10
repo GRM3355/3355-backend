@@ -14,4 +14,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUserId(String id);
 
     Optional<User> findBySocialIdAndProviderType(String socialId, ProviderType providerType);
+
+    default User getOrThrow(String id) {
+        return findByUserId(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
 }
