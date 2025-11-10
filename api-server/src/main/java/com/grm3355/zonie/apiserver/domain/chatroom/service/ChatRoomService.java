@@ -157,7 +157,7 @@ public class ChatRoomService {
 		//정렬 순서
 		if (req.getOrder() == null)
 			req.setOrder(OrderType.DATE_ASC);
-		
+
 		Sort.Order order = getSortOrder(req.getOrder());
 
 		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), Sort.by(order));
@@ -224,7 +224,6 @@ public class ChatRoomService {
 	private Page<ChatRoomInfoDto> getMyRoomListTypeUser(String userId, ChatRoomSearchRequest req, Pageable pageable) {
 
 		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
-		System.out.println("===============>keyword===>" + keyword);
 		return chatRoomRepository.chatMyRoomList(userId, keyword, pageable);
 
 	}
@@ -282,7 +281,6 @@ public class ChatRoomService {
 
 	//사용자 위치정보
 	private LocationDto getUserPosition(String userId) {
-		System.out.println("=======> userId=" + userId);
 		UserTokenDto userTokenDto = redisTokenService.getLocationInfo(userId);
 		return LocationDto.builder().lat(userTokenDto.getLat()).lon(userTokenDto.getLon()).build();
 	}
