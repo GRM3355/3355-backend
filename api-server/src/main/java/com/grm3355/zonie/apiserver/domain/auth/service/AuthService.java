@@ -45,7 +45,6 @@ public class AuthService {
     private final RedisTokenService redisTokenService;
     private final PasswordEncoder passwordEncoder;
     private final OAuth2Clients oAuth2Clients;
-    private final AuthProvider authProvider;
 
     @Transactional
     public AuthResponse register(LocationDto locationDto, HttpServletRequest request) {
@@ -116,7 +115,9 @@ public class AuthService {
         UserInfo userInfo = getUserInfo(request);
         User user = userRepository.findBySocialIdAndProviderType(userInfo.socialId(), userInfo.providerType())
                 .orElseGet(() -> signUp(userInfo));
-        return new LoginResponse(authProvider.provide(user), userInfo.nickname());
+        System.out.println("사용자 저장완료 : " + user.getProfileNickName());
+        return new LoginResponse(jwtTokenProvider.createAccessToken(user.getUserId(), user.getRole()),
+                userInfo.nickname());
     }
 
     private UserInfo getUserInfo(LoginRequest request) {
