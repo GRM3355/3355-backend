@@ -33,6 +33,7 @@ public class AuthController {
 	private final AuthService authService;
 
 	@Operation(summary = "사용자 토큰 발급", description = "위도, 경도 입력받아, Access 토큰을 발급합니다.")
+	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
