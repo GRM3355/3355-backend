@@ -35,13 +35,13 @@ public class User extends BaseTimeEntity {
 
 	@NotBlank
 	@Size(max = 100)
-	@Column(name = "user_id", nullable = false, unique = true, length = 100)
+	@Column(name = "user_id", length = 100)
 	@NotBlank(message = "사용자아이디는 정보는 필수 입력 값입니다.")
 	private String userId;
 
 	@NotBlank
 	@Size(max = 100)
-	@Column(name = "password", nullable = false, length = 100)
+	@Column(name = "password", length = 100)
 	@NotBlank(message = "비밀번호는 정보는 필수 입력 값입니다.")
 	private String password;
 
@@ -67,5 +67,5 @@ public class User extends BaseTimeEntity {
 	private ProviderType provider;
 
 	// SNS가 제공하는 고유 ID (sub, id 등)
-	private String providerId;
+	private String socialId;
 }
