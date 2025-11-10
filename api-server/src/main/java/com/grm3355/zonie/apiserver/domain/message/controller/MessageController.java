@@ -2,15 +2,20 @@ package com.grm3355.zonie.apiserver.domain.message.controller;
 
 import java.util.Map;
 
+import org.springframework.data.domain.Slice;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.grm3355.zonie.apiserver.domain.message.dto.MessageResponse;
 import com.grm3355.zonie.apiserver.domain.message.service.MessageLikeService;
+import com.grm3355.zonie.apiserver.domain.message.service.MessageQueryService;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
@@ -24,11 +29,12 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @Tag(name = "메시지 기능", description = "메시지 좋아요, 과거 내역 조회 등")
-@RequestMapping("/api/v1/messages")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class MessageController {
 
 	private final MessageLikeService messageLikeService;
+	private final MessageQueryService messageQueryService;
 
 	@Operation(summary = "메시지 '좋아요' 토글", description = "메시지 '좋아요'를 누르거나 취소합니다. (위치 인증 필요)")
 	@ApiResponses({
@@ -61,7 +67,7 @@ public class MessageController {
 				value = "{\"success\":false,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"요청 횟수를 초과했습니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}")
 		))
 	})
-	@PostMapping("/{messageId}/like")
+	@PostMapping("/messages/{messageId}/like")
 	@PreAuthorize("hasAnyRole('GUEST', 'USER')")
 	public ResponseEntity<ApiResponse<Map<String, Object>>> toggleLike(
 		@PathVariable String messageId,
@@ -70,5 +76,22 @@ public class MessageController {
 		String userId = userDetails.getUsername();
 		Map<String, Object> result = messageLikeService.toggleLike(userId, messageId);
 		return ResponseEntity.ok(ApiResponse.success(result));
+	}
+
+	@Operation(summary = "채팅방 과거 메시지 조회", description = "채팅방의 과거 메시지 목록을 커서 기반 페이지네이션으로 조회합니다.")
+	@ApiResponses({
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "조회 성공"),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+	})
+	@GetMapping("/chat-rooms/{roomId}/messages")
+	@PreAuthorize("hasAnyRole('GUEST', 'USER')")
+	public ResponseEntity<ApiResponse<Slice<MessageResponse>>> getMessages(
+		@PathVariable String roomId,
+		@RequestParam(required = false) String before, // (커서 ID)
+		@AuthenticationPrincipal UserDetailsImpl userDetails
+	) {
+		String userId = userDetails.getUsername();
+		Slice<MessageResponse> messages = messageQueryService.getMessages(roomId, userId, before);
+		return ResponseEntity.ok(ApiResponse.success(messages));
 	}
 }

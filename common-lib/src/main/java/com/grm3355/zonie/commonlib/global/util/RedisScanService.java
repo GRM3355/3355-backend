@@ -12,7 +12,7 @@ import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
-@Service
+@Service("chatServerRedisScanService")
 public class RedisScanService {
 
 	private final StringRedisTemplate stringRedisTemplate;

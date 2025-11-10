@@ -94,10 +94,12 @@ public class MessageLikeService {
 		LocationDto userLocation = new LocationDto(userLocationDto.getLat(), userLocationDto.getLon());
 
 		// 2. 메시지가 속한 채팅방 위치 (Mongo -> JPA)
+		log.info("Attempting to find message with ID: {}", messageId);
 		Message message = messageRepository.findById(messageId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "메시지를 찾을 수 없습니다."));
 		ChatRoom chatRoom = chatRoomRepository.findById(message.getChatRoomId())
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
+		log.info("Message found successfully. ChatRoomId: {}", message.getChatRoomId());
 
 		LocationDto chatRoomLocation = new LocationDto(
 			chatRoom.getPosition().getY(), // lat

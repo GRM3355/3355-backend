@@ -20,11 +20,10 @@ import com.grm3355.zonie.commonlib.domain.message.enums.MessageType;
 @Builder
 @NoArgsConstructor // Jackson이 객체 생성 시 필요
 @AllArgsConstructor(access = AccessLevel.PRIVATE) // Builder가 사용
-@Document(collection = "messages") // MongoDB 컬렉션 이름
+@Document(collection = "messages") 	// MongoDB 컬렉션 이름
 public class Message {
-
 	@Id
-	private String id;				// Mongo의 ObjectId
+	private String id;			// Mongo의 ObjectId
 	private String chatRoomId; 		// 어느 방의 메시지인지
 	private String userId;       	// 누가 보냈는지
 	private String nickname;

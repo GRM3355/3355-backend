@@ -20,10 +20,10 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 	// 반환타입은 DTO Projection: 서비스 레이어에 처리
 	// =========================================================================
 	String FESTIVAL_QUERY_BASE = """
-		     SELECT 
-		     c.chat_room_id as chatRoomId, 
-		     f.festival_id as festivalId, 
-		     c.title, 
+		     SELECT
+		     c.chat_room_id as chatRoomId,
+		     f.festival_id as festivalId,
+		     c.title,
 		     c.participant_count as participantCount, 
 		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt, 
 		     f.title AS festivalTitle
