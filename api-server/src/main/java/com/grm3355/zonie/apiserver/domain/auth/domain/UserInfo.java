@@ -13,7 +13,7 @@ public record UserInfo(
 
     public User toUser() {
         return User.builder()
-                .userId(null)
+                .userId(socialId + "kakao")
                 .password(null)
                 .role(Role.USER)
                 .profileNickName(nickname)
