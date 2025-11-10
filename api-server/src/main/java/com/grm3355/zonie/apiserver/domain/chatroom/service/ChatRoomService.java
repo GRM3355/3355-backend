@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -38,6 +39,7 @@ import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
+import com.grm3355.zonie.commonlib.global.util.RedisScanService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,10 +51,12 @@ public class ChatRoomService {
 	private static final String PRE_FIX = "room:";
 	private final RedisTokenService redisTokenService;
 	private final FestivalInfoService festivalInfoService;
+	private final RedisScanService redisScanService;
 	private final ChatRoomRepository chatRoomRepository;
 	private final UserRepository userRepository;
 	private final StringRedisTemplate stringRedisTemplate;
 	GeometryFactory geometryFactory = new GeometryFactory(); // GeometryFactory 생성 (보통 한 번만 만들어 재사용)
+
 	@Value("${chat.pre-create-day}")
 	private int pre_create_days;    //시작하기전 몇일전부터 생성가능
 	@Value("${chat.max-chat-person}")
@@ -63,10 +67,12 @@ public class ChatRoomService {
 	private double max_radius;   //최대km
 
 	public ChatRoomService(RedisTokenService redisTokenService, FestivalInfoService festivalInfoService,
+		RedisScanService redisScanService,
 		ChatRoomRepository chatRoomRepository, UserRepository userRepository, StringRedisTemplate stringRedisTemplate
 	) {
 		this.redisTokenService = redisTokenService;
 		this.festivalInfoService = festivalInfoService;
+		this.redisScanService = redisScanService;
 		this.chatRoomRepository = chatRoomRepository;
 		this.userRepository = userRepository;
 		this.stringRedisTemplate = stringRedisTemplate;
@@ -164,18 +170,60 @@ public class ChatRoomService {
 		// 1. PG에서 기본 정보 조회: ListType 내용 가져오기
 		Page<ChatRoomInfoDto> pageList = getFestivalListTypeUser(festivalId, req, pageable);
 
-		// 2. Redis에서 마지막 대화 내용 일괄 조회
-		Map<String, String> lastContentsMap = getLastContents(pageList.getContent());
+		// 2. Redis에서 실시간 데이터 일괄 조회
+		List<String> roomIds = pageList.getContent().stream().map(ChatRoomInfoDto::chatRoomId).toList();
+		if (roomIds.isEmpty()) {
+			return new PageImpl<>(Collections.emptyList(), pageable, pageList.getTotalElements());
+		}
 
-		// 3. DTO 변환
+		// 2-1. Redis 조회를 위한 Key Set 3개 생성: roomIds 리스트 기반 실제 Redis 키 Set
+		Set<String> participantKeys = roomIds.stream()
+			.map(id -> "chatroom:participants:" + id)
+			.collect(Collectors.toSet());
+
+		Set<String> contentKeys = roomIds.stream()
+			.map(id -> "chatroom:last_msg_content:" + id)
+			.collect(Collectors.toSet());
+
+		Set<String> timestampKeys = roomIds.stream()
+			.map(id -> "chatroom:last_msg_at:" + id)
+			.collect(Collectors.toSet());
+
+
+		// 2-2. RedisScanService 메소드 호출
+		// (1) 참여자 수 조회 (SCARD)
+		Map<String, Long> participantCountsMap = redisScanService.getParticipantCounts(participantKeys);
+
+		// (2) 마지막 대화 내용 조회 (MGET)
+		// (MGET 범용 메서드인 multiGetLastMessageTimestamps를 재사용)
+		Map<String, String> lastContentsMap = redisScanService.multiGetLastMessageTimestamps(contentKeys);
+
+		// (3) 마지막 대화 시각 조회 (MGET)
+		Map<String, String> lastTimestampsMap = redisScanService.multiGetLastMessageTimestamps(timestampKeys);
+
+		// 3. DTO 변환 (PG 백업 데이터 + Redis 실시간 데이터 병합)
 		List<MyChatRoomResponse> dtoPage = pageList.stream()
 			.map(dto -> {
-				String lastContent = lastContentsMap.getOrDefault( // 마지막 대화 내용 포함
-					dto.chatRoomId(),
-					null // 대화 내용이 없으면 null
-				);
+				String roomId = dto.chatRoomId();
+
+				// 3-1. Key를 사용하여 Map에서 조회: roomIds가 아닌 완성된 키 이름으로 조회
+				Long realTimeCount = participantCountsMap.get("chatroom:participants:" + roomId);
+				Long finalCount = (realTimeCount != null) ? realTimeCount : dto.participantCount();
+
+				String realTimeContent = lastContentsMap.get("chatroom:last_msg_content:" + roomId);
+				String finalContent = realTimeContent; // 백업본은 사용 안 함
+
+				String timestampStr = lastTimestampsMap.get("chatroom:last_msg_at:" + roomId);
+				Long realTimeTimestamp = (timestampStr != null) ? Long.parseLong(timestampStr) : null;
+
+				// 둘 중 더 최신 시간(max)을 클라이언트에 반환
+				Long finalTimestamp = dto.lastMessageAt();
+				if (realTimeTimestamp != null && (finalTimestamp == null || realTimeTimestamp > finalTimestamp)) {
+					finalTimestamp = realTimeTimestamp;
+				}
+
 				// MyChatRoomResponse의 오버로딩된 fromDto 호출
-				return MyChatRoomResponse.fromDto(dto, lastContent);
+				return MyChatRoomResponse.fromDto(dto, finalContent, finalCount, finalTimestamp);
 			})
 			.collect(Collectors.toList());
 

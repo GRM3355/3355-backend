@@ -1,5 +1,7 @@
 package com.grm3355.zonie.commonlib.domain.chatroom.repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -159,4 +161,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 	Page<ChatRoomInfoDto> chatMyRoomList_ACTIVE_DESC
 	(String userId, String keyword, Pageable pageable);
 	*/
+
+	// ChatRoomRedisCleanupJob에서 사용
+	List<ChatRoom> findAllByChatRoomIdIn(Collection<String> chatRoomIds);
 }

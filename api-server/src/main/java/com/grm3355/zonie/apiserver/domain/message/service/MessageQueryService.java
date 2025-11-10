@@ -75,7 +75,7 @@ public class MessageQueryService {
 		Set<String> likeCountKeys = messageIds.stream()
 			.map(id -> LIKE_COUNT_KEY_PREFIX + id)
 			.collect(Collectors.toSet());
-		Map<String, String> likeCountStrMap = redisScanService.getLastMessageTimestamps(likeCountKeys); // MGET (Key/Value)
+		Map<String, String> likeCountStrMap = redisScanService.multiGetLastMessageTimestamps(likeCountKeys); // MGET (Key/Value)
 
 		// 2-2. messageId -> likedByUserIds (Map)
 		Set<String> likedByKeys = messageIds.stream()
@@ -87,17 +87,25 @@ public class MessageQueryService {
 		return messagesSlice.map(msg -> {
 			String msgId = msg.getId();
 
-			// 3-1. 실시간 좋아요 Count 조회
+			// 3-1. Redis에서 두 키 모두 조회
 			String countStr = likeCountStrMap.get(LIKE_COUNT_KEY_PREFIX + msgId);
-			int liveLikeCount = (countStr != null) ? Integer.parseInt(countStr) : msg.getLikeCount(); // Redis에 없으면 Mongo 백업본 사용
-
-			// 3-2. 실시간 '내 좋아요' 여부 조회
 			Set<String> likedUserIds = likedByMap.get(LIKED_BY_KEY_PREFIX + msgId);
-			if (likedUserIds == null) { // Redis에 키가 아예 없으면 (좋아요가 0개면)
-				likedUserIds = msg.getLikedByUserIds(); // Mongo 백업본 사용
+
+			int finalLikeCount;
+			Set<String> finalLikedUserIds;
+
+			// 3-2. "All or Nothing": 두 키가 모두 Redis에 존재할 때만 Redis 값을 사용
+			if (countStr != null && likedUserIds != null) {
+				// (A) Redis 데이터 사용
+				finalLikeCount = Integer.parseInt(countStr);
+				finalLikedUserIds = likedUserIds;
+			} else {
+				// (B) 하나라도 없으면, 둘 다 Mongo 백업본 사용 (데이터 정합성 유지)
+				finalLikeCount = msg.getLikeCount();
+				finalLikedUserIds = msg.getLikedByUserIds();
 			}
 
-			return MessageResponse.from(msg, liveLikeCount, likedUserIds, currentUserId);
+			return MessageResponse.from(msg, finalLikeCount, finalLikedUserIds, currentUserId);
 		});
 	}
 }

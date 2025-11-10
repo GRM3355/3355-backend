@@ -79,7 +79,7 @@ public class RedisScanService {
 	 * @param keys (예: "chatroom:last_msg_at:1", "chatroom:last_msg_at:2", ...)
 	 * @return Map<String, String> (예: {"chatroom:last_msg_at:1": "1678886400000", ...})
 	 */
-	public Map<String, String> getLastMessageTimestamps(Set<String> keys) {
+	public Map<String, String> multiGetLastMessageTimestamps(Set<String> keys) {
 		List<String> values = stringRedisTemplate.opsForValue().multiGet(keys);		// MGET: 파이프라인과 유사한 동작
 
 		Map<String, String> timestampMap = new HashMap<>();
