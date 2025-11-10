@@ -84,10 +84,6 @@ public class AuthService {
 		//액세스 토큰 생성(JWT) - 클라이언트가 저장
 		String accessToken = jwtTokenProvider.createAccessToken(userDetails.getUsername(), Role.valueOf(roleEnumName));
 
-		//위치 토큰 생성 - 실시간 저장을 위해서 Redis에만 저장
-		redisTokenService.generateLocationToken(userTokenDto);
-
 		return new AuthResponse(accessToken);
 	}
-
 }

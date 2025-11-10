@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
@@ -72,4 +73,21 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	Page<Festival> getFestivalList(String region, String status, String keyword,
 		int dayNum, Pageable pageable);
 
+	/**
+	 * PostGIS의 ST_Distance 함수를 사용해 사용자의 현재 위치와 축제 위치 간의 거리를 계산합니다.
+	 *
+	 * @param festivalId 축제 ID
+	 * @param lon 사용자 경도 (Longitude)
+	 * @param lat 사용자 위도 (Latitude)
+	 * @return 거리(km). 일치하는 축제가 없으면 Optional.empty()
+	 */
+	@Query(value =
+		"SELECT ST_Distance(" +
+			"    f.position::geography, " + 									// 1. DB에 저장된 축제 위치 (geography 타입으로 캐스팅)
+			"    ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography " + 		// 2. 사용자의 현재 위치 (lon, lat)로 geography 생성
+			") / 1000.0 " + 													// 3. 결과를 미터(m)에서 킬로미터(km)로 변환
+			"FROM festival f " +
+			"WHERE f.festival_id = :festivalId",
+		nativeQuery = true)
+	Optional<Double> findDistanceToFestival(@Param("festivalId") long festivalId, @Param("lon") double lon, @Param("lat") double lat);
 }
