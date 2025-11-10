@@ -2,15 +2,18 @@ package com.grm3355.zonie.apiserver.domain.auth.controller;
 
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
+import com.grm3355.zonie.commonlib.global.enums.ProviderType;
 import java.net.URI;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;
@@ -77,9 +80,16 @@ public class AuthController {
 
 	}
 
-	@PostMapping("/login")
+	@PostMapping("/oauth2")
 	public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-		LoginResponse response = authService.login(request.code());
+		LoginResponse response = authService.login(request);
+		return ResponseEntity.ok()
+				.body(response);
+	}
+
+	@GetMapping("/oauth2/kakao")
+	public ResponseEntity<LoginResponse> loginWithKakao(@RequestParam("code") String code) {
+		LoginResponse response = authService.login(new LoginRequest(ProviderType.KAKAO, code));
 		return ResponseEntity.ok()
 				.body(response);
 	}

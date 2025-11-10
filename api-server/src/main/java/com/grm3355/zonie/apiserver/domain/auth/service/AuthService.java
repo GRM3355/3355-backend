@@ -2,7 +2,9 @@ package com.grm3355.zonie.apiserver.domain.auth.service;
 
 import com.grm3355.zonie.apiserver.domain.auth.domain.AuthProvider;
 import com.grm3355.zonie.apiserver.domain.auth.domain.OAuth2Client;
+import com.grm3355.zonie.apiserver.domain.auth.domain.OAuth2Clients;
 import com.grm3355.zonie.apiserver.domain.auth.domain.UserInfo;
+import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 import java.util.UUID;
 
@@ -42,7 +44,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final RedisTokenService redisTokenService;
     private final PasswordEncoder passwordEncoder;
-    private final OAuth2Client oAuth2Client;
+    private final OAuth2Clients oAuth2Clients;
     private final AuthProvider authProvider;
 
     @Transactional
@@ -110,11 +112,20 @@ public class AuthService {
     }
 
     @Transactional
-    public LoginResponse login(String code) {
-        String accessToken = oAuth2Client.getAccessToken(code);
-        UserInfo userInfo = oAuth2Client.getUserInfo(accessToken);
+    public LoginResponse login(LoginRequest request) {
+        UserInfo userInfo = getUserInfo(request);
         User user = userRepository.findBySocialIdAndProviderType(userInfo.socialId(), userInfo.providerType())
-                .orElseGet(() -> userRepository.save(userInfo.toUser()));
+                .orElseGet(() -> signUp(userInfo));
         return new LoginResponse(authProvider.provide(user), userInfo.nickname());
+    }
+
+    private UserInfo getUserInfo(LoginRequest request) {
+        OAuth2Client oAuth2Client = oAuth2Clients.getClient(request.providerType());
+        String accessToken = oAuth2Client.getAccessToken(request.code());
+        return oAuth2Client.getUserInfo(accessToken);
+    }
+
+    private User signUp(UserInfo userInfo) {
+        return userRepository.save(userInfo.toUser());
     }
 }
