@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalLocationBasedRequest;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalOrderType;
@@ -87,6 +88,36 @@ public class FestivalService {
 
 		return festivalRepository
 			.getFestivalList(regionStr, statusStr, req.getKeyword(), preview_days, pageable);
+
+	}
+
+	/**
+	 * 위치기반 축제목록
+	 * @param req 검색dto
+	 * @return page
+	 */
+	@Transactional
+	public Page<FestivalResponse> getFestivalLocationBased(FestivalLocationBasedRequest req) {
+
+		Sort.Order order = Sort.Order.asc("position");
+		Pageable pageable = PageRequest.of(req.getPage() - 1,
+			req.getPageSize(), Sort.by(order));
+
+		//ListType 내용 가져오기
+		Page<Festival> pageList = getFestivalLocationBasedType(req, pageable);
+
+		//페이지 변환
+		List<FestivalResponse> dtoPage = pageList.stream().map(FestivalResponse::fromEntity)
+			.collect(Collectors.toList());
+
+		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
+	}
+
+	//축제별 채팅방 검색조건별 목록 가져오기
+	public Page<Festival> getFestivalLocationBasedType(FestivalLocationBasedRequest req, Pageable pageable) {
+
+		return festivalRepository
+			.getFestivalLocationBased(req.getLat(), req.getLon(), req.getRadius(), preview_days, pageable);
 
 	}
 

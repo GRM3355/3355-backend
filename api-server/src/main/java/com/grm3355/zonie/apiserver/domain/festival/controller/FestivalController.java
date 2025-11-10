@@ -2,6 +2,8 @@ package com.grm3355.zonie.apiserver.domain.festival.controller;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalLocationBasedRequest;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
@@ -166,6 +169,72 @@ public class FestivalController {
 		@ModelAttribute ChatRoomSearchRequest request
 	) {
 		FestivalResponse response = festivalService.getFestivalContent(festivalId);
+		return ResponseEntity.ok().body(ApiResponse.success(response));
+	}
+
+	@Operation(summary = "축제 내용", description = "해당 축제의 내용을 볼 수 있다.")
+	@ApiResponses({
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "200",
+			description = "내용표시",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = ApiResponse.class)
+			)
+		),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "400",
+			description = "입력값 유효성 검증 실패",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = ApiResponse.class),
+				examples = @ExampleObject(
+					name = "BAD_REQUEST",
+					value = "{\"success\":false,\"status\":400,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
+				)
+			)
+		),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "405",
+			description = "허용되지 않은 메소드",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = ApiResponse.class),
+				examples = @ExampleObject(
+					name = "METHOD_NOT_ALLOWED",
+					value = "{\"success\":false,\"status\":405,\"error\":{\"code\":\"METHOD_NOT_ALLOWED\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
+				)
+			)
+		),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "415",
+			description = "UNSUPPORTED_MEDIA_TYPE",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = ApiResponse.class),
+				examples = @ExampleObject(
+					name = "UNSUPPORTED_MEDIA_TYPE",
+					value = "{\"success\":false,\"status\":415,\"error\":{\"code\":\"UNSUPPORTED_MEDIA_TYPE\",\"message\":\"잘못된 콘텐츠 타입입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
+				)
+			)
+		),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "429",
+			description = "요청 횟수 초과",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = ApiResponse.class),
+				examples = @ExampleObject(
+					name = "TOO_MANY_REQUESTS",
+					value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
+				)
+			)
+		)
+	})
+	@GetMapping("/festivals/locationBased")
+	public ResponseEntity<?> getFestivalLocationBased(@Valid @ModelAttribute FestivalLocationBasedRequest request) {
+		Page<FestivalResponse> pageList = festivalService.getFestivalLocationBased(request);
+		PageResponse<FestivalResponse> response = new PageResponse<>(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 
