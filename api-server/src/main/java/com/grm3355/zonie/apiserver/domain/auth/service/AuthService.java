@@ -2,8 +2,6 @@ package com.grm3355.zonie.apiserver.domain.auth.service;
 
 import java.util.UUID;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -12,16 +10,16 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
-import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
+import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;
 import com.grm3355.zonie.commonlib.global.enums.Role;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,12 +37,10 @@ public class AuthService {
 	private final PasswordEncoder passwordEncoder;
 
 	@Transactional
-	public AuthResponse register(LocationDto locationDto, HttpServletRequest request) {
+	public AuthResponse register(LocationDto locationDto) {
 
 		//uuid 생성
 		String userId = PRE_FIX + UUID.randomUUID();
-		String clientIp = getClientIp(request);
-		String device = request.getHeader("device");
 		double lat = locationDto.getLat();
 		double lon = locationDto.getLon();
 
@@ -54,7 +50,7 @@ public class AuthService {
 			.userId(userId)
 			.password(password)
 			.role(Role.GUEST).build();
-		User saved_db = userRepository.save(user);
+		userRepository.save(user);
 
 		//사용자정보
 		UserTokenDto userTokenDto = UserTokenDto.builder()
@@ -92,14 +88,6 @@ public class AuthService {
 		redisTokenService.generateLocationToken(userTokenDto);
 
 		return new AuthResponse(accessToken);
-	}
-
-	private String getClientIp(HttpServletRequest request) {
-		String xfHeader = request.getHeader("X-Forwarded-For");
-		if (xfHeader == null) {
-			return request.getRemoteAddr();
-		}
-		return xfHeader.split(",")[0]; // 프록시 환경 처리
 	}
 
 }

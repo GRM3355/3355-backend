@@ -17,7 +17,7 @@ public class HealthCheckController {
 
 		@GetMapping("/")
 		public ResponseEntity<String> rootHealth() {
-			return ResponseEntity.ok("");
+			return ResponseEntity.ok("2025.11.9");
 		}
 	}
 }

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -19,16 +20,16 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.grm3355.zonie.apiserver.domain.chatroom.enums.OrderType;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
-import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
+import com.grm3355.zonie.apiserver.domain.chatroom.enums.OrderType;
 import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
+import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository;
@@ -46,17 +47,20 @@ import lombok.extern.slf4j.Slf4j;
 public class ChatRoomService {
 
 	private static final String PRE_FIX = "room:";
-	private static final int MAX_PARTICIPANTS = 300; // 최대인원수
-	private static final int MAX_ROOM = 30; // 최대인원수
-	private static final double MAX_RADIUS = 1.0; // km
-
 	private final RedisTokenService redisTokenService;
 	private final FestivalInfoService festivalInfoService;
 	private final ChatRoomRepository chatRoomRepository;
 	private final UserRepository userRepository;
 	private final StringRedisTemplate stringRedisTemplate;
-
 	GeometryFactory geometryFactory = new GeometryFactory(); // GeometryFactory 생성 (보통 한 번만 만들어 재사용)
+	@Value("${chat.pre-create-day}")
+	private int pre_create_days;    //시작하기전 몇일전부터 생성가능
+	@Value("${chat.max-chat-person}")
+	private int max_participants;    //최대인원스
+	@Value("${chat.max-chat-room}")
+	private int max_room;    //최개 채팅방 갯수
+	@Value("${chat.radius}")
+	private double max_radius;   //최대km
 
 	public ChatRoomService(RedisTokenService redisTokenService, FestivalInfoService festivalInfoService,
 		ChatRoomRepository chatRoomRepository, UserRepository userRepository, StringRedisTemplate stringRedisTemplate
@@ -77,51 +81,53 @@ public class ChatRoomService {
 		//0. 사용자 아이디 가져오기
 		String userId = userDetails.getUsername();
 		User user = userRepository.findByUserId(userId)
-			.orElseThrow(()->new BusinessException(ErrorCode.NOT_FOUND, "사용자 정보가 유효하지 않습니다."));
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자 정보가 유효하지 않습니다."));
 
 		//1. 토큰값 체크
 		boolean isTokenValidate = redisTokenService.validateLocationToken(userId);
-		if(!isTokenValidate) {
+		if (!isTokenValidate) {
 			throw new BusinessException(ErrorCode.NOT_FOUND, "토큰이 유효하지 않습니다.");
 		}
 
 		//2. 축제 존재여부체크
-		Festival festival = festivalInfoService.getDataValid(festivalId);
+		Festival festival = festivalInfoService.getDataValid(festivalId, pre_create_days);
 
 		//3. 축제 거리계산하기
-		LocationDto location1 = getUserPostion(userId);
+		LocationDto location1 = getUserPosition(userId);
 		LocationDto location2 = getFestivalPosition(festival);
-		boolean isValidDistance = festivalCaculator(location1, location2);
-		if(!isValidDistance) {
+		boolean isValidDistance = festivalCalculator(location1, location2);
+		if (!isValidDistance) {
 			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설 반경이 아닙니다.");
 		}
 
 		//4. 채팅방 갯수 체크
-		if (festival.getChatRoomCount() >= MAX_PARTICIPANTS) {
-			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설은 " + MAX_ROOM + "개까지 입니다.");
+		if (festival.getChatRoomCount() >= max_room) {
+			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설은 " + max_room + "개까지 입니다.");
 		}
 
 		//5. 채팅방 저장
 		// 채팅룸 아이디 생성
 		String roomId = createRoomId();
 		// 위치 세팅
-		Point point = geometryFactory.createPoint(new Coordinate(location2.getLon(), location2.getLat())); // lon=X, lat=Y
+		Point point = geometryFactory.createPoint(
+			new Coordinate(location2.getLon(), location2.getLat())); // lon=X, lat=Y
 
 		ChatRoom chatRoom = ChatRoom.builder()
 			.chatRoomId(roomId)
 			.festival(festival)
 			.user(user)
 			.title(request.getTitle())
-			.maxParticipants(MAX_PARTICIPANTS)
-			.radius(MAX_RADIUS)
+			.maxParticipants(max_participants)
+			.radius(max_radius)
 			.position(point)
 			.participantCount(0L)
 			.build();
 		// ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
 
 		// 디버깅을 위해 일시적으로 saveAndFlush 사용함 - 추후 복구하기
+		ChatRoom saveChatRoom;
 		try {
-			ChatRoom saveChatRoom = chatRoomRepository.saveAndFlush(chatRoom);
+			saveChatRoom = chatRoomRepository.saveAndFlush(chatRoom);
 		} catch (Exception e) {
 			log.error("채팅방 저장 중 DB 예외 발생: {}", e.getMessage(), e);
 			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 저장 중 오류가 발생했습니다.");
@@ -132,13 +138,13 @@ public class ChatRoomService {
 
 		//dto 변환
 		return ChatRoomResponse.builder()
-			.chatRoomId(roomId)
-			.festivalId(festivalId)
-			.userId(userId)
-			.title(request.getTitle())
-			.lat(0.0).lon(0.0)
-			// .lat(chatRoom.getPosition().getY())
-			// .lon(chatRoom.getPosition().getX())
+			.chatRoomId(saveChatRoom.getChatRoomId())
+			.festivalId(saveChatRoom.getFestival().getFestivalId())
+			.userId(saveChatRoom.getUser().getUserId())
+			.title(saveChatRoom.getTitle())
+			//.lat(0.0).lon(0.0)
+			.lat(saveChatRoom.getPosition().getY())
+			.lon(saveChatRoom.getPosition().getX())
 			.build();
 	}
 
@@ -148,7 +154,12 @@ public class ChatRoomService {
 	@Transactional
 	public Page<MyChatRoomResponse> getFestivalChatRoomList(long festivalId, ChatRoomSearchRequest req) {
 
-		Sort.Order order = Sort.Order.desc("created_at");
+		//정렬 순서
+		if (req.getOrder() == null)
+			req.setOrder(OrderType.DATE_ASC);
+		
+		Sort.Order order = getSortOrder(req.getOrder());
+
 		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), Sort.by(order));
 
 		// 1. PG에서 기본 정보 조회: ListType 내용 가져오기
@@ -176,44 +187,31 @@ public class ChatRoomService {
 	public Page<ChatRoomInfoDto> getFestivalListTypeUser(
 		long festivalId, ChatRoomSearchRequest req, Pageable pageable) {
 
-		OrderType order =
-			(req.getOrder() != null) ? req.getOrder() : OrderType.PART_DESC;
+		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
 
-		// String keyword = (req.getKeyword() != null ) ? req.getKeyword() : null;
-		String keyword = (req.getKeyword() != null ) ? req.getKeyword() : "";
+		return chatRoomRepository.chatFestivalRoomList(festivalId, keyword, pageable);
 
-		return switch (order) {
-			case PART_ASC -> chatRoomRepository
-				.chatFestivalRoomList_PART_ASC(festivalId, keyword, pageable);
-			case PART_DESC -> chatRoomRepository
-				.chatFestivalRoomList_PART_DESC(festivalId, keyword, pageable);
-			case DATE_ASC -> chatRoomRepository
-				.chatFestivalRoomList_DATE_ASC(festivalId, keyword, pageable);
-			case DATE_DESC -> chatRoomRepository
-				.chatFestivalRoomList_DATE_DESC(festivalId, keyword, pageable);
-			case ACTIVE_ASC -> chatRoomRepository
-				.chatFestivalRoomList_ACTIVE_ASC(festivalId, keyword, pageable);
-			case ACTIVE_DESC -> chatRoomRepository
-				.chatFestivalRoomList_ACTIVE_DESC(festivalId, keyword, pageable);
-		};
 	}
 
 	/**
 	 * 나의 채팅방 목록
 	 */
 	@Transactional
-	public Page<MyChatRoomResponse> getMyroomChatRoomList(UserDetailsImpl userDetails,
+	public Page<MyChatRoomResponse> getMyRoomChatRoomList(UserDetailsImpl userDetails,
 		ChatRoomSearchRequest req) {
 		String userId = userDetails.getUsername();
 
-		System.out.println("===============>"+userId);
+		//정렬 순서
+		if (req.getOrder() == null)
+			req.setOrder(OrderType.PART_DESC);
 
-		Sort.Order order = Sort.Order.desc("created_at");
+		Sort.Order order = getSortOrder(req.getOrder());
+
 		Pageable pageable = PageRequest.of(req.getPage() - 1,
 			req.getPageSize(), Sort.by(order));
 
 		//ListType 내용 가져오기
-		Page<ChatRoomInfoDto> pageList = getMyroomListTypeUser(userId, req, pageable);
+		Page<ChatRoomInfoDto> pageList = getMyRoomListTypeUser(userId, req, pageable);
 
 		//페이지 변환
 		List<MyChatRoomResponse> dtoPage = pageList.stream().map(MyChatRoomResponse::fromDto)
@@ -223,28 +221,12 @@ public class ChatRoomService {
 	}
 
 	//축제별 채팅방 검색조건별 목록 가져오기
-	private Page<ChatRoomInfoDto> getMyroomListTypeUser(String userId, ChatRoomSearchRequest req, Pageable pageable) {
+	private Page<ChatRoomInfoDto> getMyRoomListTypeUser(String userId, ChatRoomSearchRequest req, Pageable pageable) {
 
-		OrderType order =
-			(req.getOrder() != null) ? req.getOrder() : OrderType.PART_DESC;
-		// String keyword = (req.getKeyword() != null ) ? req.getKeyword() : null;
-		String keyword = (req.getKeyword() != null ) ? req.getKeyword() : "";
+		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
+		System.out.println("===============>keyword===>" + keyword);
+		return chatRoomRepository.chatMyRoomList(userId, keyword, pageable);
 
-		System.out.println("===============>keyword===>"+keyword);
-		return switch (order) {
-			case PART_ASC -> chatRoomRepository
-				.chatMyRoomList_PART_ASC(userId, keyword, pageable);
-			case PART_DESC -> chatRoomRepository
-				.chatMyRoomList_PART_DESC(userId, keyword, pageable);
-			case DATE_ASC -> chatRoomRepository
-				.chatMyRoomList_DATE_ASC(userId, keyword, pageable);
-			case DATE_DESC -> chatRoomRepository
-				.chatMyRoomList_DATE_DESC(userId, keyword, pageable);
-			case ACTIVE_ASC -> chatRoomRepository
-				.chatMyRoomList_ACTIVE_ASC(userId, keyword, pageable);
-			case ACTIVE_DESC -> chatRoomRepository
-				.chatMyRoomList_ACTIVE_DESC(userId, keyword, pageable);
-		};
 	}
 
 	/**
@@ -275,26 +257,38 @@ public class ChatRoomService {
 		return contentMap;
 	}
 
+	//정렬 순서 가져오기
+	private Sort.Order getSortOrder(OrderType orderType) {
+		return switch (orderType) {
+			case PART_ASC -> Sort.Order.asc("participant_count");
+			case PART_DESC -> Sort.Order.desc("participant_count");
+			case DATE_ASC -> Sort.Order.asc("created_at");
+			case DATE_DESC -> Sort.Order.desc("created_at");
+			case ACTIVE_ASC -> Sort.Order.asc("last_message_at");
+			case ACTIVE_DESC -> Sort.Order.desc("last_message_at");
+		};
+	}
+
 	// 채팅룸 아이디 생성
-	private String createRoomId(){
+	private String createRoomId() {
 		return PRE_FIX + UUID.randomUUID();
 	}
 
 	// 가능거리 계산
-	private boolean festivalCaculator(LocationDto locationDto, LocationDto festivalDto) {
+	private boolean festivalCalculator(LocationDto locationDto, LocationDto festivalDto) {
 		double km = LocationService.getDistanceCalculator(locationDto, festivalDto);
-		return km <= MAX_RADIUS; // 로직: km이 MAX_RADIUS(1.0km)보다 작거나 같을 때 true 반환 (반경 내에 있을 때만 생성 가능)
+		return km <= max_radius; // 로직: km이 MAX_RADIUS(1.0km)보다 작거나 같을 때 true 반환 (반경 내에 있을 때만 생성 가능)
 	}
 
 	//사용자 위치정보
-	private LocationDto getUserPostion(String userId){
-		System.out.println("=======> userId="+userId);
-		UserTokenDto userTokenDto= redisTokenService.getLocationInfo(userId);
-		return  LocationDto.builder().lat(userTokenDto.getLat()).lon(userTokenDto.getLon()).build();
+	private LocationDto getUserPosition(String userId) {
+		System.out.println("=======> userId=" + userId);
+		UserTokenDto userTokenDto = redisTokenService.getLocationInfo(userId);
+		return LocationDto.builder().lat(userTokenDto.getLat()).lon(userTokenDto.getLon()).build();
 	}
 
 	//축제위치정보
-	private LocationDto getFestivalPosition(Festival festival){
+	private LocationDto getFestivalPosition(Festival festival) {
 		return LocationDto.builder()
 			.lat(festival.getPosition().getY())
 			.lon(festival.getPosition().getX()).build();

@@ -1,13 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
-import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
-import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
-import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
-import com.grm3355.zonie.apiserver.domain.auth.service.AuthService;
-import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;
-import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -23,10 +17,14 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import jakarta.servlet.http.HttpServletRequest;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;
+import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
+import com.grm3355.zonie.apiserver.domain.auth.service.AuthService;
+import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
+import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
+import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 @DisplayName("토큰 발행 통합테스트")
 @WebMvcTest(
@@ -72,8 +70,7 @@ class AuthControllerTest {
 		AuthResponse mockResponse = new AuthResponse("access-token-12345");
 
 		Mockito.when(authService.register(
-			ArgumentMatchers.any(LocationDto.class),
-			ArgumentMatchers.any(HttpServletRequest.class))
+			ArgumentMatchers.any(LocationDto.class))
 		).thenReturn(mockResponse);
 
 		mockMvc.perform(post("/api/v1/auth/token-register")
