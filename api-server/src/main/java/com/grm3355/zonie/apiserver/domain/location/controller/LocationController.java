@@ -35,6 +35,7 @@ public class LocationController {
 	private final LocationService locationService;
 
 	@Operation(summary = "location 토큰의 위치정보 업데이트", description = "위도, 경도, accessToken을 받아서 Redis에서 정보를 수정한다.")
+	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -106,6 +107,7 @@ public class LocationController {
 	}
 
 	@Operation(summary = "축제 영역 체크", description = "위도, 경도 정보를 받아서 기존의 Redis값과 비교한다.")
+	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -177,6 +179,7 @@ public class LocationController {
 	}
 
 	@Operation(summary = "채팅방 영역 체크", description = "위도, 경도 정보를 받아서 기존의 Redis값과 비교한다.")
+	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",

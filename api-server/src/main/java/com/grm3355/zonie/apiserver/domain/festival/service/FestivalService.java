@@ -51,6 +51,18 @@ public class FestivalService {
 	@Transactional
 	public Page<FestivalResponse> getFestivalList(FestivalSearchRequest req) {
 
+		//축제 위치기반 체크
+		System.out.println("======>1111");
+		if (req.isPs()) {
+			System.out.println("======>2222");
+			if (req.getLat() == null || req.getLon() == null || req.getRadius() == null) {
+
+				System.out.println("======>333");
+				throw new BusinessException(ErrorCode.BAD_REQUEST, "위도, 경도, 반경을 정확하게 입력하시기 바랍니다.");
+			}
+		}
+
+		System.out.println("======>4444");
 		Sort.Order order;
 		if (req.getOrder() == FestivalOrderType.DATE_ASC) {
 			order = Sort.Order.asc("event_start_date");
@@ -85,9 +97,14 @@ public class FestivalService {
 		FestivalStatus status = req.getStatus();
 		String statusStr = status != null ? status.toString() : null;
 
-		return festivalRepository
-			.getFestivalList(regionStr, statusStr, req.getKeyword(), preview_days, pageable);
-
+		//위치기반 검색이면
+		if (req.isPs()) {
+			return festivalRepository
+				.getFestivalLocationBased(req.getLat(), req.getLon(), req.getRadius(), preview_days, pageable);
+		} else {    // 전체검색이면
+			return festivalRepository
+				.getFestivalList(regionStr, statusStr, req.getKeyword(), preview_days, pageable);
+		}
 	}
 
 	/**

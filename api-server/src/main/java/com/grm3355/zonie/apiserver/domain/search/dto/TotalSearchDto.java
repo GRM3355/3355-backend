@@ -15,5 +15,4 @@ public class TotalSearchDto {
 	@Schema(description = "검색어")
 	@NotBlank(message = "검색어는 필수입니다.")
 	private String keyword;
-
 }

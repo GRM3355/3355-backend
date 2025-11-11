@@ -38,7 +38,7 @@ public class LocationService {
 		double lat2 = location2.getLat();
 		double lon2 = location2.getLon();
 
-		double R = 6371; // 지구 반지름 (km)
+		double radius = 6371; // 지구 반지름 (km)
 		double dLat = Math.toRadians(lat2 - lat1);
 		double dLon = Math.toRadians(lon2 - lon1);
 
@@ -47,7 +47,7 @@ public class LocationService {
 			* Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
 		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-		double distance = R * c; // 단위: km
+		double distance = radius * c; // 단위: km
 
 		// 소수점 첫째 자리까지 반올림
 		return Math.round(distance * 10) / 100.0;
@@ -95,7 +95,7 @@ public class LocationService {
 
 		//채팅방 테이블에서 위도, 경도 가져오기
 		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(chatroomId)
-			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 정보가 없습니다."));
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방이 없습니다."));
 
 		LocationDto chatroomPosition = LocationDto.builder()
 			//.lat(0.0).lon(0.0)

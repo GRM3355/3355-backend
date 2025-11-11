@@ -44,16 +44,6 @@ public class FestivalResponse {
 	@Schema(description = "채팅방 갯수", example = "23")
 	private int chatRoomCount;
 
-	//임시로 주석처리
-	//@Schema(description = "이미지명", example = "http://www.naver.com/aa.gif")
-	//private String coverImageUrl;
-
-	//@Schema(description = "최대참여자수", example = "500")
-	//private int maxParticipants;
-
-	//@Schema(description = "접근거리", example = "1.0")
-	//private double radius;
-
 	public static FestivalResponse fromEntity(Festival festival) {
 
 		LocalDate startDateTime = festival.getEventStartDate();
