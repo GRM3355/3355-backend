@@ -1,0 +1,54 @@
+{
+  "family": "zonie-api-server-task-def",
+  "executionRoleArn": "arn:aws:iam::548182874697:role/ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "containerDefinitions": [
+    {
+      "name": "zonie-api-server",
+      "image": "<IMAGE_URI>",
+      "portMappings": [
+        {
+          "containerPort": 8080,
+          "hostPort": 8080,
+          "protocol": "tcp"
+        }
+      ],
+      "essential": true,
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "curl -f http://localhost:8080/health || exit 1"
+        ],
+        "interval": 10,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 80
+      },
+      "environment": [
+        { "name": "SPRING_PROFILES_ACTIVE", "value": "prod" }
+      ],
+      "secrets": [
+        { "name": "DB_PROD_URL", "valueFrom": "DB_PROD_URL" },
+        { "name": "DB_PROD_USERNAME", "valueFrom": "DB_PROD_USERNAME" },
+        { "name": "DB_PROD_PASSWORD", "valueFrom": "DB_PROD_PASSWORD" },
+        { "name": "MONGO_PROD_URI", "valueFrom": "MONGO_PROD_URI" },
+        { "name": "REDIS_PROD_HOST", "valueFrom": "REDIS_PROD_HOST" },
+        { "name": "REDIS_PROD_PASSWORD", "valueFrom": "REDIS_PROD_PASSWORD" },
+        { "name": "JWT_SECRET_KEY", "valueFrom": "JWT_SECRET_KEY" },
+        { "name": "OPENAPI_SERVICE_KEY", "valueFrom": "OPENAPI_SERVICE_KEY" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/zonie-api-server",
+          "awslogs-region": "ap-northeast-2",
+          "awslogs-create-group": "true",
+          "awslogs-stream-prefix": "ecs"
+        }
+      }
+    }
+  ]
+}

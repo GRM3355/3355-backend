@@ -1,19 +1,38 @@
 # 개발 환경 설정
+# docker jdbc:postgresql://zonie_postgres_db:5432
+# docker redis_cache
+# 인텔리제이 jdbc:postgresql://localhost:5432/
+# 인텔리제이 localhost
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/zonie-dev
-    username: your-dev-username
-    password: your-dev-password
+    url: jdbc:postgresql://zonie_postgres_db:5432/zonie_main?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
+    username: zonie
+    password: zonie_pass
     driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: redis_cache
+      port: 6379
   jpa:
     hibernate:
-      ddl-auto: create # 개발 초기에는 create 또는 update 사용
+      ddl-auto: update # 개발 초기에는 create 또는 update 사용
     show-sql: true
     properties:
+      hibernate.hbm2ddl.defer_constraints: true #테이블 생성후 외래키 지정
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+    #defer-datasource-initialization: true
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000 # 10분 (밀리초)
 
-logging:
-  level:
-    root: INFO
-    com.grm3355.zonie: DEBUG
+#logging:
+#  level:
+#    root: TRACE
+#    org.springframework: TRACE
+#    org.hibernate.SQL: TRACE
+#    org.springframework.orm.jpa: TRACE
+#    org.springframework.beans.factory: TRACE
+#    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 바인딩 값 출력

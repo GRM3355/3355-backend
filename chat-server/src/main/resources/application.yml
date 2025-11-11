@@ -1,9 +1,22 @@
 # 공통 설정
+# e.g., spring.profiles.active: dev
 spring:
   application:
     name: chat-server
+
   profiles:
-    active: dev # 기본 활성 프로필을 dev로 지정
+    # 환경 변수(SPRING_PROFILES_ACTIVE)가 있으면 그걸 쓰고,
+    #    없으면(로컬 IDE 실행 시) 기본으로 'dev' 프로필을 사용합니다.
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
     group:
-      "dev": "dev,local"
-      "prod": "prod,local"
+      "dev": "dev,local"  # "dev" 프로필이 실행되면, "local"도 같이 읽어라!
+      "prod": "prod"      # (AWS에서 prod로 실행되면, local은 안 읽음)
+
+  main:
+    # RedisConfig에서 stringRedisTemplate Bean을 덮어쓰는 것을 허용
+    allow-bean-definition-overriding: true
+
+server:
+  # api-server(8080)와 로컬에서 충돌하지 않도록 포트를 다르게 설정합니다.
+  port: 8081

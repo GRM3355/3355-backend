@@ -1,7 +1,11 @@
-# 테스트 환경 설정
-spring:
-  data:
-    mongodb:
-      uri: de.flapdoodle.embed.mongo.spring.autoconfigure.EmbeddedMongoAutoConfiguration
-    redis:
-      embedded: true # Embedded Redis 사용 (의존성 추가 필요)
+# chat-server/src/test/resources/application-test.yml
+# Testcontainers의 @DynamicPropertySource가 설정을 주입
+
+logging:
+  level:
+    com.grm3355.zonie: DEBUG
+
+jwt:
+  secret: dGhpcy1pcy1hLWxvY2FsLXRlc3Qtc2VjcmV0LWtleS1mb3ItYWxsLW1vZHVsZXMtMzItYnl0ZXMK
+  access-token-expiration-time: 86400000 # 24시간
+  location-token-expiration-time: 600000 # 10분

@@ -45,3 +45,8 @@ application-local.yml
 # Local configuration files
 *-local.yml
 *-local.properties
+
+data/
+
+### macOS ###
+**/.DS_Store

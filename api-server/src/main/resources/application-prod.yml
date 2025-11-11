@@ -1,16 +1,56 @@
-# 운영 환경 설정
+# api-server/.../application-prod.yml
+# 환경 변수 참조
 spring:
+  # --- MongoDB Atlas (운영용) ---
+  data:
+    mongodb:
+      uri: ${MONGO_PROD_URI} # 환경 변수 또는 외부 설정 파일에서 주입
+      database: zonie-database
+    # --- ElastiCache (Redis) (운영용) ---
+    redis:
+      host: ${REDIS_PROD_HOST}
+      port: 6379 # port: ${PROD_REDIS_PORT} # || REDIS_PROD_PORT
+      password: ${REDIS_PROD_PASSWORD}
+      ssl:
+        enabled: true
+
+  # --- RDS (PostgreSQL) (운영용) ---
+  # chat-server도 방 입장 시 user_chat_rooms 테이블 접근을 위해 DB 연결이 필요.
   datasource:
-    url: ${PROD_DB_URL} # 환경 변수 또는 외부 설정 파일에서 주입
-    username: ${PROD_DB_USER}
-    password: ${PROD_DB_PASSWORD}
+    url: ${DB_PROD_URL}
+    username: ${DB_PROD_USERNAME}
+    password: ${DB_PROD_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
+  # --- JPA (운영용) ---
   jpa:
     hibernate:
-      ddl-auto: validate # 운영 환경에서는 validate 또는 none 사용
+      ddl-auto: update  # 운영 환경에서는 validate 또는 none 사용
     show-sql: false
 
 logging:
   level:
     root: INFO
     com.grm3355.zonie: INFO
+
+#jwt
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  access-token-expiration-time: 86400000 # 24시간
+  location-token-expiration-time: 600000 # 10분
+
+#cors
+cors:
+  allowed-origins: "http://localhost:8082,http://zony.kro.kr, http://www.zony.kro.kr,https://zony.kro.kr, https://www.zony.kro.kr"
+
+#공공데이터 api
+openapi:
+  serviceKey: ${OPENAPI_SERVICE_KEY}
+#채팅 기본정보
+chat:
+  max-chat-person: 500
+  max-chat-room: 30
+  radius: 1.0 #km
+  pre-create-day: 7 #7일전부터 생성 가능
+  pre-view-day: 7 #7일전부터 축제보기 가능
+
