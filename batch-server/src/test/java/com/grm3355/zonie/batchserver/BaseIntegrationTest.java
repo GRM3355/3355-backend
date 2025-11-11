@@ -71,8 +71,8 @@ public abstract class BaseIntegrationTest {
 		registry.add("spring.data.redis.port", () -> redisContainer.getFirstMappedPort());
 
 		// JWT
-		String jwtSecret = System.getenv("JWT_SECRET_KEY");
-		registry.add("jwt.secret", () -> jwtSecret);
+		String testJwtSecret = "VGVzdFNlY3JldEtleUZvckpXVEludGVncmF0aW9uVGVzdGluZzEyMzQ1Njc4OQ==";
+		registry.add("jwt.secret", () -> testJwtSecret);
 
 	}
 }

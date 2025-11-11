@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/base.xml"/>
+
+    <property name="LOG_PATH" value="./logs"/>
+    <property name="LOG_FILE_NAME" value="batch"/>
+
+    <!--%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X] - %msg%n-->
+    <!-- [%X]: MDC: 어떤 Job의 몇 번째 실행에서 발생했는가-->
+    <!-- 예) 2025-11-12 00:00:00.000 [task-1] INFO  c.g.z.b.scheduler.BatchJobScheduler
+    [jobName=festivalSyncJob, jobExecutionId=12] - festivalSyncJob을 실행합니다.-->
+    <property name="COMMON_LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%X] - %msg%n"/>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/${LOG_FILE_NAME}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/${LOG_FILE_NAME}.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${COMMON_LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!--TRACE, DEBUG, INFO, WARN, ERROR-->
+    <!-- prod profile 에서만 INFO-->
+    <springProfile name="local, dev">
+        <logger name="com.grm3355.zonie" level="DEBUG" />
+
+        <logger name="org.springframework.batch" level="DEBUG" />
+
+        <logger name="org.hibernate.SQL" level="DEBUG" />
+        <logger name="org.hibernate.type.descriptor.sql.BasicBinder" level="TRACE" />
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+        </root>
+    </springProfile>
+
+    <springProfile name="prod">
+        <logger name="com.grm3355.zonie" level="INFO" />
+
+        <logger name="org.springframework.batch" level="INFO" />
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="FILE" />
+        </root>
+    </springProfile>
+</configuration>

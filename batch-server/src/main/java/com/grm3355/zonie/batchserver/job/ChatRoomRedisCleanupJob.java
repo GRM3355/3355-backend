@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
@@ -26,10 +25,11 @@ public class ChatRoomRedisCleanupJob {
 	private final ChatRoomRepository chatRoomRepository; // PGDB Repository
 
 	/**
-	 * 매일 새벽 5시에 실행 (cron = "0 0 5 * * ?")
+	 * 매일 새벽 4시에 실행 (cron = "0 0 4 * * ?")
 	 * PG DB에 존재하지 않는 (삭제된) 채팅방의 참여자 수 Redis 키를 정리합니다.
 	 */
-	@Scheduled(cron = "0 0 5 * * ?")
+	// @Scheduled가 제거: 순수 비즈니스 로직: -> Batch Step에서 관리
+	// @Scheduled(cron = "0 0 4 * * ?")
 	public void cleanupStaleChatRoomKeys() {
 		log.info("ChatRoomRedisCleanupJob 시작: 오래된 '참여자 수' Redis 키를 정리합니다.");
 

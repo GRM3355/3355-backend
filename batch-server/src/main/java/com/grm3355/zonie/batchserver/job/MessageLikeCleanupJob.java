@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.grm3355.zonie.commonlib.domain.message.entity.Message;
@@ -40,7 +39,8 @@ public class MessageLikeCleanupJob {
 	 * 매일 새벽 3시에 실행 (cron = "0 0 3 * * ?")
 	 * 오래된 메시지의 '좋아요' 관련 Redis 키를 정리합니다.
 	 */
-	@Scheduled(cron = "0 0 4 * * ?")
+	// @Scheduled가 제거: 순수 비즈니스 로직: -> Batch Step에서 관리
+	// @Scheduled(cron = "0 0 4 * * ?")
 	public void cleanupOldMessageLikes() {
 		log.info("MessageLikeCleanupJob 시작: 오래된 '좋아요' 데이터를 Redis에서 삭제합니다.");
 

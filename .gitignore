@@ -50,3 +50,8 @@ data/
 
 ### macOS ###
 **/.DS_Store
+
+### Log ###
+/chat-server/logs/chat.log
+/api-server/logs/api.log
+/batch-server/logs/batch.log

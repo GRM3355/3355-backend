@@ -47,3 +47,6 @@ data/
 **/.DS_Store
 api-server/src/main/.DS_Store
 chat-server/src/main/.DS_Store
+
+### Log ###
+logs

@@ -30,7 +30,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	Optional<Festival> findByIsValidFestival(long festivalId, int dayNum);
 
 	// 이벤트 종료일이 현재 날짜보다 이전인 축제를 삭제
-	void deleteByEventEndDateBefore(LocalDate date);
+	long deleteByEventEndDateBefore(LocalDate date); // long으로 지정: JPA는 삭제된 레코드 수를 반환
 
 	//채팅방 갯수 업데이트
 	@Modifying(clearAutomatically = true)
