@@ -17,7 +17,8 @@ dependencies {
     runtimeOnly 'org.postgresql:postgresql'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
     implementation 'org.springframework.boot:spring-boot-starter-cache'
-
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    
     // common-lib에서 설정했지만 api-server에서도 명시
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'

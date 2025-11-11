@@ -19,9 +19,6 @@ public class TotalSearchChatRoomResponse {
 	@Schema(description = "축제 아이디", example = "1")
 	private Long festivalId;
 
-	@Schema(description = "사용자 아이디", example = "user:aaa-bbb-ccc")
-	private String userId;
-
 	@Schema(description = "제목", example = "채팅방 제목입니다.")
 	private String title;
 
@@ -37,16 +34,15 @@ public class TotalSearchChatRoomResponse {
 	@Schema(description = "참석자수", example = "234")
 	private Long participantCount;
 
+
 	public static TotalSearchChatRoomResponse fromDto(ChatRoomInfoDto dto) {
 		return TotalSearchChatRoomResponse.builder()
 			.chatRoomId(dto.chatRoomId())
 			.festivalId(dto.festivalId())
 			// .userId(dto.chatRoom().getUser().getUserId())
 			.title(dto.title())
-			// dto.chatRoom().getPosition().getY(),
-			// dto.chatRoom().getPosition().getX(),
-			.lat(0.0)
-			.lon(0.0)
+			.lat(dto.lat())
+			.lon(dto.lon())
 			.festivalTitle(dto.festivalTitle())
 			.participantCount(dto.participantCount())
 			.build();

@@ -20,6 +20,13 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
+	private static final String[] WHITE_LIST = {
+		"/",
+		"/health",
+		"/actuator/**",
+		"/chat/**"
+	};
+
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 		http
@@ -40,7 +47,7 @@ public class SecurityConfig {
 			// 5. 경로별 접근 권한 설정
 			.authorizeHttpRequests(auth -> auth
 				// 웹소켓 핸드셰이크 경로는 모두 허용
-				.requestMatchers("/chat/**").permitAll()
+				.requestMatchers(WHITE_LIST).permitAll()
 				.anyRequest().denyAll()
 			);
 

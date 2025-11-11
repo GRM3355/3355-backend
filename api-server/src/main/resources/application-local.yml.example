@@ -37,3 +37,10 @@ logging:
     org.hibernate.SQL: DEBUG       # 실제 SQL 출력
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 바인딩 값 출력
     org.springframework.orm.jpa: DEBUG  # JPA 관련 디버그
+#채팅 기본정보
+chat:
+  max-chat-person:  500 #최대인원수
+  max-chat-room:  30  #생성 채팅룸 갯수
+  radius: 1.0 #km
+  pre-create-day: 7 #7일전부터 생성 가능
+  pre-view-day: 7 #7일전부터 축제보기 가능

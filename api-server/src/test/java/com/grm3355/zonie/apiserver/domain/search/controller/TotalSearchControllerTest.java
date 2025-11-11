@@ -1,5 +1,9 @@
 package com.grm3355.zonie.apiserver.domain.search.controller;
 
+import static org.mockito.ArgumentMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -13,19 +17,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.grm3355.zonie.apiserver.domain.festival.controller.FestivalController;
+import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchDto;
+import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchResponse;
+import com.grm3355.zonie.apiserver.domain.search.service.TotalSearchService;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
 import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
-import com.grm3355.zonie.apiserver.domain.search.service.TotalSearchService;
-import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchDto;
-import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchResponse;
 import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(
 	controllers = TotalSearchController.class,

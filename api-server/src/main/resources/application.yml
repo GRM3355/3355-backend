@@ -9,3 +9,11 @@ spring:
     group:
       "dev": "dev,local"
       "prod": "prod"
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never
