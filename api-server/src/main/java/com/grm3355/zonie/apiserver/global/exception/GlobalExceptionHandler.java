@@ -1,16 +1,13 @@
 package com.grm3355.zonie.apiserver.global.exception;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +18,8 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.grm3355.zonie.commonlib.global.exception.ApiErrorPayload;
@@ -28,6 +27,7 @@ import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.CustomValidationException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 import com.grm3355.zonie.commonlib.global.exception.NotFoundException;
+import com.grm3355.zonie.commonlib.global.exception.ValidationException;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -71,28 +71,15 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<?> handleMethodArgumentNotValid(
 		MethodArgumentNotValidException ex, HttpServletRequest req) {
 
-		// log.error("=================================> MethodArgumentNotValidException.class 에러 로그 찍기", ex); // 예외 로그 찍기
-		//  Map<String, String> fieldErrors = new LinkedHashMap<>();
-		//  ex.getBindingResult().getFieldErrors()
-		// 	.forEach(fe -> fieldErrors.put(fe.getField(), fe.getDefaultMessage()));
-		//  return build(ErrorCode.INVALID_INPUT, "요청 본문 검증 실패", fieldErrors, req);
-
-		// String errorMsg = ex.getBindingResult()
-		// 	.getFieldErrors()
-		// 	.stream()
-		// 	.map(DefaultMessageSourceResolvable::getDefaultMessage)
-		// 	.collect(Collectors.joining(", "));
-		// return ResponseEntity.badRequest().body(Map.of("error", errorMsg));
-
-		List<String> errorData  = ex.getBindingResult().getFieldErrors()
+		List<String> errorData = ex.getBindingResult().getFieldErrors()
 			.stream()
-			.map(e->e.getField() + " : "+e.getDefaultMessage())
+			.map(e -> e.getField() + " : " + e.getDefaultMessage())
 			.collect(Collectors.toList());
 
 		ApiResponse<Object> error = ApiResponse.failure(
 			HttpStatus.BAD_REQUEST.toString(),
 			ErrorCode.BAD_REQUEST.getMessage(),
-			errorData );
+			errorData);
 
 		return ResponseEntity.badRequest().body(error);
 	}
@@ -110,14 +97,14 @@ public class GlobalExceptionHandler {
 
 		return ResponseEntity.badRequest().body(ApiResponse.failure("BAD_REQUEST", message));
 
-
 	}
 
 	/* ======= HTTP 스펙 관련 ======= */
 	@ExceptionHandler(MissingServletRequestParameterException.class)
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleMissingParam(
 		MissingServletRequestParameterException ex, HttpServletRequest req) {
-		log.error("=================================> MissingServletRequestParameterException.class 에러로그 찍기", ex); // 예외 로그 찍기
+		log.error("=================================> MissingServletRequestParameterException.class 에러로그 찍기",
+			ex); // 예외 로그 찍기
 
 		Map<String, String> detail = Map.of(ex.getParameterName(), "required");
 		return build(ErrorCode.BAD_REQUEST, ex.getMessage(), detail, req);
@@ -136,7 +123,8 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleMethodNotAllowed(
 		HttpRequestMethodNotSupportedException ex, HttpServletRequest req) {
 
-		log.error("=================================> HttpRequestMethodNotSupportedException.class 에러로드 찍기", ex); // 예외 로그 찍기
+		log.error("=================================> HttpRequestMethodNotSupportedException.class 에러로드 찍기",
+			ex); // 예외 로그 찍기
 
 		return build(ErrorCode.METHOD_NOT_ALLOWED, ex.getMessage(), null, req);
 	}
@@ -145,7 +133,8 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ApiResponse<ApiErrorPayload>> handleUnsupportedMediaType(
 		HttpMediaTypeNotSupportedException ex, HttpServletRequest req) {
 
-		log.error("=================================> HttpMediaTypeNotSupportedException.class 에러로드 찍기", ex); // 예외 로그 찍기
+		log.error("=================================> HttpMediaTypeNotSupportedException.class 에러로드 찍기",
+			ex); // 예외 로그 찍기
 
 		return build(ErrorCode.UNSUPPORTED_MEDIA_TYPE, ex.getMessage(), null, req);
 	}
@@ -227,16 +216,12 @@ public class GlobalExceptionHandler {
 		//String traceId = safe(MDC.get("traceId"));         // 로깅 필터에서 넣어두면 추적 가능
 		String path = req != null ? req.getRequestURI() : null;
 
-		ApiErrorPayload payload = new ApiErrorPayload(
-			//code.code(),
-			message != null ? message : code.getMessage(),
-			path,
-			errors
-		);
+		if (message == null)
+			code.getMessage();
 
 		// 상위 ApiResponse의 message에는 "표준 에러 코드"를 올려 클라이언트 분기를 단순화
 		ApiResponse<ApiErrorPayload> body =
-			ApiResponse.of(false, code.getCode(), code.getMessage(), null);
+			ApiResponse.of(false, code.getCode(), message, null);
 
 		//return body.toResponseEntity(HttpStatus.valueOf(code.getCode()));
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
@@ -250,13 +235,36 @@ public class GlobalExceptionHandler {
 		HttpServletRequest req) {
 		log.error("=================================> CustomValidationException.class 에러 로그 찍기", ex); // 예외 로그 찍기
 
-
 		ApiResponse<Object> error = ApiResponse.failure(
 			ErrorCode.BAD_REQUEST.getCode(),
 			ex.getMessage()
 		);
-
 		return ResponseEntity.badRequest().body(error);
+	}
+
+	@ExceptionHandler(ValidationException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ResponseBody
+	public ResponseEntity<ApiResponse<Object>> handleValidationException(ValidationException ex) {
+		List<String> errors = ex.getFieldErrors().stream()
+			.map(f -> f.getField() + " : " + f.getDefaultMessage())
+			.toList();
+
+		// return Map.of(
+		// 	"success", false,
+		// 	"data", errors,
+		// 	"error", Map.of(
+		// 		"code", "400 BAD_REQUEST",
+		// 		"message", "잘못된 요청입니다."
+		// 	),
+		// 	"timestamp", LocalDateTime.now()
+		// );
+
+		ApiResponse<Object> error = ApiResponse.failure(
+			ErrorCode.BAD_REQUEST.getCode(),
+			ex.getMessage(), errors);
+		return ResponseEntity.badRequest().body(error);
+
 	}
 
 	/**

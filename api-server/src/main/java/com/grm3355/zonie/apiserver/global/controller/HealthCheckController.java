@@ -10,8 +10,9 @@ public class HealthCheckController {
 	@GetMapping("/health")
 	public ResponseEntity<String> healthCheck() {
 		// ALB가 200 OK 응답만 받으면 "healthy"로 판단합니다.
-		return ResponseEntity.ok("Zonie Api Server is healthy!~~~~~!");
+		return ResponseEntity.ok("Zonie Api Server is healthy!~~~~~!!");
 	}
+
 	@RestController
 	public class RootController {
 

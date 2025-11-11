@@ -3,8 +3,9 @@ package com.grm3355.zonie.commonlib.global.util;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
+
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.core.Cursor;
@@ -34,12 +35,12 @@ public class RedisScanService {
 
 			ScanOptions options = ScanOptions.scanOptions()
 				.match(pattern)
-				.count(1000)		// 한 번에 스캔할 수 - 성능 고려
+				.count(1000)        // 한 번에 스캔할 수 - 성능 고려
 				.build();
 
 			try (Cursor<byte[]> cursor = connection.scan(options)) {
 				while (cursor.hasNext()) {
-					matchingKeys.add(new String(cursor.next()));		// 키는 byte[]로 반환됨
+					matchingKeys.add(new String(cursor.next()));        // 키는 byte[]로 반환됨
 				}
 			}
 
@@ -57,17 +58,17 @@ public class RedisScanService {
 	public Map<String, Long> getParticipantCounts(Set<String> keys) {
 
 		List<Object> results = stringRedisTemplate.executePipelined((RedisConnection connection) -> {
-			StringRedisConnection stringConnection = (StringRedisConnection) connection; // 문자열 기반 명령
+			StringRedisConnection stringConnection = (StringRedisConnection)connection; // 문자열 기반 명령
 			for (String key : keys) {
-				stringConnection.sCard(key);	// 파이프라인에 쌓아두기
+				stringConnection.sCard(key);    // 파이프라인에 쌓아두기
 			}
-			return null;						// null 반환 시 executePipelined가 쌓인 명령 실행
+			return null;                        // null 반환 시 executePipelined가 쌓인 명령 실행
 		});
 
 		Map<String, Long> countMap = new HashMap<>();
 		int i = 0;
 		for (String key : keys) {
-			countMap.put(key, (Long) results.get(i++));
+			countMap.put(key, (Long)results.get(i++));
 		}
 
 		return countMap;
@@ -80,7 +81,7 @@ public class RedisScanService {
 	 * @return Map<String, String> (예: {"chatroom:last_msg_at:1": "1678886400000", ...})
 	 */
 	public Map<String, String> getLastMessageTimestamps(Set<String> keys) {
-		List<String> values = stringRedisTemplate.opsForValue().multiGet(keys);		// MGET: 파이프라인과 유사한 동작
+		List<String> values = stringRedisTemplate.opsForValue().multiGet(keys);        // MGET: 파이프라인과 유사한 동작
 
 		Map<String, String> timestampMap = new HashMap<>();
 		int i = 0;

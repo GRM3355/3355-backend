@@ -11,6 +11,16 @@
       "image": "<IMAGE_URI>",
       "portMappings": [],
       "essential": true,
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "pgrep java || exit 1"
+        ],
+        "interval": 10,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 80
+      },
       "environment": [
         { "name": "SPRING_PROFILES_ACTIVE", "value": "prod" }
       ],

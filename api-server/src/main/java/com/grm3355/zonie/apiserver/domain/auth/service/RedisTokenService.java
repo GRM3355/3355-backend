@@ -7,11 +7,11 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 @Service
 public class RedisTokenService {
@@ -21,7 +21,8 @@ public class RedisTokenService {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final ObjectMapper objectMapper;
 
-	public RedisTokenService(StringRedisTemplate redisTemplate, JwtTokenProvider jwtTokenProvider, ObjectMapper objectMapper) {
+	public RedisTokenService(StringRedisTemplate redisTemplate, JwtTokenProvider jwtTokenProvider,
+		ObjectMapper objectMapper) {
 		this.redisTemplate = redisTemplate;
 		this.jwtTokenProvider = jwtTokenProvider;
 		this.objectMapper = objectMapper;
@@ -36,15 +37,11 @@ public class RedisTokenService {
 	public void generateLocationToken(UserTokenDto info) {
 		String redisKey = buildKey(info.getUserId());
 
-		System.out.println("====================>generateLocationToken="+redisKey);
 		try {
 			String infoJson = objectMapper.writeValueAsString(info);
 			// Redis에 10분 TTL로 저장
 			redisTemplate.opsForValue().set(redisKey, infoJson, TOKEN_TTL);
-
 			UserTokenDto userTokenDto = getLocationInfo(info.getUserId());
-
-			System.out.println("====================>generateLocationToken true"+userTokenDto.getLat()+"___"+userTokenDto.getLon());
 		} catch (JsonProcessingException e) {
 			throw new RuntimeException("Redis 저장 중 오류 발생", e);
 		}

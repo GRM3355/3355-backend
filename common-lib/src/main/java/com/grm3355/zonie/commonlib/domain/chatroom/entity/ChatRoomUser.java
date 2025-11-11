@@ -41,7 +41,7 @@ public class ChatRoomUser extends BaseTimeEntity {
 	@Column(name = "chat_room_user_id", nullable = false, unique = true, updatable = false)
 	private Long chatRoomUserId;
 
-	@JoinColumn(name = "chat_room_id", nullable = false)
+	@JoinColumn(name = "chat_room_id", referencedColumnName = "chat_room_id", nullable = false)
 	@ManyToOne
 	private ChatRoom chatRoom;
 

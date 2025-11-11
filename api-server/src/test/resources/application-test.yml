@@ -29,3 +29,10 @@ cors:
 
 openapi:
   serviceKey: TEST_KEY_REQUIRED_FOR_CONTEXT_LOAD
+
+chat:
+  max-chat-person:  500 #최대인원수
+  max-chat-room:  30  #생성 채팅룸 갯수
+  radius: 1.0 #km
+  pre-create-day: 7 #7일전부터 생성 가능
+  pre-view-day: 7 #7일전부터 축제보기 가능
