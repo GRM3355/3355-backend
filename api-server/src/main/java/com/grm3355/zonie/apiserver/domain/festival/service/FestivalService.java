@@ -101,7 +101,7 @@ public class FestivalService {
 		//위치기반 검색이면
 		if (req.isPs()) {
 			return festivalRepository
-				.getFestivalLocationBased(req.getLat(), req.getLon(), req.getRadius(), preview_days, pageable);
+				.getFestivalLocationBased(req.getLat(), req.getLon(), req.getRadius() * 1000.0, preview_days, pageable);
 		} else {    // 전체검색이면
 			return festivalRepository
 				.getFestivalList(regionStr, statusStr, req.getKeyword(), preview_days, pageable);

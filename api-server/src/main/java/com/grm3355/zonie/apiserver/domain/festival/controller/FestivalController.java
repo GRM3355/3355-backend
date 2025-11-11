@@ -2,6 +2,8 @@ package com.grm3355.zonie.apiserver.domain.festival.controller;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -98,7 +100,7 @@ public class FestivalController {
 		)
 	})
 	@GetMapping("/festivals")
-	public ResponseEntity<?> getFestivalList(@ModelAttribute FestivalSearchRequest request
+	public ResponseEntity<?> getFestivalList(@Valid @ModelAttribute FestivalSearchRequest request
 	) {
 		Page<FestivalResponse> pageList = festivalService.getFestivalList(request);
 		PageResponse<FestivalResponse> response = new PageResponse<>(pageList, request.getPageSize());

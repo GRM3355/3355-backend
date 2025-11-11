@@ -52,6 +52,7 @@ public class FestivalSearchRequest {
 	private String keyword;
 
 	// sc=true 위치기반검색, sc=false 전체검색
+	@Builder.Default
 	@Schema(description = "검색구분")
 	private boolean ps = false;
 
