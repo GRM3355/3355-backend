@@ -7,6 +7,7 @@ import java.time.Duration;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -29,6 +30,7 @@ public class RedisConfig {
 	 * - 키/값 모두 String 직렬화
 	 */
 	@Bean
+	@Primary
 	public StringRedisTemplate stringRedisTemplate(RedisConnectionFactory connectionFactory) {
 		return new StringRedisTemplate(connectionFactory);
 	}
@@ -39,6 +41,7 @@ public class RedisConfig {
 	 * - 값: JSON 직렬화 (객체 저장 가능)
 	 */
 	@Bean
+	@Primary
 	public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
 		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
 		redisTemplate.setConnectionFactory(connectionFactory);

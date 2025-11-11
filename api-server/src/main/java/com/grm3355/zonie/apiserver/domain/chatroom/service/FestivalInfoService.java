@@ -30,4 +30,3 @@ public class FestivalInfoService {
 		festivalRepository.updateFestivalChatRoomCount(festivalId);
 	}
 }
-

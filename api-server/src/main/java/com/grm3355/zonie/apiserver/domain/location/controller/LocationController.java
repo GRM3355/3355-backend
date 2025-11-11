@@ -4,16 +4,14 @@ import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
-import com.grm3355.zonie.apiserver.domain.location.dto.ChatRoomZoneVarifyResponse;
-import com.grm3355.zonie.apiserver.domain.location.dto.FestivalZoneVarifyResponse;
 import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
@@ -34,24 +32,23 @@ public class LocationController {
 
 	private final LocationService locationService;
 
-	@Operation(summary = "location 토큰의 위치정보 업데이트", description = "위도, 경도, accessToken을 받아서 Redis에서 정보를 수정한다.")
-	// @checkstyle:off
+	@Operation(summary = "축제 위치 인증 및 토큰 발급", description = "사용자의 현재 위도/경도를 축제 반경과 비교하여 위치 인증 토큰(15분)을 발급받습니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
-			description = "위치토큰 내용 갱신",
+			description = "위치 인증 성공. 토큰 발급/갱신 완료.",
 			content = @Content(
 				mediaType = "application/json",
 				schema = @Schema(implementation = ApiResponse.class),
 				examples = @ExampleObject(
 					name = "OK",
-					value = "{\"success\":true,\"data\":{\"message\":\"갱신되었습니다.\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
+					value = "{\"success\":true,\"data\":{\"message\":\"인증 성공. (0.50km / 반경 1.00km)\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
 				)
 			)
 		),
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "400",
-			description = "입력값 유효성 검증 실패",
+			description = "입력값 유효성 검증 실패 (lat/lon 누락)",
 			content = @Content(
 				mediaType = "application/json",
 				schema = @Schema(implementation = ApiResponse.class),
@@ -62,14 +59,26 @@ public class LocationController {
 			)
 		),
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "405",
-			description = "허용되지 않은 메소드",
+			responseCode = "403",
+			description = "축제 반경 외부에 있음",
 			content = @Content(
 				mediaType = "application/json",
 				schema = @Schema(implementation = ApiResponse.class),
 				examples = @ExampleObject(
-					name = "METHOD_NOT_ALLOWED",
-					value = "{\"success\":false,\"status\":405,\"error\":{\"code\":\"METHOD_NOT_ALLOWED\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
+					name = "FORBIDDEN",
+					value = "{\"success\":false,\"status\":403,\"error\":{\"code\":\"FORBIDDEN\",\"message\":\"축제 반경(1.00km) 외부에 있습니다. (현재 거리: 1.50km)\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
+				)
+			)
+		),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "404",
+			description = "축제 정보를 찾을 수 없음",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = ApiResponse.class),
+				examples = @ExampleObject(
+					name = "NOT_FOUND",
+					value = "{\"success\":false,\"status\":404,\"error\":{\"code\":\"NOT_FOUND\",\"message\":\"관련 축제정보가 없습니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 				)
 			)
 		),
@@ -98,155 +107,24 @@ public class LocationController {
 			)
 		)
 	})
-	@PutMapping("/update")
-	public ResponseEntity<?> updateLocation(@AuthenticationPrincipal UserDetailsImpl userDetails,
-		@Valid @RequestBody LocationDto locationDto) {
-		//10분 단위로 호출함.
-		LocationTokenResponse response = locationService.update(locationDto, userDetails);
+	@PostMapping("/verify/festival/{festivalId}")
+	public ResponseEntity<?> verifyFestivalLocation(
+		@AuthenticationPrincipal UserDetailsImpl userDetails,
+		@PathVariable long festivalId,
+		@Valid @RequestBody LocationDto locationDto) { // lat/lon을 Body로 받음
+
+		LocationTokenResponse response = locationService.verifyAndGenerateToken(
+			userDetails, festivalId, locationDto
+		);
 		return ResponseEntity.ok(ApiResponse.success(response));
 	}
 
-	@Operation(summary = "축제 영역 체크", description = "위도, 경도 정보를 받아서 기존의 Redis값과 비교한다.")
-	// @checkstyle:off
-	@ApiResponses({
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "200",
-			description = "축제영역인지 체크한다.",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "OK",
-					value = "{\"success\":true,\"data\":{...},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "400",
-			description = "입력값 유효성 검증 실패",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "BAD_REQUEST",
-					value = "{\"success\":false,\"status\":400,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "405",
-			description = "허용되지 않은 메소드",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "METHOD_NOT_ALLOWED",
-					value = "{\"success\":false,\"status\":405,\"error\":{\"code\":\"METHOD_NOT_ALLOWED\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "415",
-			description = "UNSUPPORTED_MEDIA_TYPE",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "UNSUPPORTED_MEDIA_TYPE",
-					value = "{\"success\":false,\"status\":415,\"error\":{\"code\":\"UNSUPPORTED_MEDIA_TYPE\",\"message\":\"잘못된 콘텐츠 타입입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "429",
-			description = "요청 횟수 초과",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "TOO_MANY_REQUESTS",
-					value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
-				)
-			)
-		)
-	})
-	@GetMapping("/festivalVerify")
-	public ResponseEntity<?> getFestivalVerify(@AuthenticationPrincipal UserDetailsImpl userDetails, long festivalId) {
-		FestivalZoneVarifyResponse response = locationService
-			.getFestivalVerify(userDetails, festivalId);
-		return ResponseEntity.ok(ApiResponse.success(response));
+	// [삭제] @PutMapping("/update")
+	// -> 축제 단위 인증으로 변경되어 더 이상 필요x
 
-	}
+	// [삭제] @GetMapping("/festivalVerify")
+	// -> POST /verify/festival/{festivalId}로 통합
 
-	@Operation(summary = "채팅방 영역 체크", description = "위도, 경도 정보를 받아서 기존의 Redis값과 비교한다.")
-	// @checkstyle:off
-	@ApiResponses({
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "200",
-			description = "채팅방 접근 간능한지 체크한다.",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "OK",
-					value = "{\"success\":true,\"data\":{...},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "400",
-			description = "입력값 유효성 검증 실패",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "BAD_REQUEST",
-					value = "{\"success\":false,\"status\":400,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "405",
-			description = "허용되지 않은 메소드",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "METHOD_NOT_ALLOWED",
-					value = "{\"success\":false,\"status\":405,\"error\":{\"code\":\"METHOD_NOT_ALLOWED\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "415",
-			description = "UNSUPPORTED_MEDIA_TYPE",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "UNSUPPORTED_MEDIA_TYPE",
-					value = "{\"success\":false,\"status\":415,\"error\":{\"code\":\"UNSUPPORTED_MEDIA_TYPE\",\"message\":\"잘못된 콘텐츠 타입입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "429",
-			description = "요청 횟수 초과",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "TOO_MANY_REQUESTS",
-					value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
-				)
-			)
-		)
-	})
-	@GetMapping("/chatroomVerify")
-	public ResponseEntity<?> getChatRoomVerify(@AuthenticationPrincipal UserDetailsImpl userDetails,
-		String chatroomId) {
-		ChatRoomZoneVarifyResponse response = locationService
-			.getChatroomVerify(userDetails, chatroomId);
-		return ResponseEntity.ok(ApiResponse.success(response));
-	}
+	// [삭제] @GetMapping("/chatroomVerify")
+	// -> 축제 단위 인증으로 변경되어 더 이상 필요x
 }

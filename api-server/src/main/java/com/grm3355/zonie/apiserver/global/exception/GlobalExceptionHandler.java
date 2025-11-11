@@ -281,7 +281,5 @@ public class GlobalExceptionHandler {
 			ex.getMessage()
 		);
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
-
 	}
-
 }

@@ -38,7 +38,7 @@ public class Festival extends BaseTimeEntity {
 	private String addr1;
 
 	@Column(name = "content_id", nullable = false, unique = true, updatable = false)
-	private int contentId;
+	private int contentId;	// 공공데이터에서 제공하는 행사정보 자체 ID
 
 	@Column(name = "event_start_date", nullable = false)
 	private LocalDate eventStartDate;

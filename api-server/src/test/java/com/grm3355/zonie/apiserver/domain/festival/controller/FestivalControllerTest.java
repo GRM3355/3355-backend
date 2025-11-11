@@ -124,4 +124,41 @@ class FestivalControllerTest {
 			.andExpect(jsonPath("$.data[0]").value("SEOUL"))
 			.andExpect(jsonPath("$.data[1]").value("JEOLLA"));
 	}
+
+	@Test
+	@DisplayName("축제 목록 조회 - 유효성 검사 실패 (잘못된 위도)")
+	void testGetFestivalList_InvalidLat() throws Exception {
+		// given
+		// service.getFestivalList()는 어차피 호출되지 않아야 함
+
+		// when & then
+		mockMvc.perform(get("/api/v1/festivals")
+				.param("ps", "true")
+				.param("lat", "200.0") // @Max(90) 위반
+				.param("lon", "127.0")
+				.param("radius", "1.0")
+				.contentType(MediaType.APPLICATION_JSON)
+			)
+			.andExpect(status().isBadRequest()); // HTTP 400
+	}
+
+	@Test
+	@DisplayName("축제 목록 조회 - 위치 기반 검색 성공")
+	void testGetFestivalList_LocationBased_Success() throws Exception {
+		// given
+		Page<FestivalResponse> pageList = new PageImpl<>(List.of(FestivalResponse.builder().build()));
+		Mockito.when(festivalService.getFestivalList(any(FestivalSearchRequest.class)))
+			.thenReturn(pageList);
+
+		// when & then
+		mockMvc.perform(get("/api/v1/festivals")
+				.param("ps", "true") // 위치 기반 검색 활성화
+				.param("lat", "37.5")
+				.param("lon", "127.0")
+				.param("radius", "1.0")
+				.contentType(MediaType.APPLICATION_JSON)
+			)
+			.andExpect(status().isOk()) // HTTP 200
+			.andExpect(jsonPath("$.success").value(true));
+	}
 }

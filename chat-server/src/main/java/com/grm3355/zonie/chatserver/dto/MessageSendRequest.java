@@ -1,5 +1,7 @@
 package com.grm3355.zonie.chatserver.dto;
 
+import jakarta.validation.constraints.Size;
+
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,7 +10,6 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class MessageSendRequest {
+	@Size(max = 500, message = "메시지는 최대 500자까지 보낼 수 있습니다.")
 	private String content;
-	// private String tempUserId; // (임시) 인증이 구현되기 전까지 사용할 ID
-	// (확장 기능: img)
 }

@@ -45,7 +45,7 @@ public class RedisToDbSyncJob {
 
 		// 2. dto 변환 (SCARD, MGET 파이프라인 호출 후 변환)
 		Map<String, Long> participantCounts = redisScanService.getParticipantCounts(participantKeys);
-		Map<String, String> lastMessageTimestamps = redisScanService.getLastMessageTimestamps(lastMsgAtKeys);
+		Map<String, String> lastMessageTimestamps = redisScanService.multiGetLastMessageTimestamps(lastMsgAtKeys);
 		List<ChatRoomSyncDto> syncDataList = mergeSyncData(participantCounts, lastMessageTimestamps); // DTO 리스트로 변환
 
 		if (syncDataList.isEmpty()) {
@@ -75,10 +75,12 @@ public class RedisToDbSyncJob {
 		// 4. Redis 캐시 정리 (3번 DB 저장 성공 시 실행)
 		try {
 			// participantKeys와 lastMsgAtKeys를 합쳐서 한 번에 삭제
-			Set<String> allKeysToDelete = Stream.concat(
-				participantKeys.stream(),
-				lastMsgAtKeys.stream()
-			).collect(Collectors.toSet());
+			// Set<String> allKeysToDelete = Stream.concat(
+			// 	participantKeys.stream(),
+			// 	lastMsgAtKeys.stream()
+			// ).collect(Collectors.toSet());
+			// lastMsgAtKeys만 삭제
+			Set<String> allKeysToDelete = lastMsgAtKeys;
 
 			if (!allKeysToDelete.isEmpty()) {
 				redisScanService.deleteKeys(allKeysToDelete);

@@ -46,3 +46,6 @@ src/main/resources/application-local.yml
 
 ### macOS ###
 **/.DS_Store
+
+### Log ###
+logs

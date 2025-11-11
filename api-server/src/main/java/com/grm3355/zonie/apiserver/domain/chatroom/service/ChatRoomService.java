@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -28,7 +29,6 @@ import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.enums.OrderType;
-import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
@@ -38,6 +38,7 @@ import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
+import com.grm3355.zonie.commonlib.global.util.RedisScanService;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -49,10 +50,12 @@ public class ChatRoomService {
 	private static final String PRE_FIX = "room:";
 	private final RedisTokenService redisTokenService;
 	private final FestivalInfoService festivalInfoService;
+	private final RedisScanService redisScanService;
 	private final ChatRoomRepository chatRoomRepository;
 	private final UserRepository userRepository;
 	private final StringRedisTemplate stringRedisTemplate;
 	GeometryFactory geometryFactory = new GeometryFactory(); // GeometryFactory 생성 (보통 한 번만 만들어 재사용)
+
 	@Value("${chat.pre-create-day}")
 	private int pre_create_days;    //시작하기전 몇일전부터 생성가능
 	@Value("${chat.max-chat-person}")
@@ -63,10 +66,12 @@ public class ChatRoomService {
 	private double max_radius;   //최대km
 
 	public ChatRoomService(RedisTokenService redisTokenService, FestivalInfoService festivalInfoService,
+		RedisScanService redisScanService,
 		ChatRoomRepository chatRoomRepository, UserRepository userRepository, StringRedisTemplate stringRedisTemplate
 	) {
 		this.redisTokenService = redisTokenService;
 		this.festivalInfoService = festivalInfoService;
+		this.redisScanService = redisScanService;
 		this.chatRoomRepository = chatRoomRepository;
 		this.userRepository = userRepository;
 		this.stringRedisTemplate = stringRedisTemplate;
@@ -83,22 +88,25 @@ public class ChatRoomService {
 		User user = userRepository.findByUserId(userId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자 정보가 유효하지 않습니다."));
 
-		//1. 토큰값 체크
-		boolean isTokenValidate = redisTokenService.validateLocationToken(userId);
+		String festivalIdStr = String.valueOf(festivalId);
+
+		// 1. 토큰값 체크
+		// 거리 계산 대신, festivalId에 대한 유효한 토큰이 있는지 검사
+		boolean isTokenValidate = redisTokenService.validateLocationToken(userId, festivalIdStr);
 		if (!isTokenValidate) {
-			throw new BusinessException(ErrorCode.NOT_FOUND, "토큰이 유효하지 않습니다.");
+			throw new BusinessException(ErrorCode.FORBIDDEN, "축제 위치 인증이 없거나 만료되었습니다.");
 		}
 
 		//2. 축제 존재여부체크
 		Festival festival = festivalInfoService.getDataValid(festivalId, pre_create_days);
 
 		//3. 축제 거리계산하기
-		LocationDto location1 = getUserPosition(userId);
-		LocationDto location2 = getFestivalPosition(festival);
-		boolean isValidDistance = festivalCalculator(location1, location2);
-		if (!isValidDistance) {
-			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설 반경이 아닙니다.");
-		}
+		// LocationDto location1 = getUserPosition(userId);
+		// LocationDto location2 = getFestivalPosition(festival);
+		// boolean isValidDistance = festivalCalculator(location1, location2);
+		// if (!isValidDistance) {
+		// 	throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설 반경이 아닙니다.");
+		// }
 
 		//4. 채팅방 갯수 체크
 		if (festival.getChatRoomCount() >= max_room) {
@@ -106,12 +114,21 @@ public class ChatRoomService {
 		}
 
 		//5. 채팅방 저장
-		// 채팅룸 아이디 생성
-		String roomId = createRoomId();
-		// 위치 세팅
-		Point point = geometryFactory.createPoint(
-			new Coordinate(location2.getLon(), location2.getLat())); // lon=X, lat=Y
+		// 채팅방의 위치(Point)를 어디로 할지
 
+		// 1) 토큰에 저장된 사용자 위치
+		UserTokenDto userTokenDto = redisTokenService.getLocationInfo(userId, festivalIdStr);
+		if (userTokenDto == null) {
+			// 토큰 검증은 통과했는데 정보가 없는 경우 (예외 처리용)
+			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "토큰 정보를 읽을 수 없습니다.");
+		}
+		Point point = geometryFactory.createPoint(
+			new Coordinate(userTokenDto.getLon(), userTokenDto.getLat())); // lon=X, lat=Y
+		// 2) 축제 중심 위치
+		// Point point = geometryFactory.createPoint(
+		// 	new Coordinate(festival.getPosition().getX(), festival.getPosition().getY()));
+
+		String roomId = createRoomId();
 		ChatRoom chatRoom = ChatRoom.builder()
 			.chatRoomId(roomId)
 			.festival(festival)
@@ -122,29 +139,28 @@ public class ChatRoomService {
 			.position(point)
 			.participantCount(0L)
 			.build();
-		// ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
 
-		// 디버깅을 위해 일시적으로 saveAndFlush 사용함 - 추후 복구하기
-		ChatRoom saveChatRoom;
-		try {
-			saveChatRoom = chatRoomRepository.saveAndFlush(chatRoom);
-		} catch (Exception e) {
-			log.error("채팅방 저장 중 DB 예외 발생: {}", e.getMessage(), e);
-			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 저장 중 오류가 발생했습니다.");
-		}
+		ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
+		// 디버깅용
+		// ChatRoom saveChatRoom;
+		// try {
+		// 	saveChatRoom = chatRoomRepository.saveAndFlush(chatRoom);
+		// } catch (Exception e) {
+		// 	log.error("채팅방 저장 중 DB 예외 발생: {}", e.getMessage(), e);
+		// 	throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 저장 중 오류가 발생했습니다.");
+		// }
 
 		//festival에 채팅방갯수 저장 /festivalId
 		festivalInfoService.increaseChatRoomCount(festivalId);
 
 		//dto 변환
 		return ChatRoomResponse.builder()
-			.chatRoomId(saveChatRoom.getChatRoomId())
-			.festivalId(saveChatRoom.getFestival().getFestivalId())
-			.userId(saveChatRoom.getUser().getUserId())
-			.title(saveChatRoom.getTitle())
-			//.lat(0.0).lon(0.0)
-			.lat(saveChatRoom.getPosition().getY())
-			.lon(saveChatRoom.getPosition().getX())
+			.chatRoomId(roomId)
+			.festivalId(festivalId)
+			.userId(userId)
+			.title(request.getTitle())
+			.lat(chatRoom.getPosition().getY())
+			.lon(chatRoom.getPosition().getX())
 			.build();
 	}
 
@@ -165,18 +181,60 @@ public class ChatRoomService {
 		// 1. PG에서 기본 정보 조회: ListType 내용 가져오기
 		Page<ChatRoomInfoDto> pageList = getFestivalListTypeUser(festivalId, req, pageable);
 
-		// 2. Redis에서 마지막 대화 내용 일괄 조회
-		Map<String, String> lastContentsMap = getLastContents(pageList.getContent());
+		// 2. Redis에서 실시간 데이터 일괄 조회
+		List<String> roomIds = pageList.getContent().stream().map(ChatRoomInfoDto::chatRoomId).toList();
+		if (roomIds.isEmpty()) {
+			return new PageImpl<>(Collections.emptyList(), pageable, pageList.getTotalElements());
+		}
 
-		// 3. DTO 변환
+		// 2-1. Redis 조회를 위한 Key Set 3개 생성: roomIds 리스트 기반 실제 Redis 키 Set
+		Set<String> participantKeys = roomIds.stream()
+			.map(id -> "chatroom:participants:" + id)
+			.collect(Collectors.toSet());
+
+		Set<String> contentKeys = roomIds.stream()
+			.map(id -> "chatroom:last_msg_content:" + id)
+			.collect(Collectors.toSet());
+
+		Set<String> timestampKeys = roomIds.stream()
+			.map(id -> "chatroom:last_msg_at:" + id)
+			.collect(Collectors.toSet());
+
+
+		// 2-2. RedisScanService 메소드 호출
+		// (1) 참여자 수 조회 (SCARD)
+		Map<String, Long> participantCountsMap = redisScanService.getParticipantCounts(participantKeys);
+
+		// (2) 마지막 대화 내용 조회 (MGET)
+		// (MGET 범용 메서드인 multiGetLastMessageTimestamps를 재사용)
+		Map<String, String> lastContentsMap = redisScanService.multiGetLastMessageTimestamps(contentKeys);
+
+		// (3) 마지막 대화 시각 조회 (MGET)
+		Map<String, String> lastTimestampsMap = redisScanService.multiGetLastMessageTimestamps(timestampKeys);
+
+		// 3. DTO 변환 (PG 백업 데이터 + Redis 실시간 데이터 병합)
 		List<MyChatRoomResponse> dtoPage = pageList.stream()
 			.map(dto -> {
-				String lastContent = lastContentsMap.getOrDefault( // 마지막 대화 내용 포함
-					dto.chatRoomId(),
-					null // 대화 내용이 없으면 null
-				);
+				String roomId = dto.chatRoomId();
+
+				// 3-1. Key를 사용하여 Map에서 조회: roomIds가 아닌 완성된 키 이름으로 조회
+				Long realTimeCount = participantCountsMap.get("chatroom:participants:" + roomId);
+				Long finalCount = (realTimeCount != null) ? realTimeCount : dto.participantCount();
+
+				String realTimeContent = lastContentsMap.get("chatroom:last_msg_content:" + roomId);
+				String finalContent = realTimeContent; // 백업본은 사용 안 함
+
+				String timestampStr = lastTimestampsMap.get("chatroom:last_msg_at:" + roomId);
+				Long realTimeTimestamp = (timestampStr != null) ? Long.parseLong(timestampStr) : null;
+
+				// 둘 중 더 최신 시간(max)을 클라이언트에 반환
+				Long finalTimestamp = dto.lastMessageAt();
+				if (realTimeTimestamp != null && (finalTimestamp == null || realTimeTimestamp > finalTimestamp)) {
+					finalTimestamp = realTimeTimestamp;
+				}
+
 				// MyChatRoomResponse의 오버로딩된 fromDto 호출
-				return MyChatRoomResponse.fromDto(dto, lastContent);
+				return MyChatRoomResponse.fromDto(dto, finalContent, finalCount, finalTimestamp);
 			})
 			.collect(Collectors.toList());
 
@@ -224,6 +282,7 @@ public class ChatRoomService {
 	private Page<ChatRoomInfoDto> getMyRoomListTypeUser(String userId, ChatRoomSearchRequest req, Pageable pageable) {
 
 		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
+		System.out.println("===============>keyword===>" + keyword);
 		return chatRoomRepository.chatMyRoomList(userId, keyword, pageable);
 
 	}
@@ -273,22 +332,26 @@ public class ChatRoomService {
 		return PRE_FIX + UUID.randomUUID();
 	}
 
-	// 가능거리 계산
-	private boolean festivalCalculator(LocationDto locationDto, LocationDto festivalDto) {
-		double km = LocationService.getDistanceCalculator(locationDto, festivalDto);
-		return km <= max_radius; // 로직: km이 MAX_RADIUS(1.0km)보다 작거나 같을 때 true 반환 (반경 내에 있을 때만 생성 가능)
-	}
 
-	//사용자 위치정보
-	private LocationDto getUserPosition(String userId) {
-		UserTokenDto userTokenDto = redisTokenService.getLocationInfo(userId);
-		return LocationDto.builder().lat(userTokenDto.getLat()).lon(userTokenDto.getLon()).build();
-	}
 
-	//축제위치정보
-	private LocationDto getFestivalPosition(Festival festival) {
-		return LocationDto.builder()
-			.lat(festival.getPosition().getY())
-			.lon(festival.getPosition().getX()).build();
-	}
+	//
+	// // 가능거리 계산
+	// private boolean festivalCalculator(LocationDto locationDto, LocationDto festivalDto) {
+	// 	double km = LocationService.getDistanceCalculator(locationDto, festivalDto);
+	// 	return km <= max_radius; // 로직: km이 MAX_RADIUS(1.0km)보다 작거나 같을 때 true 반환 (반경 내에 있을 때만 생성 가능)
+	// }
+	//
+	// //사용자 위치정보
+	// private LocationDto getUserPosition(String userId) {
+	// 	System.out.println("=======> userId=" + userId);
+	// 	UserTokenDto userTokenDto = redisTokenService.getLocationInfo(userId);
+	// 	return LocationDto.builder().lat(userTokenDto.getLat()).lon(userTokenDto.getLon()).build();
+	// }
+	//
+	// //축제위치정보
+	// private LocationDto getFestivalPosition(Festival festival) {
+	// 	return LocationDto.builder()
+	// 		.lat(festival.getPosition().getY())
+	// 		.lon(festival.getPosition().getX()).build();
+	// }
 }

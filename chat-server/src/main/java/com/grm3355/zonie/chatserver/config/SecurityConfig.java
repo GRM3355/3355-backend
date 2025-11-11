@@ -17,7 +17,7 @@ import org.springframework.security.web.SecurityFilterChain;
  * 4. STOMP 인증 연결: HTTP 연결이 성공하면 클라이언트가 STOMP에 CONNECT 프레임과 함께 헤더에 Authorization: Bearer ... 토큰을 함께 보냄
  * 		=> JwtChannelInterceptor가 CONNECT 메세지 가로채고 헤더에서 토큰을 꺼내 유효성을 검증함
  */
-@Configuration
+@Configuration("chatServerSecurityConfig")
 public class SecurityConfig {
 
 	private static final String[] WHITE_LIST = {

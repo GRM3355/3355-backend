@@ -36,9 +36,8 @@ public class ChatRoomResponse { // 채팅방 생성 시점에서의 채팅방 �
 			chatRoom.getFestival().getFestivalId(),
 			chatRoom.getUser().getUserId(),
 			chatRoom.getTitle(),
-			0.0, 0.0
-			// chatRoom.getPosition().getY(),
-			// chatRoom.getPosition().getX()
+			chatRoom.getPosition().getY(),
+			chatRoom.getPosition().getX()
 		);
 	}
 

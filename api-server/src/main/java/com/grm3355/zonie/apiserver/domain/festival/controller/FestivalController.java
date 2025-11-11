@@ -2,15 +2,20 @@ package com.grm3355.zonie.apiserver.domain.festival.controller;
 
 import java.util.List;
 
+import jakarta.validation.Valid;
+
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalCreateRequest;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
@@ -36,7 +41,6 @@ public class FestivalController {
 	}
 
 	@Operation(summary = "축제 목록", description = "해당 축제의 목록을 볼 수 있다.")
-	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -96,7 +100,7 @@ public class FestivalController {
 		)
 	})
 	@GetMapping("/festivals")
-	public ResponseEntity<?> getFestivalList(@ModelAttribute FestivalSearchRequest request
+	public ResponseEntity<?> getFestivalList(@Valid @ModelAttribute FestivalSearchRequest request
 	) {
 		Page<FestivalResponse> pageList = festivalService.getFestivalList(request);
 		PageResponse<FestivalResponse> response = new PageResponse<>(pageList, request.getPageSize());
@@ -237,4 +241,19 @@ public class FestivalController {
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 
+
+	@Operation(summary = "축제 생성 (테스트용)", description = "개발 테스트를 위해 새로운 축제 레코드를 생성합니다.")
+	@io.swagger.v3.oas.annotations.responses.ApiResponse(
+		responseCode = "200",
+		description = "축제 생성 성공",
+		content = @Content(
+			mediaType = "application/json",
+			schema = @Schema(implementation = ApiResponse.class)
+		)
+	)
+	@PostMapping("/festivals")
+	public ResponseEntity<?> createFestival(@RequestBody FestivalCreateRequest request) {
+		FestivalResponse response = festivalService.createFestival(request);
+		return ResponseEntity.ok().body(ApiResponse.success(response));
+	}
 }

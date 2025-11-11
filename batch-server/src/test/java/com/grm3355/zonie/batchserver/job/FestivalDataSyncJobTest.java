@@ -1,53 +1,106 @@
 package com.grm3355.zonie.batchserver.job;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
 import java.time.LocalDate;
+import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import com.grm3355.zonie.batchserver.BaseIntegrationTest;
-import com.grm3355.zonie.batchserver.BatchServerApplication;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grm3355.zonie.batchserver.dto.ApiFestivalDto;
+import com.grm3355.zonie.batchserver.service.FestivalApiService;
+import com.grm3355.zonie.batchserver.service.FestivalBatchMapper;
+import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
+import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository;
 
-@SpringBootTest(classes = BatchServerApplication.class)
-@ActiveProfiles("test")
-class FestivalDataSyncJobTest extends BaseIntegrationTest {
+@ExtendWith(MockitoExtension.class)
+class FestivalDataSyncJobTest {
 
-	@Autowired
+	@Mock
+	private FestivalApiService festivalApiService;
+	@Mock
+	private FestivalRepository festivalRepository;
+	@Mock
+	private FestivalBatchMapper festivalBatchMapper;
+	@Mock
+	private RedisTemplate<String, String> redisTemplate;
+	@Mock
+	private ObjectMapper objectMapper;
+	@Mock // RedisTemplate.opsForValue()가 반환할 Mock 객체
+	private ValueOperations<String, String> valueOperations;
+
+	@InjectMocks // @Mock 객체들을 주입받을 대상
 	private FestivalDataSyncJob festivalDataSyncJob;
 
-	// @Test
-	@DisplayName("공공데이터 축제 동기화 Job 수동 실행 테스트")
-	void testSyncPublicFestivalDataExecution() {
-		System.out.println("--- [Test] Festival Data Sync Job 수동 실행 요청 ---");
+	private final int TEST_BATCH_DATE = 7;
 
-		// Job의 main 메서드를 직접 호출하여 스케줄링과 무관하게 즉시 실행합니다.
-		festivalDataSyncJob.syncFestivalData(LocalDate.now());
-
-		// Job의 실행 결과를 Console 출력(System.out)으로 확인합니다.
+	@BeforeEach
+	void setUp() {
+		// @Value 필드 수동 주입
+		ReflectionTestUtils.setField(festivalDataSyncJob, "FESTIVAL_BATCH_DATE", TEST_BATCH_DATE);
+		when(redisTemplate.opsForValue()).thenReturn(valueOperations); // mock ValueOperations
 	}
 
-	// @Test
-	@DisplayName("특정 일자(미래)로 축제 동기화 테스트")
-	void testSyncPublicFestivalData_FutureDate() {
-		LocalDate futureDate = LocalDate.of(2025, 12, 31); // 2025년 12월 31일로 설정
+	@Test
+	@DisplayName("축제 동기화 Job 로직 전체 테스트")
+	void syncFestivalData_Success() throws Exception {
+		// given: 테스트용 데이터 준비
+		LocalDate syncDate = LocalDate.now();
+		LocalDate expectedEndDate = syncDate.plusDays(TEST_BATCH_DATE);
 
-		// Job의 핵심 로직을 특정 날짜를 지정하여 호출
-		festivalDataSyncJob.syncFestivalData(futureDate);
+		ApiFestivalDto dto = new ApiFestivalDto(); // 테스트용 DTO
+		Festival entity = Festival.builder().festivalId(1L).build(); // 테스트용 Entity
+		String entityAsJson = "{\"festivalId\":1}"; // 캐싱될 JSON
+		long deletedCount = 5L; // 삭제 건수
 
-		// ... DB 확인 로직 추가 ...
+		when(festivalApiService.fetchAndParseFestivals(syncDate, expectedEndDate))
+			.thenReturn(List.of(dto));
+		when(festivalBatchMapper.toEntity(dto)).thenReturn(entity);
+		when(festivalRepository.saveAll(anyList())).thenReturn(List.of(entity));
+		when(objectMapper.writeValueAsString(entity)).thenReturn(entityAsJson);
+		when(festivalRepository.deleteByEventEndDateBefore(syncDate)).thenReturn(deletedCount);
+
+		// when: 테스트할 메서드 실행
+		festivalDataSyncJob.syncFestivalData(syncDate);
+
+		// then: 각 컴포넌트가 올바르게 호출되었는지 검증
+		// 1. API Service가 올바른 날짜로 호출되었는가?
+		verify(festivalApiService).fetchAndParseFestivals(syncDate, expectedEndDate);
+		// 2. DB에 저장했는가?
+		verify(festivalRepository).saveAll(anyList());
+		// 3. Redis에 캐싱했는가?
+		verify(redisTemplate.opsForValue()).set(eq("festival:1"), eq(entityAsJson));
+		// 4. 만료된 축제를 삭제했는가?
+		verify(festivalRepository).deleteByEventEndDateBefore(syncDate);
 	}
 
-	// @Test
-	@DisplayName("과거 일자로 축제 만료 및 정리 테스트")
-	void testSyncPublicFestivalData_PastDateCleanup() {
-		LocalDate pastDate = LocalDate.of(2023, 1, 1); // 2023년 1월 1일로 설정
+	@Test
+	@DisplayName("API 호출 실패 시 RuntimeException 발생")
+	void syncFestivalData_ApiFails() {
+		// given
+		LocalDate syncDate = LocalDate.now();
+		when(festivalApiService.fetchAndParseFestivals(any(), any()))
+			.thenThrow(new RuntimeException("API 통신 오류"));
 
-		// 이 날짜를 기준으로 API 호출(2023년 1월 1일 이후 축제만 호출) 및
-		// 이 날짜 이전에 종료된 축제는 DB에서 삭제됩니다.
-		festivalDataSyncJob.syncFestivalData(pastDate);
+		// when & then
+		// Job이 RuntimeException을 던져서 Batch가 FAILED 처리하도록 함
+		assertThrows(RuntimeException.class, () -> {
+			festivalDataSyncJob.syncFestivalData(syncDate);
+		});
 
-		// ... DB 확인 로직 추가 ...
+		// 실패 시 DB 저장이나 Redis 캐싱은 시도하지 않아야 함
+		verify(festivalRepository, never()).saveAll(anyList());
+		verify(redisTemplate.opsForValue(), never()).set(anyString(), anyString());
 	}
 }

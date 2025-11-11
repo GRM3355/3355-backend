@@ -25,7 +25,7 @@ spring:
   # --- JPA (운영용) ---
   jpa:
     hibernate:
-      ddl-auto: update  # 운영 환경에서는 validate 또는 none 사용
+      ddl-auto: none  # 운영 환경에서는 validate 또는 none 사용
     show-sql: false
 
 logging:
@@ -46,6 +46,7 @@ cors:
 #공공데이터 api
 openapi:
   serviceKey: ${OPENAPI_SERVICE_KEY}
+
 #채팅 기본정보
 chat:
   max-chat-person: 500
@@ -54,3 +55,8 @@ chat:
   pre-create-day: 7 #7일전부터 생성 가능
   pre-view-day: 7 #7일전부터 축제보기 가능
 
+location:
+  token:
+    ttl-minutes: 15
+  radius:
+    limit: 1.0

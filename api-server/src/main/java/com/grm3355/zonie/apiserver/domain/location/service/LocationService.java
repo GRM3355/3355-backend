@@ -1,5 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.location.service;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -7,12 +8,7 @@ import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
-import com.grm3355.zonie.apiserver.domain.location.dto.ChatRoomZoneVarifyResponse;
-import com.grm3355.zonie.apiserver.domain.location.dto.FestivalZoneVarifyResponse;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
-import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
-import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository;
-import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
 import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
@@ -20,15 +16,14 @@ import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 @Service
 public class LocationService {
 
+	private final double locationRadiusLimit;
 	private final RedisTokenService redisTokenService;
 	private final FestivalRepository festivalRepository;
-	private final ChatRoomRepository chatRoomRepository;
 
-	public LocationService(RedisTokenService redisTokenService, FestivalRepository festivalRepository,
-		ChatRoomRepository chatRoomRepository) {
+	public LocationService(@Value("${location.radius.limit}") double locationRadiusLimit, RedisTokenService redisTokenService, FestivalRepository festivalRepository) {
+		this.locationRadiusLimit = 	locationRadiusLimit;
 		this.redisTokenService = redisTokenService;
 		this.festivalRepository = festivalRepository;
-		this.chatRoomRepository = chatRoomRepository;
 	}
 
 	//위도 경도, 거리예산
@@ -50,70 +45,52 @@ public class LocationService {
 		double distance = radius * c; // 단위: km
 
 		// 소수점 첫째 자리까지 반올림
-		return Math.round(distance * 10) / 100.0;
+		return Math.round(distance * 100.0) / 100.0;
 	}
 
 	@Transactional
-	public LocationTokenResponse update(LocationDto locationDto, UserDetailsImpl userDetails) {
-
-		String savedToken = userDetails.getUsername();
-		boolean value = redisTokenService.updateLocationInfo(locationDto, savedToken);
+	public LocationTokenResponse update(LocationDto locationDto, UserDetailsImpl userDetails, String festivalId) {
+		String userId = userDetails.getUsername();
+		boolean value = redisTokenService.updateLocationInfo(locationDto, userId, festivalId);
 		String message = value ? "갱신되었습니다." : "갱신에 실패하였습니다.";
 		return new LocationTokenResponse(message);
 	}
 
-	public FestivalZoneVarifyResponse getFestivalVerify(UserDetailsImpl userDetails, long festivalId) {
+	public LocationTokenResponse verifyAndGenerateToken(UserDetailsImpl userDetails, long festivalId, LocationDto userLocationDto) {
 
-		//Redis에서 토큰정보 가져오기
 		String userId = userDetails.getUsername();
-		UserTokenDto userTokenDto = getLocationInfo(userId);
-		LocationDto locationDto = LocationDto.builder().lat(userTokenDto.getLat()).lon(userTokenDto.getLon()).build();
+		String festivalIdStr = String.valueOf(festivalId);
 
-		//페스티벌 테이블에서 위도, 경도 가져오기
-		Festival festival = festivalRepository.findByFestivalId(festivalId)
+		// 1. 축제 DB 정보 조회 -> PostGIS 거리 계산
+		// Java가 아닌 DB(PostGIS)가 거리를 계산하도록 Native Query 호출
+		double radius_km = festivalRepository.findDistanceToFestival(
+				festivalId,
+				userLocationDto.getLon(), // :lon
+				userLocationDto.getLat()  // :lat
+			)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 축제정보가 없습니다."));
-		LocationDto festivalPosition = LocationDto.builder()
-			.lat(festival.getPosition().getY())
-			.lon(festival.getPosition().getX()).build();
 
-		//계산호출
-		double radius_km = getDistanceCalculator(locationDto, festivalPosition);
-		boolean accessValue = radius_km <= 1.0;
+		// 2. 반경 비교 (yml 설정값)
+		boolean isInside = radius_km <= locationRadiusLimit;
 
-		return new FestivalZoneVarifyResponse(accessValue, radius_km, festivalId, userId);
-
+		// 3. 토큰 발급 (반경 내)
+		if (isInside) {
+			UserTokenDto tokenInfo = UserTokenDto.builder()
+				.userId(userId)
+				.lat(userLocationDto.getLat())
+				.lon(userLocationDto.getLon())
+				.build();
+			redisTokenService.generateLocationToken(tokenInfo, festivalIdStr);
+			return new LocationTokenResponse(String.format("인증 성공. (%.2fkm / 반경 %.2fkm)", radius_km, locationRadiusLimit));
+		} else {
+			// 에러 반환 (반경 외)
+			throw new BusinessException(ErrorCode.FORBIDDEN,
+				String.format("축제 반경(%.2fkm) 외부에 있습니다. (현재 거리: %.2fkm)", locationRadiusLimit, radius_km));
+		}
 	}
 
-	public ChatRoomZoneVarifyResponse getChatroomVerify(UserDetailsImpl userDetails, String chatroomId) {
-
-		//토큰 만료여부 검증
-		String userId = userDetails.getUsername();
-
-		//Redis에서 토큰정보 가져오기
-		UserTokenDto userTokenDto = getLocationInfo(userId);
-		LocationDto locationDto = LocationDto.builder().lat(userTokenDto.getLat()).lon(userTokenDto.getLon()).build();
-
-		//채팅방 테이블에서 위도, 경도 가져오기
-		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(chatroomId)
-			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방이 없습니다."));
-
-		LocationDto chatroomPosition = LocationDto.builder()
-			//.lat(0.0).lon(0.0)
-			.lat(chatRoom.getPosition().getY())
-			.lon(chatRoom.getPosition().getX())
-			.build();
-
-		//계산호출
-		double radius_km = getDistanceCalculator(locationDto, chatroomPosition);
-		boolean accessValue = radius_km <= 1.0;
-
-		return new ChatRoomZoneVarifyResponse(accessValue, radius_km, chatroomId, userId);
-
+	// Redis에서 토큰 정보 가져오기
+	public UserTokenDto getLocationInfo(String userId, String contextId) {
+		return redisTokenService.getLocationInfo(userId, contextId);
 	}
-
-	//Redis에서 토큰 정보 가져오기
-	public UserTokenDto getLocationInfo(String token) {
-		return redisTokenService.getLocationInfo(token);
-	}
-
 }

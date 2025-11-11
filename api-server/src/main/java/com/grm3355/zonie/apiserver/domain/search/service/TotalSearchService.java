@@ -98,11 +98,8 @@ public class TotalSearchService {
 
 	//키워드 체크
 	private void checkKeyWord(String keyword) {
-
-		//키워드 체크
 		if (keyword == null || keyword.isEmpty()) {
 			throw new BusinessException(ErrorCode.BAD_REQUEST, "검색어는 필수입니다.");
 		}
 	}
-
 }

@@ -78,7 +78,9 @@ public class ChatRoomService {
 
 		// 1. Redis에서 닉네임 순번 획득 (원자성 보장)
 		// KEY: chatroom:nickname_seq:{roomId}
-		Long nicknameSeq = redisTemplate.opsForValue().increment("chatroom:nickname_seq:" + roomId, 1);
+		String redisKey = "chatroom:nickname_seq:" + roomId;
+		redisTemplate.opsForValue().setIfAbsent(redisKey, 3354L);	// 3355번부터 부여
+		Long nicknameSeq = redisTemplate.opsForValue().increment(redisKey, 1);
 		String newNickname = NICKNAME_PREFIX + nicknameSeq;
 
 		// 2. ChatRoomUser 엔티티 생성 및 DB 저장

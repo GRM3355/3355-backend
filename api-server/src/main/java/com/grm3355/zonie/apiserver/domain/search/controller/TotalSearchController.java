@@ -38,7 +38,6 @@ public class TotalSearchController {
 	}
 
 	@Operation(summary = "축제목록 + 채팅방목록", description = "해당 축제의 내용을 볼 수 있다.")
-	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -241,5 +240,4 @@ public class TotalSearchController {
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 
 	}
-
 }
