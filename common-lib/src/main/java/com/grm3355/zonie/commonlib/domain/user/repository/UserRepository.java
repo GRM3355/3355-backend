@@ -1,5 +1,6 @@
 package com.grm3355.zonie.commonlib.domain.user.repository;
 
+import com.grm3355.zonie.commonlib.global.enums.ProviderType;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,5 +11,12 @@ import com.grm3355.zonie.commonlib.domain.user.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-	Optional<User> findByUserId(String id);
+    Optional<User> findByUserId(String id);
+
+    Optional<User> findBySocialIdAndProviderType(String socialId, ProviderType providerType);
+
+    default User getOrThrow(String id) {
+        return findByUserId(id)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+    }
 }
