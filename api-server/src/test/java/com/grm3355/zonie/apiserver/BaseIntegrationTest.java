@@ -1,5 +1,8 @@
 package com.grm3355.zonie.apiserver;
 
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -11,9 +14,6 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
 @SpringBootTest
 @ActiveProfiles("test") // application-test.yml (빈 파일)을 로드
@@ -41,7 +41,6 @@ public abstract class BaseIntegrationTest {
 	@Container
 	static MongoDBContainer mongoContainer =
 		new MongoDBContainer(DockerImageName.parse("mongo:7.0"));
-
 
 	// === 4. PostGIS 확장 설치 (테스트 시작 전 1회) ===
 	@BeforeAll

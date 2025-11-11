@@ -39,6 +39,7 @@ public class FestivalController {
 	}
 
 	@Operation(summary = "축제 목록", description = "해당 축제의 목록을 볼 수 있다.")
+	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -106,6 +107,7 @@ public class FestivalController {
 	}
 
 	@Operation(summary = "축제 내용", description = "해당 축제의 내용을 볼 수 있다.")
+	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -173,6 +175,7 @@ public class FestivalController {
 	}
 
 	@Operation(summary = "지역목록", description = "해당 축제의 내용을 볼 수 있다.")
+	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",

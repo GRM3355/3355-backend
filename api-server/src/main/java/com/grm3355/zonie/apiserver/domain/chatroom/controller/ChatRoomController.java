@@ -45,6 +45,7 @@ public class ChatRoomController {
 	}
 
 	@Operation(summary = "채팅방 생성", description = "거리계산하여 채팅방을 생성할 수 있다.")
+	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -115,6 +116,7 @@ public class ChatRoomController {
 	}
 
 	@Operation(summary = "축제별 채팅방 목록", description = "해당 축제의 채팅방을 볼 수 있다.")
+	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -183,6 +185,7 @@ public class ChatRoomController {
 	}
 
 	@Operation(summary = "내 채팅방 목록", description = "사용자의 토큰을 입력받아서 본인이 등록한 채팅방 목록을 본다.")
+	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -244,8 +247,13 @@ public class ChatRoomController {
 	@PreAuthorize("hasRole('GUEST')")
 	@GetMapping("/chat-rooms/my-rooms")
 	public ResponseEntity<ApiResponse<PageResponse<MyChatRoomResponse>>> getChatRoomList(
-		@Valid @ModelAttribute ChatRoomSearchRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails
+		@Valid @ModelAttribute ChatRoomSearchRequest request,
+		@AuthenticationPrincipal UserDetailsImpl userDetails
 	) {
+		//if (bindingResult.hasErrors()) {
+		//	System.out.println("errrr----");
+		//	throw new ValidationException(bindingResult.getFieldErrors());
+		//}
 		Page<MyChatRoomResponse> pageList = chatRoomService.getMyRoomChatRoomList(userDetails, request);
 		PageResponse<MyChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));

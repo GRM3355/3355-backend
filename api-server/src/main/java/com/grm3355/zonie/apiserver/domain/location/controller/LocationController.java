@@ -81,6 +81,30 @@ public class LocationController {
 					value = "{\"success\":false,\"status\":404,\"error\":{\"code\":\"NOT_FOUND\",\"message\":\"관련 축제정보가 없습니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 				)
 			)
+		),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "415",
+			description = "UNSUPPORTED_MEDIA_TYPE",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = ApiResponse.class),
+				examples = @ExampleObject(
+					name = "UNSUPPORTED_MEDIA_TYPE",
+					value = "{\"success\":false,\"status\":415,\"error\":{\"code\":\"UNSUPPORTED_MEDIA_TYPE\",\"message\":\"잘못된 콘텐츠 타입입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
+				)
+			)
+		),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "429",
+			description = "요청 횟수 초과",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = ApiResponse.class),
+				examples = @ExampleObject(
+					name = "TOO_MANY_REQUESTS",
+					value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
+				)
+			)
 		)
 	})
 	@PostMapping("/verify/festival/{festivalId}")

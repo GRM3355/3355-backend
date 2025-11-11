@@ -34,12 +34,12 @@ public class RedisScanService {
 
 			ScanOptions options = ScanOptions.scanOptions()
 				.match(pattern)
-				.count(1000)		// 한 번에 스캔할 수 - 성능 고려
+				.count(1000)        // 한 번에 스캔할 수 - 성능 고려
 				.build();
 
 			try (Cursor<byte[]> cursor = connection.scan(options)) {
 				while (cursor.hasNext()) {
-					matchingKeys.add(new String(cursor.next()));		// 키는 byte[]로 반환됨
+					matchingKeys.add(new String(cursor.next()));        // 키는 byte[]로 반환됨
 				}
 			}
 
@@ -57,11 +57,11 @@ public class RedisScanService {
 	public Map<String, Long> getParticipantCounts(Set<String> keys) {
 
 		List<Object> results = stringRedisTemplate.executePipelined((RedisConnection connection) -> {
-			StringRedisConnection stringConnection = (StringRedisConnection) connection; // 문자열 기반 명령
+			StringRedisConnection stringConnection = (StringRedisConnection)connection; // 문자열 기반 명령
 			for (String key : keys) {
-				stringConnection.sCard(key);	// 파이프라인에 쌓아두기
+				stringConnection.sCard(key);    // 파이프라인에 쌓아두기
 			}
-			return null;						// null 반환 시 executePipelined가 쌓인 명령 실행
+			return null;                        // null 반환 시 executePipelined가 쌓인 명령 실행
 		});
 
 		Map<String, Long> countMap = new HashMap<>();

@@ -90,4 +90,28 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			"WHERE f.festival_id = :festivalId",
 		nativeQuery = true)
 	Optional<Double> findDistanceToFestival(@Param("festivalId") long festivalId, @Param("lon") double lon, @Param("lat") double lat);
+
+	/**
+	 * 위치기반 축제 목록보기
+	 */
+	@Query(
+		value = """
+			SELECT *
+			FROM festivals f
+			WHERE f.festival_id is not null
+			    AND (CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
+				AND CURRENT_TIMESTAMP <= f.event_end_date)
+				AND (ST_DWithin(f.position::geography, ST_MakePoint(:lon, :lat)::geography,:radius))
+			""",
+		countQuery = """
+			SELECT COUNT(*)
+			FROM festivals f
+			WHERE f.festival_id is not null
+			    AND (CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
+				AND CURRENT_TIMESTAMP <= f.event_end_date)
+				AND (ST_DWithin(f.position::geography, ST_MakePoint(:lon, :lat)::geography,:radius))
+			""",
+		nativeQuery = true)
+	Page<Festival> getFestivalLocationBased(double lat, double lon, double radius,
+		int dayNum, Pageable pageable);
 }

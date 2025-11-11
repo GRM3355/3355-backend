@@ -1,6 +1,9 @@
 package com.grm3355.zonie.apiserver.domain.festival.dto;
 
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 
 import org.hibernate.annotations.ColumnDefault;
 import org.springframework.validation.annotation.Validated;
@@ -49,6 +52,24 @@ public class FestivalSearchRequest {
 
 	@Schema(description = "검색어")
 	private String keyword;
+
+	// sc=true 위치기반검색, sc=false 전체검색
+	@Schema(description = "검색구분")
+	private boolean ps = false;
+
+	@Schema(description = "위도", example = "37.5894939323")
+	@Min(value = -90, message = "위도 범위는 -90~90입니다.")
+	@Max(value = 90, message = "위도 범위는 -90~90입니다.")
+	private Double lat;
+
+	@Schema(description = "경도", example = "127.0167863252")
+	@Min(value = -180, message = "경도 범위는 -180~180입니다.")
+	@Max(value = 180, message = "경도 범위는 -180~180입니다.")
+	private Double lon;
+
+	@Schema(description = "반경")
+	@DecimalMin(value = "1.0", message = "반경은 최소 1 이상이어야 합니다.")
+	private Double radius;
 
 	public int getPage() {
 		return page != null ? page : 1;

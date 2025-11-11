@@ -13,5 +13,4 @@ public enum FestivalStatus {
 	FestivalStatus(String name) {
 		this.name = name;
 	}
-
 }

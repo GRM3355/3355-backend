@@ -38,6 +38,7 @@ public class TotalSearchController {
 	}
 
 	@Operation(summary = "축제목록 + 채팅방목록", description = "해당 축제의 내용을 볼 수 있다.")
+	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -104,6 +105,7 @@ public class TotalSearchController {
 	}
 
 	@Operation(summary = "통합검색 - 축제 목록", description = "통합검색에서 축제목록을 볼 수 있다.")
+	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -172,6 +174,7 @@ public class TotalSearchController {
 	}
 
 	@Operation(summary = "통합검색 - 채팅방 목록", description = "통합검색에서 채팅방 목록을 볼 수 있다.")
+	// @checkstyle:off
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",

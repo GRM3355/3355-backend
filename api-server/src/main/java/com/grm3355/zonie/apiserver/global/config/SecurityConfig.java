@@ -34,12 +34,14 @@ import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 public class SecurityConfig {
 
 	private static final String[] WHITE_LIST = {
-		"/", 	//health check
-		"/health", 	//health check
+		"/",    //health check
+		"/health",    //health check
+		"/actuator/health",    //health check
+		"/actuator/info",    //health info
 		"/api/v1/auth/**",    // Auth API
 		"/api/v1/location/**",  // location API
-		"/api/v1/batch/**",		//batch
-	 	"/api/v1/chat-rooms/**", //chat-rooms
+		"/api/v1/batch/**",        //batch
+		"/api/v1/chat-rooms/**", //chat-rooms
 		"/api/v1/festivals/**",  //festival
 		"/api/v1/search/**", //통합검색
 		"/uploads/**",    // 이미지 업로드 경로
