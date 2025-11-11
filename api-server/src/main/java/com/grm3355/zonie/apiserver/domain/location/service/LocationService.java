@@ -89,7 +89,7 @@ public class LocationService {
 		}
 	}
 
-	//Redis에서 토큰 정보 가져오기
+	// Redis에서 토큰 정보 가져오기
 	public UserTokenDto getLocationInfo(String userId, String contextId) {
 		return redisTokenService.getLocationInfo(userId, contextId);
 	}
