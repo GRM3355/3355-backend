@@ -95,7 +95,7 @@ public class LocationService {
 
 		//채팅방 테이블에서 위도, 경도 가져오기
 		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(chatroomId)
-			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 정보가 없습니다."));
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방이 없습니다."));
 
 		LocationDto chatroomPosition = LocationDto.builder()
 			//.lat(0.0).lon(0.0)

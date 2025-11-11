@@ -22,7 +22,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalLocationBasedRequest;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
@@ -101,31 +100,6 @@ class FestivalControllerTest {
 		mockMvc.perform(get("/api/v1/festivals/{festivalId}", 1)
 				.param("keyword", "테스트")
 				.param("order", "DATE_ASC")
-				.contentType(MediaType.APPLICATION_JSON)
-			)
-			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.success").value(true))
-			.andExpect(jsonPath("$.data").exists());
-	}
-
-	@Test
-	@DisplayName("위치기반 축제 목록 가져오기")
-	void testgefFestivalLocationBased() throws Exception {
-		// given
-		FestivalResponse festival = FestivalResponse.builder().build();
-		Page<FestivalResponse> pageList = new PageImpl<>(List.of(festival), PageRequest.of(0, 10), 1);
-		PageResponse<FestivalResponse> pageResponse = new PageResponse<>(pageList, 10);
-
-		Mockito.when(festivalService.getFestivalLocationBased(any(FestivalLocationBasedRequest.class)))
-			.thenReturn(pageList);
-
-		// when & then
-		mockMvc.perform(get("/api/v1/festivals/locationBasedList")
-				.param("page", "0")
-				.param("pageSize", "10")
-				.param("lat", "37.563446")
-				.param("lon", "126.98375")
-				.param("radius", "1000")
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andExpect(status().isOk())

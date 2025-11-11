@@ -247,8 +247,13 @@ public class ChatRoomController {
 	@PreAuthorize("hasRole('GUEST')")
 	@GetMapping("/chat-rooms/my-rooms")
 	public ResponseEntity<ApiResponse<PageResponse<MyChatRoomResponse>>> getChatRoomList(
-		@Valid @ModelAttribute ChatRoomSearchRequest request, @AuthenticationPrincipal UserDetailsImpl userDetails
+		@Valid @ModelAttribute ChatRoomSearchRequest request,
+		@AuthenticationPrincipal UserDetailsImpl userDetails
 	) {
+		//if (bindingResult.hasErrors()) {
+		//	System.out.println("errrr----");
+		//	throw new ValidationException(bindingResult.getFieldErrors());
+		//}
 		Page<MyChatRoomResponse> pageList = chatRoomService.getMyRoomChatRoomList(userDetails, request);
 		PageResponse<MyChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));

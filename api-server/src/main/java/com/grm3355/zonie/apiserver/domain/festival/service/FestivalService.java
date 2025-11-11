@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
-import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalLocationBasedRequest;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalOrderType;
@@ -52,6 +51,18 @@ public class FestivalService {
 	@Transactional
 	public Page<FestivalResponse> getFestivalList(FestivalSearchRequest req) {
 
+		//축제 위치기반 체크
+		System.out.println("======>1111");
+		if (req.isPs()) {
+			System.out.println("======>2222");
+			if (req.getLat() == null || req.getLon() == null || req.getRadius() == null) {
+
+				System.out.println("======>333");
+				throw new BusinessException(ErrorCode.BAD_REQUEST, "위도, 경도, 반경을 정확하게 입력하시기 바랍니다.");
+			}
+		}
+
+		System.out.println("======>4444");
 		Sort.Order order;
 		if (req.getOrder() == FestivalOrderType.DATE_ASC) {
 			order = Sort.Order.asc("event_start_date");
@@ -86,39 +97,14 @@ public class FestivalService {
 		FestivalStatus status = req.getStatus();
 		String statusStr = status != null ? status.toString() : null;
 
-		return festivalRepository
-			.getFestivalList(regionStr, statusStr, req.getKeyword(), preview_days, pageable);
-
-	}
-
-	/**
-	 * 위치기반 축제목록
-	 * @param req 검색dto
-	 * @return page
-	 */
-	@Transactional
-	public Page<FestivalResponse> getFestivalLocationBased(FestivalLocationBasedRequest req) {
-
-		Sort.Order order = Sort.Order.asc("position");
-		Pageable pageable = PageRequest.of(req.getPage() - 1,
-			req.getPageSize(), Sort.by(order));
-
-		//ListType 내용 가져오기
-		Page<Festival> pageList = getFestivalLocationBasedType(req, pageable);
-
-		//페이지 변환
-		List<FestivalResponse> dtoPage = pageList.stream().map(FestivalResponse::fromEntity)
-			.collect(Collectors.toList());
-
-		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
-	}
-
-	//축제별 채팅방 검색조건별 목록 가져오기
-	public Page<Festival> getFestivalLocationBasedType(FestivalLocationBasedRequest req, Pageable pageable) {
-
-		return festivalRepository
-			.getFestivalLocationBased(req.getLat(), req.getLon(), req.getRadius(), preview_days, pageable);
-
+		//위치기반 검색이면
+		if (req.isPs()) {
+			return festivalRepository
+				.getFestivalLocationBased(req.getLat(), req.getLon(), req.getRadius(), preview_days, pageable);
+		} else {    // 전체검색이면
+			return festivalRepository
+				.getFestivalList(regionStr, statusStr, req.getKeyword(), preview_days, pageable);
+		}
 	}
 
 	/**

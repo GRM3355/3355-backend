@@ -18,6 +18,8 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.grm3355.zonie.commonlib.global.exception.ApiErrorPayload;
@@ -25,6 +27,7 @@ import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.CustomValidationException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 import com.grm3355.zonie.commonlib.global.exception.NotFoundException;
+import com.grm3355.zonie.commonlib.global.exception.ValidationException;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -67,19 +70,6 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler(MethodArgumentNotValidException.class)
 	public ResponseEntity<?> handleMethodArgumentNotValid(
 		MethodArgumentNotValidException ex, HttpServletRequest req) {
-
-		// log.error("=================================> MethodArgumentNotValidException.class 에러 로그 찍기", ex); // 예외 로그 찍기
-		//  Map<String, String> fieldErrors = new LinkedHashMap<>();
-		//  ex.getBindingResult().getFieldErrors()
-		// 	.forEach(fe -> fieldErrors.put(fe.getField(), fe.getDefaultMessage()));
-		//  return build(ErrorCode.INVALID_INPUT, "요청 본문 검증 실패", fieldErrors, req);
-
-		// String errorMsg = ex.getBindingResult()
-		// 	.getFieldErrors()
-		// 	.stream()
-		// 	.map(DefaultMessageSourceResolvable::getDefaultMessage)
-		// 	.collect(Collectors.joining(", "));
-		// return ResponseEntity.badRequest().body(Map.of("error", errorMsg));
 
 		List<String> errorData = ex.getBindingResult().getFieldErrors()
 			.stream()
@@ -226,16 +216,12 @@ public class GlobalExceptionHandler {
 		//String traceId = safe(MDC.get("traceId"));         // 로깅 필터에서 넣어두면 추적 가능
 		String path = req != null ? req.getRequestURI() : null;
 
-		ApiErrorPayload payload = new ApiErrorPayload(
-			//code.code(),
-			message != null ? message : code.getMessage(),
-			path,
-			errors
-		);
+		if (message == null)
+			code.getMessage();
 
 		// 상위 ApiResponse의 message에는 "표준 에러 코드"를 올려 클라이언트 분기를 단순화
 		ApiResponse<ApiErrorPayload> body =
-			ApiResponse.of(false, code.getCode(), code.getMessage(), null);
+			ApiResponse.of(false, code.getCode(), message, null);
 
 		//return body.toResponseEntity(HttpStatus.valueOf(code.getCode()));
 		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
@@ -253,8 +239,32 @@ public class GlobalExceptionHandler {
 			ErrorCode.BAD_REQUEST.getCode(),
 			ex.getMessage()
 		);
-
 		return ResponseEntity.badRequest().body(error);
+	}
+
+	@ExceptionHandler(ValidationException.class)
+	@ResponseStatus(HttpStatus.BAD_REQUEST)
+	@ResponseBody
+	public ResponseEntity<ApiResponse<Object>> handleValidationException(ValidationException ex) {
+		List<String> errors = ex.getFieldErrors().stream()
+			.map(f -> f.getField() + " : " + f.getDefaultMessage())
+			.toList();
+
+		// return Map.of(
+		// 	"success", false,
+		// 	"data", errors,
+		// 	"error", Map.of(
+		// 		"code", "400 BAD_REQUEST",
+		// 		"message", "잘못된 요청입니다."
+		// 	),
+		// 	"timestamp", LocalDateTime.now()
+		// );
+
+		ApiResponse<Object> error = ApiResponse.failure(
+			ErrorCode.BAD_REQUEST.getCode(),
+			ex.getMessage(), errors);
+		return ResponseEntity.badRequest().body(error);
+
 	}
 
 	/**
