@@ -33,16 +33,12 @@ public class User extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@NotBlank
-	@Size(max = 100)
-	@Column(name = "user_id", nullable = false, unique = true, length = 100)
+	@Column(name = "user_id")
 	@NotBlank(message = "사용자아이디는 정보는 필수 입력 값입니다.")
 	private String userId;
 
-	@NotBlank
 	@Size(max = 100)
-	@Column(name = "password", nullable = false, length = 100)
-	@NotBlank(message = "비밀번호는 정보는 필수 입력 값입니다.")
+	@Column(name = "password")
 	private String password;
 
 	// GUEST, USER, ADMIN - 카카오회원은 USER
@@ -51,7 +47,7 @@ public class User extends BaseTimeEntity {
 	private Role role;
 
 	// 닉네임
-	@Column(name = "profile_nickname", length = 50)
+	@Column(name = "profile_nickname")
 	private String profileNickName;
 
 	// 이메일
@@ -59,13 +55,23 @@ public class User extends BaseTimeEntity {
 	private String accountEmail;
 
 	// 프로필 이미지
-	@Column(name = "profile_image", length = 100)
+	@Column(name = "profile_image")
 	private String profileImage;
 
 	// 로그인 제공자 (KAKAO, GOOGLE, NAVER, APPLE 등)
 	@Enumerated(EnumType.STRING)
-	private ProviderType provider;
+	private ProviderType providerType;
 
 	// SNS가 제공하는 고유 ID (sub, id 등)
-	private String providerId;
+	private String socialId;
+
+	public void updateEmail(String email) {
+		this.accountEmail = email;
+	}
+
+
+	//todo 휴대폰번호 컬럼 추가필요
+//	public void updatePhoneNumber(String phoneNumber) {
+//		this.phoneNumber = phoneNumber;
+//	}
 }
