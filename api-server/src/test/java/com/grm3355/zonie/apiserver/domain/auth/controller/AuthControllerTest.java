@@ -85,7 +85,7 @@ class AuthControllerTest {
                 any(HttpServletRequest.class))
         ).thenReturn(mockResponse);
 
-        mockMvc.perform(post("/api/v1/auth/token-register")
+        mockMvc.perform(post("/api/auth/token-register")
                         .header("Authorization", "Bearer test")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(locationDto)))
