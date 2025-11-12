@@ -26,7 +26,7 @@ spring:
   # --- JPA (운영용) ---
   jpa:
     hibernate:
-      ddl-auto: none  # 운영 환경에서는 validate 또는 none 사용
+      ddl-auto: update  # 운영 환경에서는 validate 또는 none 사용
     show-sql: false     # 운영 환경에서는 SQL 로그를 꺼서 성능 확보
 
 logging:

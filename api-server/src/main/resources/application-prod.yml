@@ -60,3 +60,7 @@ location:
     ttl-minutes: 15
   radius:
     limit: 1.0
+
+springdoc:
+  swagger-ui:
+    enabled: true # 실제 운영 환경에서는 false로 변경하기

@@ -73,7 +73,7 @@ class AuthControllerTest {
 			ArgumentMatchers.any(LocationDto.class))
 		).thenReturn(mockResponse);
 
-		mockMvc.perform(post("/api/v1/auth/token-register")
+		mockMvc.perform(post("/api/v1/auth/tokens")
 				.header("Authorization", "Bearer test")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(locationDto)))

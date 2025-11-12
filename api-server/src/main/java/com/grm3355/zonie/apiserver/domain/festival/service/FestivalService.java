@@ -124,11 +124,38 @@ public class FestivalService {
 	 * 지역분류 가져오기
 	 * @return list
 	 */
-	public List<?> getRegionList() {
+	public List<Map<String, String>> getRegionList() {
 		return Arrays.stream(Region.values()).map(region -> Map.of(
 			"region", region.getName(),
 			"code", region.name()
 		)).toList();
+	}
+
+	/**
+	 * 지역별 축제 개수 조회
+	 * (getFestivalListType의 필터 조건 중 'preview_days'를 동일하게 적용)
+	 *
+	 * @param region Region Enum
+	 * @return 해당 지역의 축제 개수
+	 */
+	@Transactional(readOnly = true)
+	public long getFestivalCountByRegion(Region region) {
+		if (region == null) {
+			throw new BusinessException(ErrorCode.BAD_REQUEST, "지역 코드를 정확하게 입력하세요. 지역코드 정보는 다음과 같습니다.\n SEOUL(\"서울\"),\n"
+				+ "\tGYEONGGI(\"경기/인천\"),\n"
+				+ "\tCHUNGCHEONG(\"충청/대전/세종\"),\n"
+				+ "\tGANGWON(\"강원\"),\n"
+				+ "\tGYEONGBUK(\"경북/대구/울산\"),\n"
+				+ "\tGYEONGNAM(\"경남/부산\"),\n"
+				+ "\tJEOLLA(\"전라/광주\"),\n"
+				+ "\tJEJU(\"제주\")}");
+		}
+
+		// 3. Repository에 count용 메서드 호출: getFestivalList와 동일하게 preview_days를 적용하여 노출될 축제만 카운트
+		return festivalRepository.countFestivalsByRegion(
+			region.toString(),
+			preview_days
+		);
 	}
 
 	/**

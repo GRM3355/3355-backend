@@ -114,4 +114,19 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 		nativeQuery = true)
 	Page<Festival> getFestivalLocationBased(double lat, double lon, double radius,
 		int dayNum, Pageable pageable);
+
+	/**
+	 * 특정 지역의 축제 개수 조회
+	 */
+	@Query(
+		value = """
+			SELECT COUNT(*)
+			FROM festivals f
+			WHERE f.region = :region
+			AND (CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
+			     AND CURRENT_TIMESTAMP <= f.event_end_date)
+			""",
+		nativeQuery = true
+	)
+	long countFestivalsByRegion(@Param("region") String region, @Param("dayNum") int dayNum);
 }
