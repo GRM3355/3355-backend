@@ -12,6 +12,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
+import com.grm3355.zonie.chatserver.dto.ChatUserLocationDto;
 import com.grm3355.zonie.chatserver.dto.MessageSendRequest;
 import com.grm3355.zonie.chatserver.service.ChatLocationService;
 import com.grm3355.zonie.chatserver.service.ChatRoomService;
@@ -59,13 +60,21 @@ public class ChatRoomHandler {
 	@MessageMapping("/chat-rooms/{roomId}/join")
 	public void joinRoom(
 		@DestinationVariable String roomId,
-		// @AuthenticationPrincipal Principal principal,
+		@Payload @Valid ChatUserLocationDto locationPayload,
 		StompHeaderAccessor accessor
 	) {
 		String userId = getUserIdFromSession(accessor);
 		log.info(">>> STOMP RECV /app/chat-rooms/{}/join [User: {}]", roomId, userId);
 
-		// 참여 로직 실행 (닉네임 생성, Redis Set 추가, DB 저장)
+		// 위치 토큰 갱신/발급 시도
+		// (반경 밖일 경우 토큰 발급만 건너뛰고, 예외는 던지지 않아 입장을 막지 않음.)
+		chatLocationService.setLocationTokenOnJoin(
+			userId,
+			roomId,
+			locationPayload.getLat(),
+			locationPayload.getLon()
+		);
+		// 참여 로직 실행 (닉네임 생성, Redis Set 추가, DB 저장) (위치 인증 성공 여부와 관계x; 항상 실행)
 		String nickname = chatRoomService.joinRoom(userId, roomId);
 
 	}
