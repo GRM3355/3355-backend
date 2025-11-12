@@ -14,6 +14,9 @@ import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
 import com.grm3355.zonie.apiserver.domain.location.service.LocationService;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
+import com.grm3355.zonie.apiserver.global.swagger.ApiError405;
+import com.grm3355.zonie.apiserver.global.swagger.ApiError415;
+import com.grm3355.zonie.apiserver.global.swagger.ApiError429;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -25,8 +28,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@Tag(name = "위치토큰정보", description = "위치토큰정보 갱신 및 확인")
-@RequestMapping("/api/v1/location")
+@Tag(name = "Locations", description = "위치 인증 및 위치 토큰 발급")
+@RequestMapping("/api/v1/locations")
 @RequiredArgsConstructor
 public class LocationController {
 
@@ -39,7 +42,7 @@ public class LocationController {
 			description = "위치 인증 성공. 토큰 발급/갱신 완료.",
 			content = @Content(
 				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
+				schema = @Schema(implementation = LocationTokenResponse.class),
 				examples = @ExampleObject(
 					name = "OK",
 					value = "{\"success\":true,\"data\":{\"message\":\"인증 성공. (0.50km / 반경 1.00km)\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
@@ -48,7 +51,7 @@ public class LocationController {
 		),
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "400",
-			description = "입력값 유효성 검증 실패 (lat/lon 누락)",
+			description = "입력값 유효성 검증 실패 (lat/lon 누락)", // 400 Bad Request (고유한 설명 사용)
 			content = @Content(
 				mediaType = "application/json",
 				schema = @Schema(implementation = ApiResponse.class),
@@ -60,7 +63,7 @@ public class LocationController {
 		),
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "403",
-			description = "축제 반경 외부에 있음",
+			description = "축제 반경 외부에 있음", // 403 Forbidden (고유한 설명 사용)
 			content = @Content(
 				mediaType = "application/json",
 				schema = @Schema(implementation = ApiResponse.class),
@@ -72,7 +75,7 @@ public class LocationController {
 		),
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "404",
-			description = "축제 정보를 찾을 수 없음",
+			description = "축제 정보를 찾을 수 없음",	 // 404 Not Found (고유한 설명 사용)
 			content = @Content(
 				mediaType = "application/json",
 				schema = @Schema(implementation = ApiResponse.class),
@@ -81,33 +84,12 @@ public class LocationController {
 					value = "{\"success\":false,\"status\":404,\"error\":{\"code\":\"NOT_FOUND\",\"message\":\"관련 축제정보가 없습니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 				)
 			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "415",
-			description = "UNSUPPORTED_MEDIA_TYPE",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "UNSUPPORTED_MEDIA_TYPE",
-					value = "{\"success\":false,\"status\":415,\"error\":{\"code\":\"UNSUPPORTED_MEDIA_TYPE\",\"message\":\"잘못된 콘텐츠 타입입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "429",
-			description = "요청 횟수 초과",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "TOO_MANY_REQUESTS",
-					value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
-				)
-			)
 		)
 	})
-	@PostMapping("/verify/festival/{festivalId}")
+	@ApiError405 // (Method Not Allowed - POST에 GET 요청 등)
+	@ApiError415
+	@ApiError429
+	@PostMapping("/verification/festivals/{festivalId}")
 	public ResponseEntity<?> verifyFestivalLocation(
 		@AuthenticationPrincipal UserDetailsImpl userDetails,
 		@PathVariable long festivalId,
@@ -118,13 +100,4 @@ public class LocationController {
 		);
 		return ResponseEntity.ok(ApiResponse.success(response));
 	}
-
-	// [삭제] @PutMapping("/update")
-	// -> 축제 단위 인증으로 변경되어 더 이상 필요x
-
-	// [삭제] @GetMapping("/festivalVerify")
-	// -> POST /verify/festival/{festivalId}로 통합
-
-	// [삭제] @GetMapping("/chatroomVerify")
-	// -> 축제 단위 인증으로 변경되어 더 이상 필요x
 }
