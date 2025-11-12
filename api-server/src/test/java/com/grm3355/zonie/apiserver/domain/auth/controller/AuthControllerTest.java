@@ -3,6 +3,7 @@ package com.grm3355.zonie.apiserver.domain.auth.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
+import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
 import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
@@ -71,6 +72,10 @@ class AuthControllerTest {
 
     @MockitoBean
     private JwtAccessDeniedHandler jwtAccessDeniedHandler;
+
+	@MockitoBean
+	private RedisTokenService redisTokenService;
+
 
     // @Test
     // @DisplayName("입력값 누락 시 400 에러 반환")

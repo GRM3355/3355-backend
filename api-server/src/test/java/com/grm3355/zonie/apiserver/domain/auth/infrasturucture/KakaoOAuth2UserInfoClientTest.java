@@ -50,7 +50,7 @@ class KakaoOAuth2UserInfoClientTest {
 
     @Test
     void 성공() throws JsonProcessingException {
-        KakaoUserInfo expected = new KakaoUserInfo("id", new KakaoAccount(new Profile("nickname", "imageUrl")));
+        KakaoUserInfo expected = new KakaoUserInfo("id", new KakaoAccount("email", new Profile("nickname", "imageUrl")));
         mockServer.expect(requestTo(USER_INFO_URL))
                 .andRespond(MockRestResponseCreators.withSuccess()
                         .body(objectMapper.writeValueAsString(expected))
