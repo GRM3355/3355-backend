@@ -41,15 +41,14 @@ jwt:
 
 #cors
 cors:
-  allowed-origins: "http://localhost:8082,http://zony.kro.kr, http://www.zony.kro.kr,https://zony.kro.kr, https://www.zony.kro.kr"
+  allowed-origins: "http://localhost:8082, http://zony.kro.kr, http://www.zony.kro.kr,https://zony.kro.kr, https://www.zony.kro.kr"
 
 #공공데이터 api
 openapi:
   serviceKey: ${OPENAPI_SERVICE_KEY}
 
-#채팅 기본정보
 chat:
-  max-chat-person: 500
+  max-chat-person: 300
   max-chat-room: 30
   radius: 1.0 #km
   pre-create-day: 7 #7일전부터 생성 가능
