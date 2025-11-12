@@ -31,7 +31,6 @@ import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 @DisplayName("채팅방 생성 통합테스트")
 @SpringBootTest
-	// @AutoConfigureMockMvc
 class ChatRoomControllerTest extends BaseIntegrationTest {
 
 	@Autowired
@@ -53,11 +52,17 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 	@DisplayName("채팅방 생성 성공")
 	@WithMockUser(roles = "GUEST")
 	void createChatRoomTest() throws Exception {
-		ChatRoomRequest request = ChatRoomRequest.builder().title("테스트 채팅방").build();
+		ChatRoomRequest request = ChatRoomRequest.builder()
+			.title("테스트 채팅방")
+			.lat(37.5665)
+			.lon(126.9780)
+			.build();
 
 		ChatRoomResponse response = ChatRoomResponse.builder()
 			.chatRoomId(String.valueOf(1L))
 			.title(request.getTitle())
+			.lat(request.getLat())
+			.lon(request.getLon())
 			.build();
 
 		when(chatRoomService.setCreateChatRoom(anyLong(), any(ChatRoomRequest.class), any()))
@@ -68,6 +73,8 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 				.content(objectMapper.writeValueAsString(request)))
 			.andExpect(status().isCreated())
 			.andExpect(jsonPath("$.data.chatRoomId").value(1L))
+			.andExpect(jsonPath("$.data.lat").value(request.getLat()))
+			.andExpect(jsonPath("$.data.lon").value(request.getLon()))
 			.andExpect(jsonPath("$.data.title").value("테스트 채팅방"));
 	}
 

@@ -18,13 +18,15 @@ spring:
   # --- JPA (운영용) ---
   jpa:
     hibernate:
-      ddl-auto: create # 운영 환경에서는 validate 또는 none 사용
+      ddl-auto: none # 운영 환경에서는 validate 또는 none 사용
     show-sql: false
 
   # --- Spring Batch ---
   batch:
+    job:
+      enabled: false  # JobLauncherApplicationRunner (Job 자동 실행) 비활성화 (: Job 여러개)
     jdbc:
-      initialize-schema: always # BATCH_* 테이블(메타데이터)을 항상 생성하도록 설정
+      initialize-schema: never # 5.x부터 기본값이 never (이지만 명시); BATCH_* 테이블 유지
 
 logging:
   level:
@@ -45,3 +47,7 @@ chat:
   radius: 1.0 #km
   pre-create-day: 7 #7일전부터 생성 가능
   pre-view-day: 7 #7일전부터 축제보기 가능
+
+festival:
+  batch:
+    date: 7 # 오늘 ~ +7일치 데이터만 조회

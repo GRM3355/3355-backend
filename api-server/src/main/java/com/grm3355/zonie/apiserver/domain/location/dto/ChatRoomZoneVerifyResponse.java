@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record ChatRoomZoneVarifyResponse(
+public record ChatRoomZoneVerifyResponse(
 	@Schema(description = "접근여부", example = "true")
 	boolean accessValue,
 

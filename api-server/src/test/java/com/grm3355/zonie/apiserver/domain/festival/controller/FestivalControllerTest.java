@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -69,14 +70,13 @@ class FestivalControllerTest {
 		// given
 		FestivalResponse festival = FestivalResponse.builder().build();
 		Page<FestivalResponse> pageList = new PageImpl<>(List.of(festival), PageRequest.of(0, 10), 1);
-		PageResponse<FestivalResponse> pageResponse = new PageResponse<>(pageList, 10);
 
-		Mockito.when(festivalService.getFestivalList(any(FestivalSearchRequest.class)))
+		Mockito.when(festivalService.getFestivalList(any(FestivalSearchRequest.class))) // 서비스에서 Page<T> 반환 (컨트롤러가 FestivalPageResponse로 변환)
 			.thenReturn(pageList);
 
 		// when & then
 		mockMvc.perform(get("/api/v1/festivals")
-				.param("page", "0")
+				.param("page", "1")
 				.param("pageSize", "10")
 				.param("region", "SEOUL")
 				.param("status", "ALL")
@@ -85,7 +85,8 @@ class FestivalControllerTest {
 			)
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
-			.andExpect(jsonPath("$.data").exists());
+			.andExpect(jsonPath("$.data.content[0]").exists())
+			.andExpect(jsonPath("$.data.totalElements").value(1));
 	}
 
 	@Test
@@ -98,8 +99,6 @@ class FestivalControllerTest {
 
 		// when & then
 		mockMvc.perform(get("/api/v1/festivals/{festivalId}", 1)
-				.param("keyword", "테스트")
-				.param("order", "DATE_ASC")
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andExpect(status().isOk())
@@ -111,17 +110,78 @@ class FestivalControllerTest {
 	@DisplayName("지역 목록 조회 테스트")
 	void testGetFestivalRegion() throws Exception {
 		// given
-		List<Region> regions = List.of(Region.SEOUL, Region.JEOLLA);
+		List<Map<String, String>> serviceResponse = List.of(
+			Map.of("region", "서울", "code", "SEOUL"),
+			Map.of("region", "전라", "code", "JEOLLA")
+		);
+
 		Mockito.when(festivalService.getRegionList())
-			.thenReturn((List)regions);
+			.thenReturn(serviceResponse);
+
 		// when & then
-		mockMvc.perform(get("/api/v1/festivals/region")
+		mockMvc.perform(get("/api/v1/festivals/regions")
 				.contentType(MediaType.APPLICATION_JSON)
 			)
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.data").isArray())
-			.andExpect(jsonPath("$.data[0]").value("SEOUL"))
-			.andExpect(jsonPath("$.data[1]").value("JEOLLA"));
+			.andExpect(jsonPath("$.data[0].region").value("서울"))
+			.andExpect(jsonPath("$.data[0].code").value("SEOUL"))
+			.andExpect(jsonPath("$.data[1].region").value("전라"))
+			.andExpect(jsonPath("$.data[1].code").value("JEOLLA"));
+	}
+
+	@Test
+	@DisplayName("지역별 축제 개수 조회 테스트")
+	void testGetFestivalCount() throws Exception {
+		// given
+		Mockito.when(festivalService.getFestivalCountByRegion(eq(Region.SEOUL)))
+			.thenReturn(15L); // "서울" 지역 축제 15개
+
+		// when & then
+		mockMvc.perform(get("/api/v1/festivals/count")
+				.param("region", "SEOUL") // Region Enum 이름과 일치
+				.contentType(MediaType.APPLICATION_JSON)
+			)
+			.andExpect(status().isOk())
+			.andExpect(jsonPath("$.success").value(true))
+			.andExpect(jsonPath("$.data.count").value(15)); // FestivalCountResponse DTO 검증
+	}
+
+	@Test
+	@DisplayName("축제 목록 조회 - 유효성 검사 실패 (잘못된 위도)")
+	void testGetFestivalList_InvalidLat() throws Exception {
+		// given
+		// service.getFestivalList()는 어차피 호출되지 않아야 함
+
+		// when & then
+		mockMvc.perform(get("/api/v1/festivals")
+				.param("ps", "true")
+				.param("lat", "200.0") // @Max(90) 위반
+				.param("lon", "127.0")
+				.param("radius", "1.0")
+				.contentType(MediaType.APPLICATION_JSON)
+			)
+			.andExpect(status().isBadRequest()); // HTTP 400
+	}
+
+	@Test
+	@DisplayName("축제 목록 조회 - 위치 기반 검색 성공")
+	void testGetFestivalList_LocationBased_Success() throws Exception {
+		// given
+		Page<FestivalResponse> pageList = new PageImpl<>(List.of(FestivalResponse.builder().build()));
+		Mockito.when(festivalService.getFestivalList(any(FestivalSearchRequest.class)))
+			.thenReturn(pageList);
+
+		// when & then
+		mockMvc.perform(get("/api/v1/festivals")
+				.param("ps", "true") // 위치 기반 검색 활성화
+				.param("lat", "37.5")
+				.param("lon", "127.0")
+				.param("radius", "1.0")
+				.contentType(MediaType.APPLICATION_JSON)
+			)
+			.andExpect(status().isOk()) // HTTP 200
+			.andExpect(jsonPath("$.success").value(true));
 	}
 }

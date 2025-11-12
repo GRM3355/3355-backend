@@ -15,8 +15,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import com.grm3355.zonie.chatserver.util.JwtChannelInterceptor;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoomUser;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository;
@@ -42,17 +42,21 @@ class ChatRoomServiceTest {
 	private ValueOperations<String, Object> valueOperations;
 	@Mock
 	private SetOperations<String, Object> setOperations;
-	@Mock
-	private JwtChannelInterceptor jwtChannelInterceptor;
 
 	@InjectMocks
 	private ChatRoomService chatRoomService;
+
+	private static final Long MOCK_MAX_PARTICIPANTS = 300L;
 
 	@BeforeEach
 	void setUp() {
 		// redisTemplate.opsForValue()가 valueOperations Mock 객체를 반환하도록 설정
 		lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 		lenient().when(redisTemplate.opsForSet()).thenReturn(setOperations);
+
+		// @Value로 주입되는 MAX_PARTICIPANTS 필드 값을 Mocking
+		// 인스턴스 필드로 동작해야 함. Reflection 사용해 테스트용 값 설정.
+		ReflectionTestUtils.setField(chatRoomService, "MAX_PARTICIPANTS", MOCK_MAX_PARTICIPANTS);
 	}
 
 	@Test
@@ -61,8 +65,8 @@ class ChatRoomServiceTest {
 		// given
 		String userId = "new-user";
 		String roomId = "room-1";
-		User mockUser = User.builder().build(); // Mockito 대신 실제 객체 사용도 가능
-		ChatRoom mockRoom = ChatRoom.builder().build();
+		User mockUser = mock(User.class);
+		ChatRoom mockRoom = mock(ChatRoom.class);
 
 		// (1) 방이 꽉 차지 않음
 		when(setOperations.size(anyString())).thenReturn(0L);
@@ -73,57 +77,70 @@ class ChatRoomServiceTest {
 		when(chatRoomUserRepository.findByUserAndChatRoom(any(), any())).thenReturn(Optional.empty());
 		// (4) 닉네임 카운터가 1을 반환
 		when(valueOperations.increment(anyString(), eq(1L))).thenReturn(1L);
+		// (5) 닉네임 시퀀스 초기화 방어 로직 Mocking (setIfAbsent)
+		when(valueOperations.setIfAbsent(anyString(), any())).thenReturn(true); // 실제 호출되더라도 문제 없도록 설정
 
 		// when
 		String nickname = chatRoomService.joinRoom(userId, roomId);
 
 		// then
 		assertThat(nickname).isEqualTo("#1");
-		// (5) DB에 "참가자1" 닉네임으로 저장되었는지 검증
+		// DB에 "참가자1" 닉네임으로 저장되었는지 검증
 		verify(chatRoomUserRepository, times(1)).save(argThat(
 			userRoom -> userRoom.getNickName().equals("#1")
 		));
+		// Redis Set에 추가되었는지 검증
+		verify(setOperations, times(1)).add("chatroom:participants:" + roomId, userId);
+		verify(setOperations, times(1)).add("user:rooms:" + userId, roomId);
 	}
 
 	@Test
 	@DisplayName("재방문 유저가 입장하면 기존 닉네임을 반환하고 DB 저장을 생략한다")
 	void testJoinRoom_ReturningUser() {
 		// given
-		// ... (user, room Mocking) ...
+		String userId = "returning-user";
+		String roomId = "room-1";
+		User mockUser = mock(User.class);
+		ChatRoom mockRoom = mock(ChatRoom.class);
 		ChatRoomUser existingUser = ChatRoomUser.builder().nickName("기존닉네임").build();
 
 		// (1) 방이 꽉 차지 않음
 		when(setOperations.size(anyString())).thenReturn(10L);
 		// (2) DB 조회 성공
-		when(userRepository.findByUserId(anyString())).thenReturn(Optional.of(User.builder().build()));
-		when(chatRoomRepository.findById(anyString())).thenReturn(Optional.of(ChatRoom.builder().build()));
+		when(userRepository.findByUserId(userId)).thenReturn(Optional.of(mockUser));
+		when(chatRoomRepository.findById(roomId)).thenReturn(Optional.of(mockRoom));
 		// (3) 재방문자로 확인됨
 		when(chatRoomUserRepository.findByUserAndChatRoom(any(), any())).thenReturn(Optional.of(existingUser));
 
 		// when
-		String nickname = chatRoomService.joinRoom("returning-user", "room-1");
+		String nickname = chatRoomService.joinRoom(userId, roomId);
 
 		// then
 		assertThat(nickname).isEqualTo("기존닉네임");
 		// (4) DB 저장이 호출되지 않았는지 검증
 		verify(chatRoomUserRepository, never()).save(any());
-		// (5) Redis에는 추가되었는지 검증
-		verify(setOperations, times(1)).add("chatroom:participants:room-1", "returning-user");
+		// (5) Redis에는 추가/갱신되었는지 검증
+		verify(setOperations, times(1)).add("chatroom:participants:" + roomId, userId);
+		verify(setOperations, times(1)).add("user:rooms:" + userId, roomId);
 	}
 
 	@Test
 	@DisplayName("채팅방 정원이 꽉 차면 BusinessException이 발생한다")
 	void testJoinRoom_RoomFull() {
 		// given
-		// (1) 방이 꽉 참 (300명)
-		when(setOperations.size("chatroom:participants:room-1")).thenReturn(300L);
+		String roomId = "room-1";
+		// (1) 방이 꽉 참 (MOCK_MAX_PARTICIPANTS)
+		when(setOperations.size("chatroom:participants:" + roomId)).thenReturn(MOCK_MAX_PARTICIPANTS);
 
 		// when & then
 		// 예외가 발생하는지 검증
 		assertThatThrownBy(() -> {
-			chatRoomService.joinRoom("any-user", "room-1");
+			chatRoomService.joinRoom("any-user", roomId);
 		})
 			.isInstanceOf(BusinessException.class)
 			.hasMessageContaining("채팅방 최대 정원");
+		// 정원 초과 예외 발생 시 다른 Mock 호출이 없는지 확인 (DB 접근 전에 로직이 중단되어야 함)
+		verify(userRepository, never()).findByUserId(anyString());
+		verify(chatRoomRepository, never()).findById(anyString());
 	}
 }

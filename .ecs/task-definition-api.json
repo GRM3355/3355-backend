@@ -24,8 +24,8 @@
         ],
         "interval": 10,
         "timeout": 5,
-        "retries": 3,
-        "startPeriod": 80
+        "retries": 5,
+        "startPeriod": 200
       },
       "environment": [
         { "name": "SPRING_PROFILES_ACTIVE", "value": "prod" }

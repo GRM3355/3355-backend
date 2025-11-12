@@ -28,8 +28,8 @@ public abstract class BaseIntegrationTest {
 			.withExposedPorts(5432)
 			.withEnv("POSTGRES_DB", "testdb")
 			.withEnv("POSTGRES_USER", "testuser")
-			.withEnv("POSTGRES_PASSWORD", "testpass")
-			.withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64")); // M1/M2 호환
+			.withEnv("POSTGRES_PASSWORD", "testpass");
+			// .withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64"));
 
 	// === 2. Redis 컨테이너 ===
 	@Container

@@ -14,3 +14,14 @@ cors:
 
 openapi:
   serviceKey: TEST_KEY_REQUIRED_FOR_CONTEXT_LOAD
+
+spring:
+  batch:
+    job:
+      enabled: false # 테스트 시 자동 실행 비활성화
+    jdbc:
+      initialize-schema: always # 5.x부터 기본값이 never; BATCH_* 테이블(메타데이터)을 항상 생성하도록 설정
+
+festival:
+  batch:
+    date: 7 # 테스트용 기본값

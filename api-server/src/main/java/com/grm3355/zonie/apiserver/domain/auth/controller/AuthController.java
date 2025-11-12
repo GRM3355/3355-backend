@@ -22,6 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.service.AuthService;
+import com.grm3355.zonie.apiserver.global.swagger.ApiError400;
+import com.grm3355.zonie.apiserver.global.swagger.ApiError405;
+import com.grm3355.zonie.apiserver.global.swagger.ApiError415;
+import com.grm3355.zonie.apiserver.global.swagger.ApiError429;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,23 +38,21 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @Tag(name = "Auth & User", description = "사용자 토큰 발급")
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 	private final AuthService authService;
-	private final RedisTokenService redisTokenService;
 
-	@Operation(summary = "사용자 토큰 발급", description = "위도, 경도 입력받아, Access 토큰을 발급합니다.")
-	// @checkstyle:off
+	@Operation(summary = "사용자 토큰 발급", description = "위경도 정보를 입력받아 사용자 Access 토큰을 발급합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "200",
-			description = "토큰 발급성공",
+			responseCode = "201",
+			description = "토큰 발급 성공 (신규 생성)",
 			content = @Content(
 				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
+				schema = @Schema(implementation = AuthResponse.class),
 				examples = @ExampleObject(
-					name = "OK",
+					name = "CREATED",
 					value = "{\"success\":true,\"data\":{\"accessToken\":\"...\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
 				)
 			)
@@ -104,6 +106,14 @@ public class AuthController {
 			)
 		)
 	})
+	@ApiError400
+	@ApiError405
+	@ApiError415
+	@ApiError429
+	@PostMapping("/tokens")
+	public ResponseEntity<?> register(@Valid @RequestBody LocationDto locationDto, HttpServletRequest request) {
+		String path = request != null ? request.getRequestURI() : null;
+		URI location = URI.create(Objects.requireNonNull(path));
 	// 해당url은 지금은 사용할 일 없지만, 확장성을 위해서 보관한다.
 	// 개발할때 업스케일링하는 과정에서나온 url
 	@PostMapping("/oauth2")

@@ -1,5 +1,7 @@
 package com.grm3355.zonie.commonlib.domain.chatroom.repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -20,10 +22,10 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 	// 반환타입은 DTO Projection: 서비스 레이어에 처리
 	// =========================================================================
 	String FESTIVAL_QUERY_BASE = """
-		     SELECT 
-		     c.chat_room_id as chatRoomId, 
-		     f.festival_id as festivalId, 
-		     c.title, 
+		     SELECT
+		     c.chat_room_id as chatRoomId,
+		     f.festival_id as festivalId,
+		     c.title,
 		     c.participant_count as participantCount, 
 		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt, 
 		     f.title AS festivalTitle
@@ -159,4 +161,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 	Page<ChatRoomInfoDto> chatMyRoomList_ACTIVE_DESC
 	(String userId, String keyword, Pageable pageable);
 	*/
+
+	// ChatRoomRedisCleanupJob에서 사용
+	List<ChatRoom> findAllByChatRoomIdIn(Collection<String> chatRoomIds);
 }

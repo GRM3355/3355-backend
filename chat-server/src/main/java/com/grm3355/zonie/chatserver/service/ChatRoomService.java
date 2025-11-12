@@ -7,6 +7,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,9 @@ public class ChatRoomService {
 	// Redis Key Prefix 정의 (재사용성 및 가독성 향상)
 	private static final String KEY_PARTICIPANTS = "chatroom:participants:"; // 실시간 참여자 (Set)
 	private static final String KEY_USER_ROOMS = "user:rooms:"; // 유저별 참여방 (Set)
-	private static final long MAX_PARTICIPANTS = 300;
+
+	@Value("${chat.max-chat-person}")
+	private long MAX_PARTICIPANTS = 300;
 
 	private static final String NICKNAME_PREFIX = "#";
 
@@ -78,7 +81,9 @@ public class ChatRoomService {
 
 		// 1. Redis에서 닉네임 순번 획득 (원자성 보장)
 		// KEY: chatroom:nickname_seq:{roomId}
-		Long nicknameSeq = redisTemplate.opsForValue().increment("chatroom:nickname_seq:" + roomId, 1);
+		String redisKey = "chatroom:nickname_seq:" + roomId;
+		redisTemplate.opsForValue().setIfAbsent(redisKey, 3354L);	// 3355번부터 부여
+		Long nicknameSeq = redisTemplate.opsForValue().increment(redisKey, 1);
 		String newNickname = NICKNAME_PREFIX + nicknameSeq;
 
 		// 2. ChatRoomUser 엔티티 생성 및 DB 저장

@@ -20,90 +20,46 @@ import org.springframework.web.bind.annotation.RestController;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomPageResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
 import com.grm3355.zonie.apiserver.global.dto.PageResponse;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
+import com.grm3355.zonie.apiserver.global.swagger.ApiError400;
+import com.grm3355.zonie.apiserver.global.swagger.ApiError405;
+import com.grm3355.zonie.apiserver.global.swagger.ApiError415;
+import com.grm3355.zonie.apiserver.global.swagger.ApiError429;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 
 @RestController
-@Tag(name = "채팅방 생성 및 목록보기", description = "채팅방을 생성하고 축제별 채팅방 목록, 내 채팅방 목록을 볼수 있습니다.")
+@Tag(name = "ChatRooms", description = "채팅방 생성 api와, 축제별 채팅방 목록 및 내 채팅방 목록 조회 api를 제공합니다.")
 @RequestMapping("/api/v1")
+@RequiredArgsConstructor
 public class ChatRoomController {
-
 	private final ChatRoomService chatRoomService;
 
-	public ChatRoomController(ChatRoomService chatRoomService) {
-		this.chatRoomService = chatRoomService;
-	}
-
-	@Operation(summary = "채팅방 생성", description = "거리계산하여 채팅방을 생성할 수 있다.")
-	// @checkstyle:off
+	@Operation(summary = "채팅방 생성", description = "위치 기반으로 채팅방을 생성합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "200",
-			description = "목록표시",
+			responseCode = "201",
+			description = "채팅방 생성 성공",
 			content = @Content(
 				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "400",
-			description = "입력값 유효성 검증 실패",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "BAD_REQUEST",
-					value = "{\"success\":false,\"status\":400,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "405",
-			description = "허용되지 않은 메소드",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "METHOD_NOT_ALLOWED",
-					value = "{\"success\":false,\"status\":405,\"error\":{\"code\":\"METHOD_NOT_ALLOWED\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "415",
-			description = "UNSUPPORTED_MEDIA_TYPE",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "UNSUPPORTED_MEDIA_TYPE",
-					value = "{\"success\":false,\"status\":415,\"error\":{\"code\":\"UNSUPPORTED_MEDIA_TYPE\",\"message\":\"잘못된 콘텐츠 타입입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "429",
-			description = "요청 횟수 초과",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "TOO_MANY_REQUESTS",
-					value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
-				)
+				schema = @Schema(implementation = ChatRoomResponse.class)
 			)
 		)
 	})
+	@ApiError400
+	@ApiError405
+	@ApiError415
+	@ApiError429
 	@PreAuthorize("hasRole('GUEST')")
 	@PostMapping("/festivals/{festivalId}/chat-rooms")
 	public ResponseEntity<?> createChatRoom(@PathVariable long festivalId,
@@ -115,77 +71,31 @@ public class ChatRoomController {
 		return ResponseEntity.created(location).body(ApiResponse.success(response));
 	}
 
-	@Operation(summary = "축제별 채팅방 목록", description = "해당 축제의 채팅방을 볼 수 있다.")
-	// @checkstyle:off
+	@Operation(summary = "축제별 채팅방 목록", description = "특정 축제의 채팅방을 조회합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
 			description = "목록표시",
 			content = @Content(
 				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "400",
-			description = "입력값 유효성 검증 실패",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "BAD_REQUEST",
-					value = "{\"success\":false,\"status\":400,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "405",
-			description = "허용되지 않은 메소드",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "METHOD_NOT_ALLOWED",
-					value = "{\"success\":false,\"status\":405,\"error\":{\"code\":\"METHOD_NOT_ALLOWED\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "415",
-			description = "UNSUPPORTED_MEDIA_TYPE",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "UNSUPPORTED_MEDIA_TYPE",
-					value = "{\"success\":false,\"status\":415,\"error\":{\"code\":\"UNSUPPORTED_MEDIA_TYPE\",\"message\":\"잘못된 콘텐츠 타입입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "429",
-			description = "요청 횟수 초과",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "TOO_MANY_REQUESTS",
-					value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
-				)
+				schema = @Schema(implementation = MyChatRoomPageResponse.class)
 			)
 		)
 	})
+	@ApiError400
+	@ApiError405
+	@ApiError415
+	@ApiError429
 	@GetMapping("/festivals/{festivalId}/chat-rooms")
 	public ResponseEntity<?> getChatRoomList(@PathVariable long festivalId,
 		@Valid @ModelAttribute ChatRoomSearchRequest request
 	) {
 		Page<MyChatRoomResponse> pageList = chatRoomService.getFestivalChatRoomList(festivalId, request);
-		PageResponse<MyChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
+		MyChatRoomPageResponse response = new MyChatRoomPageResponse(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 
-	@Operation(summary = "내 채팅방 목록", description = "사용자의 토큰을 입력받아서 본인이 등록한 채팅방 목록을 본다.")
-	// @checkstyle:off
+	@Operation(summary = "내 채팅방 목록", description = "사용자 인증을 거쳐 사용자가 등록한 채팅방 목록을 조회합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -194,69 +104,20 @@ public class ChatRoomController {
 				mediaType = "application/json",
 				schema = @Schema(implementation = ApiResponse.class)
 			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "400",
-			description = "입력값 유효성 검증 실패",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "BAD_REQUEST",
-					value = "{\"success\":false,\"status\":400,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "405",
-			description = "허용되지 않은 메소드",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "METHOD_NOT_ALLOWED",
-					value = "{\"success\":false,\"status\":405,\"error\":{\"code\":\"METHOD_NOT_ALLOWED\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "415",
-			description = "UNSUPPORTED_MEDIA_TYPE",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "UNSUPPORTED_MEDIA_TYPE",
-					value = "{\"success\":false,\"status\":415,\"error\":{\"code\":\"UNSUPPORTED_MEDIA_TYPE\",\"message\":\"잘못된 콘텐츠 타입입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "429",
-			description = "요청 횟수 초과",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "TOO_MANY_REQUESTS",
-					value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
-				)
-			)
 		)
 	})
+	@ApiError400
+	@ApiError405
+	@ApiError415
+	@ApiError429
 	@PreAuthorize("hasRole('GUEST')")
 	@GetMapping("/chat-rooms/my-rooms")
-	public ResponseEntity<ApiResponse<PageResponse<MyChatRoomResponse>>> getChatRoomList(
+	public ResponseEntity<ApiResponse<MyChatRoomPageResponse>> getChatRoomList(
 		@Valid @ModelAttribute ChatRoomSearchRequest request,
 		@AuthenticationPrincipal UserDetailsImpl userDetails
 	) {
-		//if (bindingResult.hasErrors()) {
-		//	System.out.println("errrr----");
-		//	throw new ValidationException(bindingResult.getFieldErrors());
-		//}
 		Page<MyChatRoomResponse> pageList = chatRoomService.getMyRoomChatRoomList(userDetails, request);
-		PageResponse<MyChatRoomResponse> response = new PageResponse<>(pageList, request.getPageSize());
+		MyChatRoomPageResponse response = new MyChatRoomPageResponse(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
-
 }

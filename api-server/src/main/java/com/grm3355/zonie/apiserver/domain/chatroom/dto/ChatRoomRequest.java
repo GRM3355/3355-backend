@@ -15,4 +15,12 @@ public class ChatRoomRequest {
 	@NotBlank(message = "채팅방 제목은 필수입니다.")
 	private String title;
 
+	@Schema(description = "위도", example = "37.5894939323")
+	@NotNull(message = "위도 값은 필수입니다.")
+	private double lat;
+
+	@Schema(description = "경도", example = "127.0167863252")
+	@NotNull(message = "경도 값은 필수입니다.")
+	private double lon;
+
 }
