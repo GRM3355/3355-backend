@@ -29,4 +29,19 @@ public class FestivalInfoService {
 	public void increaseChatRoomCount(Long festivalId) {
 		festivalRepository.updateFestivalChatRoomCount(festivalId);
 	}
+
+	/**
+	 * 사용자가 축제 반경 내에 있는지 PostGIS를 이용해 검증합니다.
+	 * @param festivalId 축제 ID
+	 * @param lat 사용자 위도
+	 * @param lon 사용자 경도
+	 * @param maxRadius 최대 허용 반경 (km)
+	 * @return 반경 내에 있으면 true
+	 */
+	public boolean isUserWithinFestivalRadius(long festivalId, double lat, double lon, double maxRadius) {
+		// PostGIS 쿼리(findDistanceToFestival)를 호출하여 거리를 km 단위로 가져옵니다.
+		double distanceKm = festivalRepository.findDistanceToFestival(festivalId, lon, lat)
+			.orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "축제 위치 정보를 찾을 수 없습니다."));
+		return distanceKm <= maxRadius;
+	}
 }

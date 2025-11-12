@@ -59,7 +59,7 @@ public class ChatRoom extends BaseTimeEntity {
 	private String coverImageUrl;
 
 	@Column(name = "max_participants", nullable = false)
-	private int maxParticipants;
+	private Long maxParticipants;
 
 	@Column(name = "radius", nullable = false)
 	private double radius;
