@@ -10,7 +10,7 @@ jwt:
   location-token-expiration-time: 600000 # 10분
 
 cors:
-  allowed-origins: "http://localhost:8082,http://example.com"
+  allowed-origins: "http://localhost:8082, http://example.com"
 
 openapi:
   serviceKey: TEST_KEY_REQUIRED_FOR_CONTEXT_LOAD
@@ -22,6 +22,25 @@ spring:
     jdbc:
       initialize-schema: always # 5.x부터 기본값이 never; BATCH_* 테이블(메타데이터)을 항상 생성하도록 설정
 
+  datasource:
+    hikari:
+      connection-timeout: 60000 # 연결 타임아웃 60초
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+chat:
+  max-chat-person: 300
+  max-chat-room: 30
+  radius: 1.0 #km
+  pre-create-day: 7 #7일전부터 생성 가능
+  pre-view-day: 7 #7일전부터 축제보기 가능
+
+location:
+  token:
+    ttl-minutes: 15
+  radius:
+    limit: 1.0
+
 festival:
   batch:
-    date: 7 # 테스트용 기본값
+    date: 7 # 오늘 ~ +7일치 데이터만 조회
