@@ -38,6 +38,7 @@ public class SecurityConfig {
 		"/health",    //health check
 		"/actuator/health",    //health check
 		"/actuator/info",    //health info
+		"/api/auth/**",    //health info
 		"/api/v1/auth/**",    // Auth API
 		"/api/v1/location/**",  // location API
 		"/api/v1/batch/**",        //batch

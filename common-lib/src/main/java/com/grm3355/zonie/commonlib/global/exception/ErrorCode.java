@@ -24,6 +24,11 @@ public enum ErrorCode {
     OAUTH2_NOT_SUPPORTED_PROVIDER_TYPE("UNAUTHORIZED", "지원하지 않는 소셜 로그인 타입입니다."),
     DUPLICATE_SOCIAL_TYPE("UNAUTHORIZED", "중복되는 타입입니다."),
 
+	// 401 / 403
+	TOKEN_EXPIRED("TOKEN_EXPIRED", "인증 토큰이 만료되었습니다."),
+	TOKEN_INVALID( "TOKEN_INVALID", "인증 토큰이 유효하지 않습니다."),
+
+
     //403
     FORBIDDEN("FORBIDDEN", "접근 권한이 없습니다."),
 

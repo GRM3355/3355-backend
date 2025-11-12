@@ -57,7 +57,7 @@ public class LocationService {
 	public LocationTokenResponse update(LocationDto locationDto, UserDetailsImpl userDetails) {
 
 		String savedToken = userDetails.getUsername();
-		boolean value = redisTokenService.updateLocationInfo(locationDto, savedToken);
+		boolean value = redisTokenService.updateLocationInfo(locationDto, userDetails);
 		String message = value ? "갱신되었습니다." : "갱신에 실패하였습니다.";
 		return new LocationTokenResponse(message);
 	}

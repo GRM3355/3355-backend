@@ -19,6 +19,7 @@ public class OAuth2Clients {
     public static OAuth2ClientsBuilder builder() {
         return new OAuth2ClientsBuilder();
     }
+
     public OAuth2Client getClient(ProviderType socialType) {
         return oAuth2ClientMap.getOrDefault(socialType, () -> {
             throw new BadRequestException(ErrorCode.OAUTH2_NOT_SUPPORTED_PROVIDER_TYPE);

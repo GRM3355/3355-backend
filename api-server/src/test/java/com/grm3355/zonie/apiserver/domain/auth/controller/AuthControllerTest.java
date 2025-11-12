@@ -72,29 +72,6 @@ class AuthControllerTest {
     @MockitoBean
     private JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
-    @Test
-    void registerToken_Success() throws Exception {
-        LocationDto locationDto = new LocationDto();
-        locationDto.setLat(37.5665);
-        locationDto.setLon(126.9780);
-
-        AuthResponse mockResponse = new AuthResponse("access-token-12345");
-
-        Mockito.when(authService.register(
-                any(LocationDto.class),
-                any(HttpServletRequest.class))
-        ).thenReturn(mockResponse);
-
-        mockMvc.perform(post("/api/auth/token-register")
-                        .header("Authorization", "Bearer test")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(locationDto)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.accessToken").value("access-token-12345"))
-                .andExpect(jsonPath("$.timestamp").exists());
-    }
-
     // @Test
     // @DisplayName("입력값 누락 시 400 에러 반환")
     // void registerToken_BadRequest() throws Exception {

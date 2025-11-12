@@ -8,17 +8,18 @@ public record KakaoUserInfo(
         String id,
         @JsonProperty("kakao_account") KakaoAccount kakaoAccount
 ) {
-
     public UserInfo toUserInfo() {
         return new UserInfo(
                 id,
                 ProviderType.KAKAO,
-                kakaoAccount.profile.nickname,
+                kakaoAccount.email,
+				kakaoAccount.profile.nickname,
                 kakaoAccount.profile.thumbnailImageUrl
         );
     }
 
     public record KakaoAccount(
+			String email,
             Profile profile
     ) {
 

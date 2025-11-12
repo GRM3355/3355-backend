@@ -13,10 +13,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUserId(String id);
 
-    Optional<User> findBySocialIdAndProviderType(String socialId, ProviderType providerType);
+	Optional<User> findByUserIdAndProviderTypeAndDeletedAtIsNull(String userId, ProviderType providerType);
+
+	Optional<User> findByUserIdAndDeletedAtIsNull(String userId);
+
+    Optional<User> findBySocialIdAndProviderTypeAndDeletedAtIsNull(String socialId, ProviderType providerType);
+	Optional<User> findBySocialIdAndDeletedAtIsNull(String socialId);
 
     default User getOrThrow(String id) {
         return findByUserId(id)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("등록된 사용자가 없습니다."));
     }
 }

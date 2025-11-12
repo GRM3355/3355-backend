@@ -1,5 +1,7 @@
 package com.grm3355.zonie.commonlib.domain.user.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -41,7 +43,7 @@ public class User extends BaseTimeEntity {
 	@Column(name = "password")
 	private String password;
 
-	// GUEST, USER, ADMIN - 카카오회원은 USER
+	// USER, ADMIN - 카카오회원은 USER
 	@Enumerated(EnumType.STRING)
 	@Column(name = "role", nullable = false, length = 20)
 	private Role role;
@@ -60,15 +62,20 @@ public class User extends BaseTimeEntity {
 
 	// 로그인 제공자 (KAKAO, GOOGLE, NAVER, APPLE 등)
 	@Enumerated(EnumType.STRING)
+	@Column(name = "provider_type")
 	private ProviderType providerType;
 
 	// SNS가 제공하는 고유 ID (sub, id 등)
+	@Column(name = "social_id")
 	private String socialId;
 
 	public void updateEmail(String email) {
 		this.accountEmail = email;
 	}
 
+	//public void delete() {
+	//	this.deletedAt = LocalDateTime.now();
+	//}
 
 	//todo 휴대폰번호 컬럼 추가필요
 //	public void updatePhoneNumber(String phoneNumber) {

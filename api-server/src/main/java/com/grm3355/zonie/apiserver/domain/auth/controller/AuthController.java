@@ -1,7 +1,9 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
+import com.grm3355.zonie.apiserver.domain.auth.dto.RefreshTokenRequest;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
+import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.commonlib.global.enums.ProviderType;
 import java.net.URI;
 import java.util.Objects;
@@ -36,6 +38,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthController {
 	private final AuthService authService;
+	private final RedisTokenService redisTokenService;
 
 	@Operation(summary = "사용자 토큰 발급", description = "위도, 경도 입력받아, Access 토큰을 발급합니다.")
 	// @checkstyle:off
@@ -60,7 +63,7 @@ public class AuthController {
 				schema = @Schema(implementation = ApiResponse.class),
 				examples = @ExampleObject(
 					name = "BAD_REQUEST",
-					value = "{\"success\":false,\"status\":400,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
+					value = "{\"success\":false,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 				)
 			)
 		),
@@ -72,7 +75,7 @@ public class AuthController {
 				schema = @Schema(implementation = ApiResponse.class),
 				examples = @ExampleObject(
 					name = "METHOD_NOT_ALLOWED",
-					value = "{\"success\":false,\"status\":405,\"error\":{\"code\":\"METHOD_NOT_ALLOWED\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
+					value = "{\"success\":false,\"error\":{\"code\":\"METHOD_NOT_ALLOWED\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 				)
 			)
 		),
@@ -84,7 +87,7 @@ public class AuthController {
 				schema = @Schema(implementation = ApiResponse.class),
 				examples = @ExampleObject(
 					name = "UNSUPPORTED_MEDIA_TYPE",
-					value = "{\"success\":false,\"status\":415,\"error\":{\"code\":\"UNSUPPORTED_MEDIA_TYPE\",\"message\":\"잘못된 콘텐츠 타입입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
+					value = "{\"success\":false,\"error\":{\"code\":\"UNSUPPORTED_MEDIA_TYPE\",\"message\":\"잘못된 콘텐츠 타입입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 				)
 			)
 		),
@@ -96,21 +99,13 @@ public class AuthController {
 				schema = @Schema(implementation = ApiResponse.class),
 				examples = @ExampleObject(
 					name = "TOO_MANY_REQUESTS",
-					value = "{\"success\":false,\"status\":429,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
+					value = "{\"success\":false,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
 				)
 			)
 		)
 	})
-	@PostMapping("/token-register")
-	public ResponseEntity<?> register(@Valid @RequestBody LocationDto locationDto, HttpServletRequest request) {
-		String path = request != null ? request.getRequestURI() : null;
-		URI location = URI.create(Objects.requireNonNull(path));
-
-		// 토큰이 없으면 register 처리
-		AuthResponse response2 = authService.register(locationDto);
-		return ResponseEntity.created(location).body(ApiResponse.success(response2));
-	}
-
+	// 해당url은 지금은 사용할 일 없지만, 확장성을 위해서 보관한다.
+	// 개발할때 업스케일링하는 과정에서나온 url
 	@PostMapping("/oauth2")
 	public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
 		LoginResponse response = authService.login(request);
@@ -123,5 +118,43 @@ public class AuthController {
 		LoginResponse response = authService.login(new LoginRequest(ProviderType.KAKAO, code));
 		return ResponseEntity.ok()
 				.body(response);
+	}
+
+	@Operation(summary = "토큰 재발급", description = "유효한 Refresh 토큰을 사용하여 새로운 Access/Refresh 토큰 쌍을 발급받습니다. 보안 강화를 위해 토큰 로테이션이 적용되어, 사용된 Refresh 토큰은 무효화되고 새로운 Refresh 토큰이 발급됩니다.")
+	@ApiResponses({
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "토큰 재발급 성공",
+			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
+				examples = @ExampleObject(
+					name = "OK",
+					value = "{\"success\":true,\"message\":\"OK\",\"data\":{\"accessToken\":\"...\",\"refreshToken\":\"...\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
+				)
+			)
+		),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "리프레시 토큰 만료 또는 유효하지 않음",
+			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
+				examples = @ExampleObject(
+					name = "TOKEN_INVALID",
+					value = "{\"success\":false,\"message\":\"TOKEN_INVALID\",\"message\":\"리프레시 토큰이 유효하지 않습니다.\",\"timestamp\":\"2025-09-02T10:40:00.543210Z\"}"
+				)
+			)
+		)
+	})
+	@PostMapping("/refresh")
+	public ResponseEntity<ApiResponse<LoginResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
+		LoginResponse authResponse = authService.refreshAccessToken(request.refreshToken());
+		return ResponseEntity.ok().body(ApiResponse.success(authResponse));
+	}
+
+	@Operation(summary = "로그아웃", description = "서버에 저장된 Refresh 토큰을 삭제하여 로그아웃 처리합니다. 클라이언트 측에서도 저장된 토큰을 모두 삭제해야 안전하게 로그아웃이 완료됩니다.")
+	@ApiResponses({
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "로그아웃 성공",
+			content = @Content(mediaType = "application/json"
+			))
+	})
+	@PostMapping("/logout")
+	public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody RefreshTokenRequest request) {
+		//200 응답 나오면 프론트엔드에서 액세스토큰, 리프레시 토큰 삭제
+		redisTokenService.deleteByToken(request.refreshToken());
+		return ResponseEntity.ok().body(ApiResponse.<Void>noContent());
 	}
 }

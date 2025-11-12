@@ -8,6 +8,7 @@ import com.grm3355.zonie.commonlib.global.enums.Role;
 public record UserInfo(
         String socialId,
         ProviderType providerType,
+		String email,
         String nickname,
         String profileImage) {
 
@@ -17,7 +18,7 @@ public record UserInfo(
                 .password("null")
                 .role(Role.USER)
                 .profileNickName(nickname)
-                .accountEmail(null)
+                .accountEmail(email)
                 .profileImage(profileImage)
                 .providerType(providerType)
                 .socialId(socialId)
