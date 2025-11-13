@@ -86,7 +86,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			"    f.position::geography, " + 									// 1. DB에 저장된 축제 위치 (geography 타입으로 캐스팅)
 			"    ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography " + 		// 2. 사용자의 현재 위치 (lon, lat)로 geography 생성
 			") / 1000.0 " + 													// 3. 결과를 미터(m)에서 킬로미터(km)로 변환
-			"FROM festival f " +
+			"FROM festivals f " +
 			"WHERE f.festival_id = :festivalId",
 		nativeQuery = true)
 	Optional<Double> findDistanceToFestival(@Param("festivalId") long festivalId, @Param("lon") double lon, @Param("lat") double lat);

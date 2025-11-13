@@ -40,8 +40,13 @@ public class JwtTokenProvider {
 
 	@Setter
 	@Getter
-	@Value("${jwt.location-token-expiration-time}") // Refresh Token의 만료 시간을 주입받는다.
+	@Value("${jwt.location-token-expiration-time}") // location Token의 만료 시간을 주입받는다.
 	private long locationTokenExpirationTime;
+
+	@Setter
+	@Getter
+	@Value("${jwt.refresh-token-expiration-time}") // Refresh Token의 만료 시간을 주입받는다.
+	private long refreshTokenExpirationTime;
 
 	private SecretKey key;
 
@@ -67,7 +72,7 @@ public class JwtTokenProvider {
 	 * Refresh Token은 Access Token보다 긴 만료 시간을 가지며, 일반적으로 사용자 역할 등의 민감한 정보를 포함하지 않는다.
 	 */
 	public String createRefreshToken(String userId) {
-		return createToken(userId, null, locationTokenExpirationTime);
+		return createToken(userId, null, refreshTokenExpirationTime);
 	}
 
 	/**

@@ -21,10 +21,12 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grm3355.zonie.apiserver.BaseIntegrationTest;
+import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 @DisplayName("채팅방 생성 통합테스트")
 @SpringBootTest
@@ -38,6 +40,12 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 
 	@MockitoBean
 	private ChatRoomService chatRoomService;
+
+	@MockitoBean
+	private JwtTokenProvider jwtTokenProvider;
+
+	@MockitoBean
+	private RedisTokenService redisTokenService;
 
 	@Test
 	@DisplayName("채팅방 생성 성공")
