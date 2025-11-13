@@ -11,6 +11,8 @@ on:
   pull_request:
     branches: [ "main", "dev" ]
 
+if: github.repository == 'GRM3355/3355-backend'
+
 # 2. 작업 (Jobs)
 jobs:
   build-and-test:
