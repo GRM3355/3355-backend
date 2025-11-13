@@ -72,7 +72,7 @@ class ChatRoomServiceTest {
 		when(setOperations.size(anyString())).thenReturn(0L);
 		// (2) DB에서 User, ChatRoom 조회 성공
 		when(userRepository.findByUserId(userId)).thenReturn(Optional.of(mockUser));
-		when(chatRoomRepository.findById(roomId)).thenReturn(Optional.of(mockRoom));
+		when(chatRoomRepository.findByChatRoomId(roomId)).thenReturn(Optional.of(mockRoom));
 		// (3) 재방문자가 아님
 		when(chatRoomUserRepository.findByUserAndChatRoom(any(), any())).thenReturn(Optional.empty());
 		// (4) 닉네임 카운터가 1을 반환
@@ -108,7 +108,7 @@ class ChatRoomServiceTest {
 		when(setOperations.size(anyString())).thenReturn(10L);
 		// (2) DB 조회 성공
 		when(userRepository.findByUserId(userId)).thenReturn(Optional.of(mockUser));
-		when(chatRoomRepository.findById(roomId)).thenReturn(Optional.of(mockRoom));
+		when(chatRoomRepository.findByChatRoomId(roomId)).thenReturn(Optional.of(mockRoom));
 		// (3) 재방문자로 확인됨
 		when(chatRoomUserRepository.findByUserAndChatRoom(any(), any())).thenReturn(Optional.of(existingUser));
 
@@ -141,6 +141,6 @@ class ChatRoomServiceTest {
 			.hasMessageContaining("채팅방 최대 정원");
 		// 정원 초과 예외 발생 시 다른 Mock 호출이 없는지 확인 (DB 접근 전에 로직이 중단되어야 함)
 		verify(userRepository, never()).findByUserId(anyString());
-		verify(chatRoomRepository, never()).findById(anyString());
+		verify(chatRoomRepository, never()).findByChatRoomId(anyString());
 	}
 }
