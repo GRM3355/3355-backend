@@ -66,6 +66,9 @@ jobs:
         uses: dorny/paths-filter@v3
         id: filter
         with:
+          # "이번 푸시가 시작되기 전" vs "이번 푸시의 끝" 비교
+          base: ${{ github.event.workflow_run.before }} # 푸시 전 커밋 해시
+          ref: ${{ github.event.workflow_run.head_sha }}
           filters: |
             # [규칙 1] api-server 또는 common-lib가 바뀌면 'api-server' 배포
             api-server:
