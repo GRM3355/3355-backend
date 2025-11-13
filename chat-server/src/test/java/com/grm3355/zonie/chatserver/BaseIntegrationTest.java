@@ -26,8 +26,8 @@ public abstract class BaseIntegrationTest {
 			.withExposedPorts(5432)
 			.withEnv("POSTGRES_DB", "testdb")
 			.withEnv("POSTGRES_USER", "testuser")
-			.withEnv("POSTGRES_PASSWORD", "testpass")
-			.withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64")); // M1/M2 호환
+			.withEnv("POSTGRES_PASSWORD", "testpass");
+			// .withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64")); // M1/M2 호환
 
 	// === 2. Redis 컨테이너 ===
 	@Container
@@ -45,7 +45,7 @@ public abstract class BaseIntegrationTest {
 	@BeforeAll
 	static void setupPostGIS() throws SQLException {
 		String jdbcUrl = String.format(
-			"jdbc:postgresql://%s:%d/testdb",
+			"jdbc:postgresql://%s:%d/testdb?sslmode=disable",
 			postgresContainer.getHost(),
 			postgresContainer.getMappedPort(5432)
 		);
@@ -63,7 +63,7 @@ public abstract class BaseIntegrationTest {
 		// PostgreSQL
 		registry.add("spring.datasource.url",
 			() -> String.format(
-				"jdbc:postgresql://%s:%d/testdb",
+				"jdbc:postgresql://%s:%d/testdb?sslmode=disable",
 				postgresContainer.getHost(),
 				postgresContainer.getMappedPort(5432)
 			)
