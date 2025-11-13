@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 public class ChatRoomService {
 
-	private static final String PRE_FIX = "room:";
+	private static final String PRE_FIX = "";
 	private final RedisTokenService redisTokenService;
 	private final FestivalInfoService festivalInfoService;
 	private final RedisScanService redisScanService;
