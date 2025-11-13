@@ -85,7 +85,6 @@ jobs:
           file: ./api-server/Dockerfile # Dockerfile 위치
           tags: 548182874697.dkr.ecr.ap-northeast-2.amazonaws.com/zonie/api-server:${{ github.sha }}
           push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' }}  # main, dev에서만 푸시
-          load: true # 이미지를 local docker demon에 로드 (for 다음 단계)
           cache-from: type=gha,scope=${{ github.workflow }}-api             # API 서버 전용 캐시 scope
           cache-to: type=gha,scope=${{ github.workflow }}-api,mode=max
 
@@ -97,7 +96,6 @@ jobs:
           file: ./chat-server/Dockerfile
           tags: 548182874697.dkr.ecr.ap-northeast-2.amazonaws.com/zonie/chat-server:${{ github.sha }}
           push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' }}  # main, dev에서만 푸시
-          load: true
           cache-from: type=gha,scope=${{ github.workflow }}-chat            # chat 서버 전용 캐시 scope
           cache-to: type=gha,scope=${{ github.workflow }}-chat,mode=max
 
@@ -109,7 +107,6 @@ jobs:
           file: ./batch-server/Dockerfile # 배치 서버 Dockerfile 경로
           tags: 548182874697.dkr.ecr.ap-northeast-2.amazonaws.com/zonie/batch-server:${{ github.sha }}
           push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' }}  # main, dev에서만 푸시
-          load: true
           cache-from: type=gha,scope=${{ github.workflow }}-batch           # batch 서버 전용 캐시 scope
           cache-to: type=gha,scope=${{ github.workflow }}-batch,mode=max
 
