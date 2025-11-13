@@ -18,7 +18,7 @@ spring:
   # --- JPA (운영용) ---
   jpa:
     hibernate:
-      ddl-auto: none # 운영 환경에서는 validate 또는 none 사용
+      ddl-auto: update # 운영 환경에서는 validate 또는 none 사용
     show-sql: false
 
   # --- Spring Batch ---
@@ -36,6 +36,7 @@ logging:
 jwt:
   secret: ${JWT_SECRET_KEY}
   access-token-expiration-time: 86400000 # 24시간
+  refresh-token-expiration-time: 604800000 # 7일
   location-token-expiration-time: 600000 # 10분
 
 openapi:
