@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
 
@@ -129,4 +130,26 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 		nativeQuery = true
 	)
 	long countFestivalsByRegion(@Param("region") String region, @Param("dayNum") int dayNum);
+
+
+	/**
+	 * chat_rooms 테이블의 참여자 수를 합산하여
+	 * festivals 테이블의 total_participant_count 필드를 일괄 업데이트합니다.
+	 */
+	@Modifying
+	@Transactional
+	@Query(value = """
+        UPDATE festivals f
+        SET total_participant_count = COALESCE(sub.total_count, 0)
+        FROM (
+            SELECT 
+                cr.festival_id, 
+                SUM(cr.participant_count) AS total_count
+            FROM chat_rooms cr
+            WHERE cr.festival_id IS NOT NULL
+            GROUP BY cr.festival_id
+        ) AS sub
+        WHERE f.festival_id = sub.festival_id
+        """, nativeQuery = true)
+	void syncTotalParticipantCounts();
 }

@@ -33,10 +33,10 @@ public class FestivalResponse {
 	private String firstImage;
 
 	@Schema(description = "위도", example = "(26.223)")
-	private double lat;
+	private Double lat;
 
 	@Schema(description = "경도", example = "123.233")
-	private double lon;
+	private Double lon;
 
 	@Schema(description = "지역명", example = "SEOUL")
 	private String region;
@@ -44,23 +44,28 @@ public class FestivalResponse {
 	@Schema(description = "채팅방 갯수", example = "23")
 	private int chatRoomCount;
 
+	@Schema(description = "축제 총 참여자 수", example = "300")
+	private Long totalParticipantCount;
+
+
 	public static FestivalResponse fromEntity(Festival festival) {
 
-		LocalDate startDateTime = festival.getEventStartDate();
-		LocalDate endDateTime = festival.getEventEndDate();
+		// PostGIS Point가 null일 경우를 대비한 방어 코드
+		Double lat = (festival.getPosition() != null) ? festival.getPosition().getY() : null;
+		Double lon = (festival.getPosition() != null) ? festival.getPosition().getX() : null;
 
-		return new FestivalResponse(
-			festival.getFestivalId(),
-			festival.getTitle(),
-			festival.getAddr1(),
-			startDateTime,
-			endDateTime,
-			festival.getFirstImage(),
-			festival.getPosition().getY(),
-			festival.getPosition().getX(),
-			festival.getRegion(),
-			festival.getChatRoomCount()
-		);
+		return FestivalResponse.builder()
+			.festivalId(festival.getFestivalId())
+			.title(festival.getTitle())
+			.addr1(festival.getAddr1())
+			.eventStartDate(festival.getEventStartDate())
+			.eventEndDate(festival.getEventEndDate())
+			.firstImage(festival.getFirstImage())
+			.lat(lat)	// null 또는 실제 위도값
+			.lon(lon)	// null 또는 실제 경도값
+			.region(festival.getRegion())
+			.chatRoomCount(festival.getChatRoomCount())
+			.totalParticipantCount(festival.getTotalParticipantCount())
+			.build();
 	}
-
 }
