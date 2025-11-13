@@ -19,10 +19,18 @@ public class UserDetailsServiceImpl implements org.springframework.security.core
 	@Override
 	public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(String id) throws
 		UsernameNotFoundException {
-		User user = userRepository.findByUserIdAndDeletedAtIsNull(id)
-			.orElseThrow(() -> new UsernameNotFoundException("아이디를 찾을 수 없습니다: " + id));
+		try {
+			User user = userRepository.findByUserIdAndDeletedAtIsNull(id)
+				.orElseThrow(() -> new UsernameNotFoundException("아이디를 찾을 수 없습니다: " + id));
+			return UserDetailsImpl.build(user);
+		} catch (UsernameNotFoundException e) {
+			// 사용자 없음
+			throw e;
 
-		return UserDetailsImpl.build(user);
+		} catch (Exception e) {
+			// DB 연결 오류 등 기타 예외
+			throw new UsernameNotFoundException("사용자 조회 중 오류가 발생했습니다: " + e.getMessage(), e);
+		}
 	}
 
 	public UserDetailsImpl getUserDetailsByEmail(String email) {

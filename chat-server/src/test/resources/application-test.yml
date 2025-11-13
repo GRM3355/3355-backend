@@ -23,4 +23,3 @@ location:
     ttl-minutes: 15
   radius:
     limit: 1.0
-  
