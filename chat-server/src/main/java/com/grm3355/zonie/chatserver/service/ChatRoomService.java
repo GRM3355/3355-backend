@@ -56,7 +56,7 @@ public class ChatRoomService {
 		// 2. 엔티티 조회 (DB)
 		User user = userRepository.findByUserId(userId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
-		ChatRoom room = chatRoomRepository.findById(roomId)
+		ChatRoom room = chatRoomRepository.findByChatRoomId(roomId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
 		log.info("USER FETCHED: {}", user.getUserId());
 		log.info("ROOM FETCHED: {}", room.getChatRoomId());
@@ -155,7 +155,7 @@ public class ChatRoomService {
 		// 1. 엔티티 조회 (DB)
 		User user = userRepository.findByUserId(userId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
-		ChatRoom room = chatRoomRepository.findById(roomId)
+		ChatRoom room = chatRoomRepository.findByChatRoomId(roomId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
 
 		// 2. Redis에서 실시간 참여자 수 감소 및 역방향 매핑 제거 (특정 방만)

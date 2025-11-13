@@ -14,7 +14,7 @@ import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 
 @Repository
-public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
+public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
 	// =========================================================================
 	// 공통 축제별 목록 조회 쿼리, 내 채팅방 목록 조회 쿼리
@@ -97,4 +97,5 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 
 	// ChatRoomRedisCleanupJob에서 사용
 	List<ChatRoom> findAllByChatRoomIdIn(Collection<String> chatRoomIds);
+
 }

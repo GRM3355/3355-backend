@@ -16,7 +16,7 @@ import lombok.Getter;
 /**
  * Batch-server의 RedisToDbSyncJob에서 사용할 chat_rooms 테이블 Bulk Update 전용 Repository
  */
-public interface ChatRoomSyncRepository extends Repository<ChatRoom, String> { // ID값 타입 = String
+public interface ChatRoomSyncRepository extends Repository<ChatRoom, Long> { // ID값 타입 = String
 
 	/**
 	 * DTO 리스트를 받아 PostgreSQL의 chat_rooms 테이블을 Bulk Update 합니다.

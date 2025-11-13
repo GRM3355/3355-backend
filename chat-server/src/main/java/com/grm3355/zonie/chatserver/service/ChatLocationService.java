@@ -53,7 +53,7 @@ public class ChatLocationService {
 
 	// DB: 채팅방 ID -> 축제 ID
 	private Long getFestivalIdForRoom(String roomId) {
-		ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(roomId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방 정보를 찾을 수 없습니다."));
 		return chatRoom.getFestival().getFestivalId();
 	}
