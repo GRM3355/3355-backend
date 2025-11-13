@@ -61,18 +61,17 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		     WHERE c.chat_room_id IS NOT NULL
 		       AND (cru.user_id = :userId)
 		       AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%') )
-		     GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.participant_count, c.last_message_at, f.title
+		     GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.participant_count, c.last_message_at, f.title, c.created_at
 		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시
 	String MY_ROOM_QUERY_BASE_COUNT = """
-		   SELECT count(*)
+		   SELECT COUNT(DISTINCT c.chat_room_id)
 		   FROM chat_rooms c
 		   LEFT JOIN festivals f ON f.festival_id = c.festival_id
 		   LEFT JOIN chat_room_user cru ON cru.chat_room_id = c.chat_room_id
 		   WHERE c.chat_room_id IS NOT NULL
 		     AND (cru.user_id = :userId)
 		     AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%') )
-		   GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.participant_count, c.last_message_at, f.title
-		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시
+		""";
 
 	Optional<ChatRoom> findByChatRoomId(String chatRoomId);
 
