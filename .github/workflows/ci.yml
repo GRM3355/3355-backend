@@ -87,7 +87,7 @@ jobs:
           # PR일 땐 푸시 안하고, Push일 때 main, dev 브랜치에서만 푸시
           push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
           cache-from: type=gha,scope=${{ github.workflow }}-api             # API 서버 전용 캐시 scope
-          cache-to: type=gha,scope=${{ github.workflow }}-api,mode=max
+          cache-to: type=gha,scope=${{ github.workflow }}-api,mode=min
 
       # 9-2: Chat 서버
       - name: Build (and Push) Docker Image (Chat Server)
@@ -99,7 +99,7 @@ jobs:
           # PR일 땐 푸시 안하고, Push일 때 main, dev 브랜치에서만 푸시
           push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
           cache-from: type=gha,scope=${{ github.workflow }}-chat            # chat 서버 전용 캐시 scope
-          cache-to: type=gha,scope=${{ github.workflow }}-chat,mode=max
+          cache-to: type=gha,scope=${{ github.workflow }}-chat,mode=min
 
       # 9-3: Batch 서버
       - name: Build (and Push) Docker Image (Batch Server)
@@ -111,7 +111,7 @@ jobs:
           # PR일 땐 푸시 안하고, Push일 때 main, dev 브랜치에서만 푸시
           push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
           cache-from: type=gha,scope=${{ github.workflow }}-batch           # batch 서버 전용 캐시 scope
-          cache-to: type=gha,scope=${{ github.workflow }}-batch,mode=max
+          cache-to: type=gha,scope=${{ github.workflow }}-batch,mode=min
 
       # 10단계: 테스트 실패 시 리포트 업로드
       # 'failure()'를 사용하여 이전 단계가 실패했을 때만 실행
