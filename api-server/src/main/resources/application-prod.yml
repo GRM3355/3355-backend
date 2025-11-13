@@ -39,7 +39,7 @@ spring:
   # --- JPA (운영용) ---
   jpa:
     hibernate:
-      ddl-auto: none  # 운영 환경에서는 validate 또는 none 사용
+      ddl-auto: create  # 운영 환경에서는 validate 또는 none 사용
     show-sql: false
 
 logging:
