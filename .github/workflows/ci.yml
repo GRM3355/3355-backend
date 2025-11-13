@@ -19,6 +19,42 @@ jobs:
     env:
       SPRING_PROFILES_ACTIVE: test
 
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4-alpine
+        env:
+          POSTGRES_DB: zonie_main
+          POSTGRES_USER: zonie
+          POSTGRES_PASSWORD: zonie_pass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      mongo:
+        image: mongo:7.0
+        ports:
+          - 27017:27017
+        # 몽고DB 헬스체크
+        options: >-
+          --health-cmd "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     # 3. 단계 (Steps)
     steps:
       # 1단계: Git 레포지토리 코드 체크아웃
@@ -55,7 +91,20 @@ jobs:
         run: ./gradlew build -x test --no-daemon
 
       # 5-2: Gradle로 테스트 실행
+      - name: Build with Gradle
+        run: ./gradlew build -x test --no-daemon
+
       - name: Test with Gradle
+        env:
+          # Postgres 설정 (CI 서비스 컨테이너와 일치시킴)
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/zonie_main
+          SPRING_DATASOURCE_USERNAME: zonie
+          SPRING_DATASOURCE_PASSWORD: zonie_pass
+          # Redis 설정
+          SPRING_DATA_REDIS_HOST: localhost
+          SPRING_DATA_REDIS_PORT: 6379
+          # Mongo 설정
+          SPRING_DATA_MONGODB_URI: mongodb://localhost:27017/zonie_chat
         run: ./gradlew test --no-daemon
 
       # 6단계: Docker Buildx 설정 (모든 Docker 빌드 Job이 공통으로 사용)
@@ -87,7 +136,7 @@ jobs:
           # PR일 땐 푸시 안하고, Push일 때 main, dev 브랜치에서만 푸시
           push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
           cache-from: type=gha,scope=${{ github.workflow }}-api             # API 서버 전용 캐시 scope
-          cache-to: type=gha,scope=${{ github.workflow }}-api,mode=min
+          cache-to: type=gha,scope=${{ github.workflow }}-api,mode=max
 
       # 9-2: Chat 서버
       - name: Build (and Push) Docker Image (Chat Server)
@@ -99,7 +148,7 @@ jobs:
           # PR일 땐 푸시 안하고, Push일 때 main, dev 브랜치에서만 푸시
           push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
           cache-from: type=gha,scope=${{ github.workflow }}-chat            # chat 서버 전용 캐시 scope
-          cache-to: type=gha,scope=${{ github.workflow }}-chat,mode=min
+          cache-to: type=gha,scope=${{ github.workflow }}-chat,mode=max
 
       # 9-3: Batch 서버
       - name: Build (and Push) Docker Image (Batch Server)
@@ -111,7 +160,7 @@ jobs:
           # PR일 땐 푸시 안하고, Push일 때 main, dev 브랜치에서만 푸시
           push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
           cache-from: type=gha,scope=${{ github.workflow }}-batch           # batch 서버 전용 캐시 scope
-          cache-to: type=gha,scope=${{ github.workflow }}-batch,mode=min
+          cache-to: type=gha,scope=${{ github.workflow }}-batch,mode=max
 
       # 10단계: 테스트 실패 시 리포트 업로드
       # 'failure()'를 사용하여 이전 단계가 실패했을 때만 실행
