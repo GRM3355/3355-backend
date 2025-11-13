@@ -61,7 +61,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		     WHERE c.chat_room_id IS NOT NULL
 		       AND (cru.user_id = :userId)
 		       AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%') )
-		     GROUP BY c.chat_room_id, f.festival_id, c.title, c.participant_count, c.last_message_at, f.title
+		     GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.participant_count, c.last_message_at, f.title
 		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시
 	String MY_ROOM_QUERY_BASE_COUNT = """
 		   SELECT count(*)
@@ -71,7 +71,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 		   WHERE c.chat_room_id IS NOT NULL
 		     AND (cru.user_id = :userId)
 		     AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%') )
-		   GROUP BY c.chat_room_id, f.festival_id, c.title, c.participant_count, c.last_message_at, f.title
+		   GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.participant_count, c.last_message_at, f.title
 		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시
 
 	Optional<ChatRoom> findByChatRoomId(String chatRoomId);
@@ -85,41 +85,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 	(long festivalId, String keyword, Pageable pageable);
 
 	/**
-	 * 축제별 채팅 관련 JPQL (festivalId로 조회)
-	 */
-/*
-	//채팅방 참여자수 오름차순 정렬
-	@Query(value = FESTIVAL_QUERY_BASE + " ORDER BY c.participant_count ASC", nativeQuery = true)
-	Page<ChatRoomInfoDto> chatFestivalRoomList_PART_ASC
-	(long festivalId, String keyword, Pageable pageable);
-
-	//채팅방 참여자수 내림차순 정렬
-	@Query(value = FESTIVAL_QUERY_BASE + " ORDER BY c.participant_count DESC", nativeQuery = true)
-	Page<ChatRoomInfoDto> chatFestivalRoomList_PART_DESC
-	(long festivalId, String keyword, Pageable pageable);
-
-	// 채팅방 최신순 오름차순 정렬
-	@Query(value = FESTIVAL_QUERY_BASE + " ORDER BY c.created_at ASC", nativeQuery = true)
-	Page<ChatRoomInfoDto> chatFestivalRoomList_DATE_ASC
-	(long festivalId, String keyword, Pageable pageable);
-
-	// 채팅방 최신순 내림차순 정렬
-	@Query(value = FESTIVAL_QUERY_BASE + " ORDER BY c.created_at DESC", nativeQuery = true)
-	Page<ChatRoomInfoDto> chatFestivalRoomList_DATE_DESC
-	(long festivalId, String keyword, Pageable pageable);
-
-	// 채팅방 활성화순 오름차순 정렬
-	@Query(value = FESTIVAL_QUERY_BASE + " ORDER BY c.last_message_at ASC", nativeQuery = true)
-	Page<ChatRoomInfoDto> chatFestivalRoomList_ACTIVE_ASC
-	(long festivalId, String keyword, Pageable pageable);
-
-	// 채팅방 활성화순 내림차순 정렬
-	@Query(value = FESTIVAL_QUERY_BASE + " ORDER BY c.last_message_at DESC", nativeQuery = true)
-	Page<ChatRoomInfoDto> chatFestivalRoomList_ACTIVE_DESC
-	(long festivalId, String keyword, Pageable pageable);
-	*/
-
-	/**
 	 * 내 채팅 관련 Native Query(userId로 조회)
 	 */
 	// 채팅방 종합쿼리문
@@ -130,37 +95,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, String> {
 	/**
 	 * 내 채팅 관련 JPQL(userId로 조회)
 	 */
-/*
-	// 채팅방 참여자수 오름차순 정렬
-	@Query(value = MY_ROOM_QUERY_BASE + " ORDER BY c.participant_count ASC", nativeQuery = true)
-	Page<ChatRoomInfoDto> chatMyRoomList_PART_ASC
-	(String userId, String keyword, Pageable pageable);
-
-	// 채팅 참여자수 내림차순 정렬
-	@Query(value = MY_ROOM_QUERY_BASE + " ORDER BY c.participant_count DESC", nativeQuery = true)
-	Page<ChatRoomInfoDto> chatMyRoomList_PART_DESC
-	(String userId, String keyword, Pageable pageable);
-
-	// 채팅방 생성일 오름차순
-	@Query(value = MY_ROOM_QUERY_BASE + " ORDER BY c.created_at ASC", nativeQuery = true)
-	Page<ChatRoomInfoDto> chatMyRoomList_DATE_ASC
-	(String userId, String keyword, Pageable pageable);
-
-	// 채팅방 생성일 내림차순
-	@Query(value = MY_ROOM_QUERY_BASE + " ORDER BY c.created_at DESC", nativeQuery = true)
-	Page<ChatRoomInfoDto> chatMyRoomList_DATE_DESC
-	(String userId, String keyword, Pageable pageable);
-
-	// 채팅방 활성화순 오름차순 정렬
-	@Query(value = MY_ROOM_QUERY_BASE + " ORDER BY c.last_message_at ASC", nativeQuery = true)
-	Page<ChatRoomInfoDto> chatMyRoomList_ACTIVE_ASC
-	(String userId, String keyword, Pageable pageable);
-
-	// 채팅방 활성화순 내림차순 정렬
-	@Query(value = MY_ROOM_QUERY_BASE + " ORDER BY c.last_message_at DESC", nativeQuery = true)
-	Page<ChatRoomInfoDto> chatMyRoomList_ACTIVE_DESC
-	(String userId, String keyword, Pageable pageable);
-	*/
 
 	// ChatRoomRedisCleanupJob에서 사용
 	List<ChatRoom> findAllByChatRoomIdIn(Collection<String> chatRoomIds);

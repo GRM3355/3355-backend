@@ -49,9 +49,9 @@ public class LocationService {
 	}
 
 	@Transactional
-	public LocationTokenResponse update(LocationDto locationDto, UserDetailsImpl userDetails, String festivalId) {
+	public LocationTokenResponse update(LocationDto locationDto, UserDetailsImpl userDetails) {
 		String userId = userDetails.getUsername();
-		boolean value = redisTokenService.updateLocationInfo(locationDto, userId, festivalId);
+		boolean value = redisTokenService.updateUserLocationInfo(locationDto, userId);
 		String message = value ? "갱신되었습니다." : "갱신에 실패하였습니다.";
 		return new LocationTokenResponse(message);
 	}

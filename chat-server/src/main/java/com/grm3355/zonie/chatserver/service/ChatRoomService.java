@@ -7,6 +7,7 @@ import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,9 @@ public class ChatRoomService {
 	// Redis Key Prefix 정의 (재사용성 및 가독성 향상)
 	private static final String KEY_PARTICIPANTS = "chatroom:participants:"; // 실시간 참여자 (Set)
 	private static final String KEY_USER_ROOMS = "user:rooms:"; // 유저별 참여방 (Set)
-	private static final long MAX_PARTICIPANTS = 300;
+
+	@Value("${chat.max-chat-person}")
+	private long MAX_PARTICIPANTS = 300;
 
 	private static final String NICKNAME_PREFIX = "#";
 

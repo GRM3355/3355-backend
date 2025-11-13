@@ -59,7 +59,7 @@ public class ChatRoomService {
 	@Value("${chat.pre-create-day}")
 	private int pre_create_days;    //시작하기전 몇일전부터 생성가능
 	@Value("${chat.max-chat-person}")
-	private int max_participants;    //최대인원스
+	private long max_participants;    //최대인원스
 	@Value("${chat.max-chat-room}")
 	private int max_room;    //최개 채팅방 갯수
 	@Value("${chat.radius}")
@@ -90,43 +90,45 @@ public class ChatRoomService {
 
 		String festivalIdStr = String.valueOf(festivalId);
 
-		// 1. 토큰값 체크
-		// 거리 계산 대신, festivalId에 대한 유효한 토큰이 있는지 검사
-		boolean isTokenValidate = redisTokenService.validateLocationToken(userId, festivalIdStr);
-		if (!isTokenValidate) {
-			throw new BusinessException(ErrorCode.FORBIDDEN, "축제 위치 인증이 없거나 만료되었습니다.");
-		}
-
-		//2. 축제 존재여부체크
+		// 1. 축제 존재여부체크
 		Festival festival = festivalInfoService.getDataValid(festivalId, pre_create_days);
 
-		//3. 축제 거리계산하기
-		// LocationDto location1 = getUserPosition(userId);
-		// LocationDto location2 = getFestivalPosition(festival);
-		// boolean isValidDistance = festivalCalculator(location1, location2);
-		// if (!isValidDistance) {
-		// 	throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설 반경이 아닙니다.");
-		// }
+		// 2. 위치 정보 객체 생성
+		LocationDto currentLocation = LocationDto.builder()
+			.lat(request.getLat())
+			.lon(request.getLon())
+			.build();
 
-		//4. 채팅방 갯수 체크
+		// 3. 축제 거리계산하기 (PostGIS 반경 검증)
+		boolean isWithinRadius = festivalInfoService.isUserWithinFestivalRadius(
+			festivalId,
+			currentLocation.getLat(),
+			currentLocation.getLon(),
+			max_radius
+		);
+		if (!isWithinRadius) {
+			// 축제 반경(max_radius)을 벗어났다면 예외 발생
+			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설 반경(" + max_radius + "km)을 벗어났습니다.");
+		}
+
+		// 4. 위치 인증 토큰 발급/갱신 (반경 검증 통과 후 토큰 처리)
+		// setToken은 토큰이 없으면 생성, 있으면 위치 갱신 및 TTL 갱신을 수행합니다.
+		UserTokenDto userTokenDto = redisTokenService.setToken(userId, festivalIdStr, currentLocation);
+
+		if (userTokenDto == null) {
+			// setToken이 토큰 정보를 반환해야 하므로, 이 경우는 내부 오류로 처리
+			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "위치 인증 토큰 정보를 읽을 수 없습니다.");
+		}
+
+		// 5. 채팅방 갯수 체크
 		if (festival.getChatRoomCount() >= max_room) {
 			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설은 " + max_room + "개까지 입니다.");
 		}
 
 		//5. 채팅방 저장
-		// 채팅방의 위치(Point)를 어디로 할지
-
-		// 1) 토큰에 저장된 사용자 위치
-		UserTokenDto userTokenDto = redisTokenService.getLocationInfo(userId, festivalIdStr);
-		if (userTokenDto == null) {
-			// 토큰 검증은 통과했는데 정보가 없는 경우 (예외 처리용)
-			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "토큰 정보를 읽을 수 없습니다.");
-		}
+		// 채팅방의 위치(Point)는 갱신된(혹은 새로 생성된) 토큰의 위치를 사용합니다.
 		Point point = geometryFactory.createPoint(
 			new Coordinate(userTokenDto.getLon(), userTokenDto.getLat())); // lon=X, lat=Y
-		// 2) 축제 중심 위치
-		// Point point = geometryFactory.createPoint(
-		// 	new Coordinate(festival.getPosition().getX(), festival.getPosition().getY()));
 
 		String roomId = createRoomId();
 		ChatRoom chatRoom = ChatRoom.builder()
@@ -141,14 +143,6 @@ public class ChatRoomService {
 			.build();
 
 		ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
-		// 디버깅용
-		// ChatRoom saveChatRoom;
-		// try {
-		// 	saveChatRoom = chatRoomRepository.saveAndFlush(chatRoom);
-		// } catch (Exception e) {
-		// 	log.error("채팅방 저장 중 DB 예외 발생: {}", e.getMessage(), e);
-		// 	throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 저장 중 오류가 발생했습니다.");
-		// }
 
 		//festival에 채팅방갯수 저장 /festivalId
 		festivalInfoService.increaseChatRoomCount(festivalId);

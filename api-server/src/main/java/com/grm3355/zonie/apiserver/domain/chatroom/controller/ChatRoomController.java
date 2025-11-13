@@ -35,6 +35,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -60,8 +61,8 @@ public class ChatRoomController {
 	@ApiError405
 	@ApiError415
 	@ApiError429
-	@PreAuthorize("hasRole('GUEST')")
 	@PostMapping("/festivals/{festivalId}/chat-rooms")
+	@SecurityRequirement(name = "Authorization")
 	public ResponseEntity<?> createChatRoom(@PathVariable long festivalId,
 		@Valid @RequestBody ChatRoomRequest chatRoomRequest, HttpServletRequest servlet,
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
@@ -109,8 +110,8 @@ public class ChatRoomController {
 	@ApiError400
 	@ApiError405
 	@ApiError415
-	@ApiError429
-	@PreAuthorize("hasRole('GUEST')")
+	@ApiError429@PreAuthorize("isAuthenticated()")
+	@SecurityRequirement(name = "Authorization")
 	@GetMapping("/chat-rooms/my-rooms")
 	public ResponseEntity<ApiResponse<MyChatRoomPageResponse>> getChatRoomList(
 		@Valid @ModelAttribute ChatRoomSearchRequest request,

@@ -38,6 +38,7 @@ logging:
 jwt:
   secret: ${JWT_SECRET_KEY}
   access-token-expiration-time: 86400000 # 24시간
+  refresh-token-expiration-time: 604800000 # 7일
   location-token-expiration-time: 600000 # 10분
 
 

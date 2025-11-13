@@ -24,8 +24,8 @@
         ],
         "interval": 10,
         "timeout": 5,
-        "retries": 3,
-        "startPeriod": 80
+        "retries": 5,
+        "startPeriod": 200
       },
       "environment": [
         { "name": "SPRING_PROFILES_ACTIVE", "value": "prod" }
@@ -38,7 +38,9 @@
         { "name": "REDIS_PROD_HOST", "valueFrom": "REDIS_PROD_HOST" },
         { "name": "REDIS_PROD_PASSWORD", "valueFrom": "REDIS_PROD_PASSWORD" },
         { "name": "JWT_SECRET_KEY", "valueFrom": "JWT_SECRET_KEY" },
-        { "name": "OPENAPI_SERVICE_KEY", "valueFrom": "OPENAPI_SERVICE_KEY" }
+        { "name": "OPENAPI_SERVICE_KEY", "valueFrom": "OPENAPI_SERVICE_KEY" },
+        { "name": "KAKAO_REST_API_KEY", "valueFrom": "KAKAO_REST_API_KEY" },
+        { "name": "KAKAO_CLIENT_SECRET", "valueFrom": "KAKAO_CLIENT_SECRET" }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
