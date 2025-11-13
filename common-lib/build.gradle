@@ -14,8 +14,19 @@ jar {
 }
 
 dependencies {
+
+    // Public API: 외부 모듈이 컴파일 시점에 알아야 하는 의존성
+    // 'implementation' -> 'api'
+    api 'org.springframework.boot:spring-boot-starter-data-jpa'
+    api 'org.springframework.boot:spring-boot-starter-data-mongodb'
+    api 'org.springframework.boot:spring-boot-starter-data-redis'
+    api 'io.jsonwebtoken:jjwt-impl:0.13.0'
+    api 'io.jsonwebtoken:jjwt-jackson:0.13.0'
+    api 'io.jsonwebtoken:jjwt-api:0.13.0'
+    api 'org.springframework.boot:spring-boot-starter-validation'
+    api 'org.hibernate.orm:hibernate-spatial:6.5.2.Final'
+    api 'org.locationtech.jts:jts-core:1.19.0'
+
     // 모듈별 의존성
-//    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-//    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
-//    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
 }

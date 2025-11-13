@@ -1,5 +1,46 @@
 # COPY THIS FILE AND PASTE IT TO YOUR application-local File.
+#docker jdbc:postgresql://zonie_postgres_db:5432/zonie_main?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
+#localhost jdbc:postgresql://localhost:5432/zonie_main?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
 spring:
   datasource:
-    username: my-local-username
-    password: my-local-password
+    url: jdbc:postgresql://zonie_postgres_db:5432/zonie_main?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
+    username: [postgres 아이디]
+    password: [postgres 비밀번호]
+    driver-class-name: org.postgresql.Driver
+  data:
+    mongodb:
+      uri: mongodb://[mongo 아이디]:[mongo 비밀번호]@mongo_db:27017/zonie_chat
+    redis:
+      host: redis_cache
+      port: 6379
+#jwt
+jwt:
+  secret: [JWT 시크릿키]
+  access-token-expiration-time: 86400000 # 24시간
+  location-token-expiration-time: 600000 # 10분
+#cors
+cors:
+  allowed-origins: "http://localhost:8082,http://example.com"
+#공공데이터 api
+openapi:
+  serviceKey: [공공데이터 서비스키]
+#batch 파일 경로
+batch:
+  json:
+    file:
+      path: data/json/festival
+#logging 레벨
+logging:
+  level:
+    #org.springframework.orm.jpa: DEBUG
+    #org.springframework.beans.factory: DEBUG
+    org.hibernate.SQL: DEBUG       # 실제 SQL 출력
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # 바인딩 값 출력
+    org.springframework.orm.jpa: DEBUG  # JPA 관련 디버그
+#채팅 기본정보
+chat:
+  max-chat-person:  500 #최대인원수
+  max-chat-room:  30  #생성 채팅룸 갯수
+  radius: 1.0 #km
+  pre-create-day: 7 #7일전부터 생성 가능
+  pre-view-day: 7 #7일전부터 축제보기 가능

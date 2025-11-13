@@ -1,9 +1,19 @@
 # 공통 설정
+server:
+  port: 8080
 spring:
   application:
     name: api-server
   profiles:
-    active: dev # 기본 활성 프로필을 dev로 지정
+    active: ${SPRING_PROFILES_ACTIVE:dev} # 기본 활성 프로필을 dev로 지정
     group:
       "dev": "dev,local"
-      "prod": "prod,local"
+      "prod": "prod"
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: never

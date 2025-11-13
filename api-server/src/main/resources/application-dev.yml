@@ -1,19 +1,42 @@
 # 개발 환경 설정
+# docker jdbc:postgresql://zonie_postgres_db:5432
+# docker redis_cache
+# 인텔리제이 jdbc:postgresql://localhost:5432/
+# 인텔리제이 localhost
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/zonie-dev
-    username: your-dev-username
-    password: your-dev-password
+    url: jdbc:postgresql://zonie_postgres_db:5432/zonie_main?sslmode=disable&connectTimeout=10&options=-c TimeZone%3DAsia/Seoul
+    username: zonie
+    password: zonie_pass
     driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: redis_cache
+      port: 6379
   jpa:
     hibernate:
-      ddl-auto: create # 개발 초기에는 create 또는 update 사용
+      ddl-auto: update # 개발 초기에는 create 또는 update 사용
     show-sql: true
     properties:
+      hibernate.hbm2ddl.defer_constraints: true #테이블 생성후 외래키 지정
       hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+    #defer-datasource-initialization: true
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000 # 10분 (밀리초)
 
-logging:
-  level:
-    root: INFO
-    com.grm3355.zonie: DEBUG
+chat:
+  max-chat-person: 300
+  max-chat-room: 30
+  radius: 1.0 #km
+  pre-create-day: 7 #7일전부터 생성 가능
+  pre-view-day: 7 #7일전부터 축제보기 가능
+
+location:
+  token:
+    ttl-minutes: 15
+  radius:
+    limit: 1.0

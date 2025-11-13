@@ -1,0 +1,60 @@
+spring:
+  # --- RDS (PostgreSQL) (운영용) ---
+  datasource:
+    url: ${DB_PROD_URL}
+    username: ${DB_PROD_USERNAME}
+    password: ${DB_PROD_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  # --- ElastiCache (Redis) (운영용) ---
+  data:
+    redis:
+      host: ${REDIS_PROD_HOST}
+      port: 6379
+      password: ${REDIS_PROD_PASSWORD}
+      ssl:
+        enabled: true
+
+  # --- JPA (운영용) ---
+  jpa:
+    hibernate:
+      ddl-auto: update # 운영 환경에서는 validate 또는 none 사용
+    show-sql: false
+
+  # --- Spring Batch ---
+  batch:
+    job:
+      enabled: false  # JobLauncherApplicationRunner (Job 자동 실행) 비활성화 (: Job 여러개)
+    jdbc:
+      initialize-schema: never # 5.x부터 기본값이 never (이지만 명시); BATCH_* 테이블 유지
+
+logging:
+  level:
+    root: INFO
+    com.grm3355.zonie: INFO
+
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  access-token-expiration-time: 86400000 # 24시간
+  refresh-token-expiration-time: 604800000 # 7일
+  location-token-expiration-time: 600000 # 10분
+
+openapi:
+  serviceKey: ${OPENAPI_SERVICE_KEY}
+
+chat:
+  max-chat-person: 300
+  max-chat-room: 30
+  radius: 1.0 #km
+  pre-create-day: 7 #7일전부터 생성 가능
+  pre-view-day: 7 #7일전부터 축제보기 가능
+
+location:
+  token:
+    ttl-minutes: 15
+  radius:
+    limit: 1.0
+
+festival:
+  batch:
+    date: 7 # 오늘 ~ +7일치 데이터만 조회

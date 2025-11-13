@@ -16,4 +16,6 @@ public enum TestEnum {
 
 	private String code;
 	private String message;
+
+
 }

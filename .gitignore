@@ -45,3 +45,17 @@ application-local.yml
 # Local configuration files
 *-local.yml
 *-local.properties
+
+data/
+
+# 로그 파일 무시
+logs/
+*.log
+
+### macOS ###
+**/.DS_Store
+
+### Log ###
+/chat-server/logs/chat.log
+/api-server/logs/api.log
+/batch-server/logs/batch.log

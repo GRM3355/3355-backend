@@ -1,0 +1,97 @@
+package com.grm3355.zonie.batchserver.service;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Collections;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.grm3355.zonie.batchserver.dto.ApiFestivalDto;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Service
+public class FestivalApiService {
+
+	private final WebClient webClient;
+	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+	@Value("${openapi.serviceKey}")
+	private String serviceKey;
+	private final String OPENAPI_BASE_URL = "https://apis.data.go.kr/B551011/KorService2";
+
+	public FestivalApiService(WebClient.Builder webClientBuilder) { // WebClient는 Non-Blocking I/O 통신에 사용
+		this.webClient = webClientBuilder.baseUrl(OPENAPI_BASE_URL).build();
+	}
+
+	// 오늘 날짜
+	public List<ApiFestivalDto> fetchAndParseFestivals() {
+		return fetchAndParseFestivals(LocalDate.now());
+	}
+
+	// 30일간
+	public List<ApiFestivalDto> fetchAndParseFestivals(LocalDate startDate) {
+		return fetchAndParseFestivals(startDate, startDate.plusDays(30));
+	}
+
+	// (시작, 종료) 특정 날짜를 인수로 받아 API 호출
+	// Call Back URL: http://apis.data.go.kr/B551011/KorService2/searchFestival2
+	public List<ApiFestivalDto> fetchAndParseFestivals(LocalDate startDate, LocalDate endDate) {
+		String apiUrl = "/searchFestival2";
+		String eventStartDate = startDate.format(DATE_FORMATTER);
+		String eventEndDate = endDate.format(DATE_FORMATTER);
+		log.info("공공데이터 API 호출: eventStartDate={}, eventEndDate={}", eventStartDate, eventEndDate);
+
+		// WebClient를 사용한 동기 호출
+		String response = webClient.get()
+			.uri(uriBuilder -> uriBuilder
+				.path(apiUrl)
+				.queryParam("ServiceKey", serviceKey)
+				.queryParam("MobileOS", "WEB")
+				.queryParam("MobileApp", "zonie")
+				.queryParam("_type", "json")
+				.queryParam("eventStartDate", eventStartDate) // eventStartDate 파라미터에 날짜를 사용
+				.queryParam("eventEndDate", eventEndDate) // eventStartDate 파라미터에 날짜를 사용
+				.queryParam("arrange", "Q")
+				.queryParam("numOfRows", "9999")
+				.build())
+			.retrieve()
+			.bodyToMono(String.class)
+			.block(); // WebClient 동기식으로 사용
+
+		if (response == null) {
+			log.warn("공공데이터 API 응답이 null입니다.");
+			return Collections.emptyList();
+		}
+
+		return parseApiResponse(response);
+	}
+	private List<ApiFestivalDto> parseApiResponse(String response) {
+		// JSON 응답 구조: { response: { body: { items: { item: [{}, {}] } } } }
+		try {
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode root = mapper.readTree(response);
+
+			// JSON 경로 탐색: response -> body -> items -> item
+			JsonNode items = root.path("response").path("body").path("items").path("item");
+
+			// items 노드가 배열일 경우 ApiFestivalDto 리스트로 변환
+			if (items.isArray() && !items.isEmpty()) {
+				return mapper.readerForListOf(ApiFestivalDto.class).readValue(items);
+			}
+			// items가 1개일 때 객체로 오는 경우 방어
+			else if (items.isObject()) {
+				return List.of(mapper.treeToValue(items, ApiFestivalDto.class));
+			}
+
+		} catch (Exception e) {
+			log.error("API Response Parsing Error: {}", e.getMessage(), e);
+		}
+		return Collections.emptyList();
+	}
+}

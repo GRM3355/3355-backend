@@ -1,16 +1,81 @@
-# 운영 환경 설정
+# api-server/.../application-prod.yml
+# 환경 변수 참조
 spring:
+  # --- MongoDB Atlas (운영용) ---
+  data:
+    mongodb:
+      uri: ${MONGO_PROD_URI} # 환경 변수 또는 외부 설정 파일에서 주입
+      database: zonie-database
+    # --- ElastiCache (Redis) (운영용) ---
+    redis:
+      host: ${REDIS_PROD_HOST}
+      port: 6379 # port: ${PROD_REDIS_PORT} # || REDIS_PROD_PORT
+      password: ${REDIS_PROD_PASSWORD}
+      ssl:
+        enabled: true
+
+  oauth2:
+    client:
+      registration:
+        kakao:
+          client-id: ${KAKAO_REST_API_KEY}
+          client-secret: ${KAKAO_CLIENT_SECRET}
+          redirect-uri: "https://api.zony.kro.kr/api/auth/kakao/callback" #"https://www.zony.kro.kr/auth/kakao/callback" # prod 용 URI
+          authorization-grant-type: authorization_code
+          client-authentication-method: POST # local.yml과 동일하게 맞춤
+          client-name: Kakao
+          scope:
+            - profile_nickname
+            - profile_image
+            - email
+
+  # --- RDS (PostgreSQL) (운영용) ---
+  # chat-server도 방 입장 시 user_chat_rooms 테이블 접근을 위해 DB 연결이 필요.
   datasource:
-    url: ${PROD_DB_URL} # 환경 변수 또는 외부 설정 파일에서 주입
-    username: ${PROD_DB_USER}
-    password: ${PROD_DB_PASSWORD}
+    url: ${DB_PROD_URL}
+    username: ${DB_PROD_USERNAME}
+    password: ${DB_PROD_PASSWORD}
     driver-class-name: org.postgresql.Driver
+
+  # --- JPA (운영용) ---
   jpa:
     hibernate:
-      ddl-auto: validate # 운영 환경에서는 validate 또는 none 사용
+      ddl-auto: update  # 운영 환경에서는 validate 또는 none 사용
     show-sql: false
 
 logging:
   level:
     root: INFO
     com.grm3355.zonie: INFO
+
+#jwt
+jwt:
+  secret: ${JWT_SECRET_KEY}
+  access-token-expiration-time: 86400000 # 24시간
+  refresh-token-expiration-time: 604800000 # 7일
+  location-token-expiration-time: 600000 # 10분
+
+#cors
+cors:
+  allowed-origins: "http://localhost:8082, http://zony.kro.kr, http://www.zony.kro.kr,https://zony.kro.kr, https://www.zony.kro.kr"
+
+#공공데이터 api
+openapi:
+  serviceKey: ${OPENAPI_SERVICE_KEY}
+
+chat:
+  max-chat-person: 300
+  max-chat-room: 30
+  radius: 1.0 #km
+  pre-create-day: 7 #7일전부터 생성 가능
+  pre-view-day: 7 #7일전부터 축제보기 가능
+
+location:
+  token:
+    ttl-minutes: 15
+  radius:
+    limit: 1.0
+
+springdoc:
+  swagger-ui:
+    enabled: true # 실제 운영 환경에서는 false로 변경하기
