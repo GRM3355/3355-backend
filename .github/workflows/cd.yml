@@ -7,8 +7,6 @@ on:
       - dev
       - main
 
-if: github.repository == 'GRM3355/3355-backend'
-
 env:
   ECR_REGISTRY: 548182874697.dkr.ecr.ap-northeast-2.amazonaws.com
   ECS_CLUSTER: zonie-cluster
