@@ -19,41 +19,41 @@ jobs:
     env:
       SPRING_PROFILES_ACTIVE: test
 
-    services:
-      postgres:
-        image: postgis/postgis:16-3.4-alpine
-        env:
-          POSTGRES_DB: zonie_main
-          POSTGRES_USER: zonie
-          POSTGRES_PASSWORD: zonie_pass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      mongo:
-        image: mongo:7.0
-        ports:
-          - 27017:27017
-        # 몽고DB 헬스체크
-        options: >-
-          --health-cmd "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+#    services:
+#      postgres:
+#        image: postgis/postgis:16-3.4-alpine
+#        env:
+#          POSTGRES_DB: zonie_main
+#          POSTGRES_USER: zonie
+#          POSTGRES_PASSWORD: zonie_pass
+#        ports:
+#          - 5432:5432
+#        options: >-
+#          --health-cmd pg_isready
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#
+#      redis:
+#        image: redis:7-alpine
+#        ports:
+#          - 6379:6379
+#        options: >-
+#          --health-cmd "redis-cli ping"
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#
+#      mongo:
+#        image: mongo:7.0
+#        ports:
+#          - 27017:27017
+#        # 몽고DB 헬스체크
+#        options: >-
+#          --health-cmd "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
 
     # 3. 단계 (Steps)
     steps:
