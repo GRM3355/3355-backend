@@ -50,22 +50,6 @@ public class UserController {
 					value = "{\"success\":true,\"message\":\"OK\",\"data\":{\"userId\":\"아이디\",\"profileNickName\":\"닉네임\",\"accountEmail\":\"이메일\",\"createdAt\":\"등록일\"}},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
 				)
 			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
-			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "UNAUTHORIZED",
-					value = "{\"success\":false,\"message\":\"UNAUTHORIZED\",\"data\":{\"code\":\"UNAUTHORIZED\",\"message\":\"인증이 필요합니다.\",\"errors\":null},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "사용자 또는 주소 정보를 찾을 수 없음",
-			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "NOT_FOUND",
-					value = "{\"success\":false,\"message\":\"NOT_FOUND\",\"data\":{\"code\":\"NOT_FOUND\",\"message\":\"사용자 정보를 찾을 수 없습니다.\"},\"timestamp\":\"2025-09-02T10:40:00.543210Z\"}"
-				)
-			)
 		)
 	})
 	@SecurityRequirement(name = "Authorization")
@@ -79,27 +63,11 @@ public class UserController {
 
 	@Operation(summary = "회원탈퇴", description = "현재 로그인된 사용자의 비밀번호를 변경합니다. 변경 후 모든 기기에서 로그아웃됩니다.")
 	@ApiResponses({
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "비밀번호 변경 성공",
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "회원탈퇴 성공",
 			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 				examples = @ExampleObject(
 					name = "NO_CONTENT",
 					value = "{\"success\":true,\"status\":204,\"message\":\"NO_CONTENT\",\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "현재 비밀번호 불일치 또는 새 비밀번호 유효성 검증 실패",
-			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "VALIDATION_FAILED",
-					value = "{\"success\":false,\"status\":400,\"message\":\"VALIDATION_FAILED\",\"data\":{\"code\":\"VALIDATION_FAILED\",\"message\":\"현재 비밀번호가 일치하지 않습니다.\",\"traceId\":null,\"path\":\"/api/v1/members/me/password-change\",\"errors\":null},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
-			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "UNAUTHORIZED",
-					value = "{\"success\":false,\"status\":401,\"message\":\"UNAUTHORIZED\",\"data\":{\"code\":\"UNAUTHORIZED\",\"message\":\"인증이 필요합니다.\",\"traceId\":null,\"path\":\"/api/v1/members/me/password-change\",\"errors\":null},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
 				)
 			)
 		)
@@ -119,4 +87,5 @@ public class UserController {
 //                            @RequestBody PhoneNumberUpdateRequest request) {
 //        userService.updatePhoneNumber(userDetails.getId(), request);
 //    }
+
 }

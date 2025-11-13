@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Getter
 @Service
-public class RedisTokenService {
+public class RedisTokenService_new {
 
 	private static final String REFRESH_TOKEN_PREFIX = "refreshToken:";
 	private static final String USER_TOKENS_PREFIX = "user-tokens:";
@@ -37,12 +37,12 @@ public class RedisTokenService {
 	@Value("${jwt.refresh-token-expiration-time}")
 	private long refreshTokenExpirationTime;
 
-	public RedisTokenService(StringRedisTemplate redisTemplate, JwtTokenProvider jwtTokenProvider,
-		ObjectMapper objectMapper, @Value("${location.token.ttl-minutes}") long ttlMinutes) {
+	public RedisTokenService_new(@Value("${location.token.ttl-minutes}") long ttlMinutes, StringRedisTemplate redisTemplate,
+		JwtTokenProvider jwtTokenProvider, ObjectMapper objectMapper) {
+		this.tokenTtl = Duration.ofMinutes(ttlMinutes);
 		this.redisTemplate = redisTemplate;
 		this.jwtTokenProvider = jwtTokenProvider;
 		this.objectMapper = objectMapper;
-		this.tokenTtl = Duration.ofMinutes(ttlMinutes);
 	}
 
 	private String getRefreshTokenKey(String token) {
@@ -119,22 +119,6 @@ public class RedisTokenService {
 		String token = redisTemplate.opsForValue().get(buildKey(userId, contextId));
 		return token != null && !token.isBlank();
 	}
-
-	/**
-	 * 위치 + 디바이스 정보 업데이트 (TTL 갱신 포함)
-	 */
-	public boolean updateUserLocationInfo(LocationDto locationDto, String userId) {
-		String redisKey = buildKey(userId);
-		try {
-			String infoJson = buildLocationJson(userId, locationDto.getLat(), locationDto.getLon());
-			redisTemplate.opsForValue().set(redisKey, infoJson, this.tokenTtl); // 15분 TTL
-		} catch (Exception e) {
-			throw new RuntimeException("Redis 저장 중 오류 발생", e);
-		}
-		return true;
-	}
-
-
 
 	/**
 	 * 위치 + 디바이스 정보 업데이트 (TTL 갱신 포함)
@@ -269,21 +253,14 @@ public class RedisTokenService {
 	private String buildKey(String userId, String contextId) {
 		return "locationToken:" + userId + ":" + contextId;
 	}
-	private String buildKey(String userId) {
-		return "locationToken:" + userId;
-	}
+
 	private String buildLocationJson(String userId, String clientIp, String device, double lat, double lon) {
 		return String.format(
 			"{\"userId\":\"%s\",\"clientIp\":\"%s\",\"device\":\"%s\",\"lat\":%.6f,\"lon\":%.6f,\"timestamp\":%d}",
 			userId, clientIp, device, lat, lon, System.currentTimeMillis()
 		);
 	}
-	private String buildLocationJson(String userId, double lat, double lon) {
-		return String.format(
-			"{\"userId\":\"%s\",\"lat\":%.6f,\"lon\":%.6f,\"timestamp\":%d}",
-			userId, lat, lon, System.currentTimeMillis()
-		);
-	}
+
 	private String extractValue(String json, String field) {
 		String search = "\"" + field + "\":\"";
 		int start = json.indexOf(search);

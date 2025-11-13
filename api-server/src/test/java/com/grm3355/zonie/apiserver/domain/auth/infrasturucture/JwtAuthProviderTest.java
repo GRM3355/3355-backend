@@ -19,7 +19,7 @@ class JwtAuthProviderTest {
     @Test
     void 토큰_생성_성공() {
         User member = User.builder()
-                .id(1L)
+                .userId("s")
                 .build();
         JwtParser parser = Jwts.parser()
                 .setSigningKey(SECRET_KEY.getBytes())

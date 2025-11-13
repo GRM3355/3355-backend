@@ -35,7 +35,7 @@ public class User extends BaseTimeEntity {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(name = "user_id")
+	@Column(name = "user_id", nullable = false, unique = true, length = 100)
 	@NotBlank(message = "사용자아이디는 정보는 필수 입력 값입니다.")
 	private String userId;
 

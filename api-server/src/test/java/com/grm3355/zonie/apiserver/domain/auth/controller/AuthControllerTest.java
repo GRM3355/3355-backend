@@ -28,8 +28,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
+import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
+import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
+import com.grm3355.zonie.apiserver.domain.auth.service.AuthService;
+import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
+import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
+import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
+import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 @DisplayName("토큰 발행 통합테스트")
 @WebMvcTest(
@@ -76,14 +85,14 @@ class AuthControllerTest {
 		locationDto.setLat(37.5665);
 		locationDto.setLon(126.9780);
 
-		AuthResponse mockResponse = new AuthResponse("access-token-12345");
+		AuthResponse mockResponse = new AuthResponse("access-token-12345", null);
 
 		Mockito.when(authService.register(
 			ArgumentMatchers.any(LocationDto.class))
 		).thenReturn(mockResponse);
 
-		mockMvc.perform(post("/api/v1/auth/tokens")
-				.header("Authorization", "Bearer test")
+		mockMvc.perform(post("/api/auth/tokens")
+				//.header("Authorization", "Bearer test")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(locationDto)))
 			.andExpect(status().isCreated())
@@ -91,8 +100,6 @@ class AuthControllerTest {
 			.andExpect(jsonPath("$.data.accessToken").value("access-token-12345"))
 			.andExpect(jsonPath("$.timestamp").exists());
 	}
-
-}
 
     @Test
     void 카카오_OAuth2_로그인을_한다() throws Exception {

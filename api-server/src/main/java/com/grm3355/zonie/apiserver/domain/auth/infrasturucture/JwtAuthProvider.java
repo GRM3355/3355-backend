@@ -25,7 +25,7 @@ public class JwtAuthProvider implements AuthProvider {
     public String provide(User user) {
         Date now = new Date();
         return Jwts.builder()
-                .claim("userId", user.getId())
+                .claim("userId", user.getUserId())
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + expirationMinutes * SECOND_FACTOR * MILLISECOND_FACTOR))
                 .signWith(key, SignatureAlgorithm.HS256)

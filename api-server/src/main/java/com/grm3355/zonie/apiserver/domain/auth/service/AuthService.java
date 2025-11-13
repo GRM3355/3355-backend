@@ -41,8 +41,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class AuthService {
-    private static final String PRE_FIX = "user:";
 
+    private static final String PRE_FIX = "user:";
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
@@ -51,12 +51,63 @@ public class AuthService {
     private final OAuth2Clients oAuth2Clients;
 	private final UserDetailsServiceImpl userDetailsService;
 
-    @Transactional
+	@Transactional
+	public AuthResponse register(LocationDto locationDto) {
+
+		//uuid 생성
+		String userId = PRE_FIX + UUID.randomUUID();
+		double lat = locationDto.getLat();
+		double lon = locationDto.getLon();
+
+		//아이디저장
+		String password = passwordEncoder.encode(userId);
+		User user = User.builder()
+			.userId(userId)
+			.password(password)
+			.role(Role.USER).build();
+		userRepository.save(user);
+
+		//사용자정보
+		UserTokenDto userTokenDto = UserTokenDto.builder()
+			.userId(userId).lat(lat).lon(lon).build();
+
+		//아이디 저장후 인증정보 authentication  정보 가져오기
+		Authentication authentication = authenticationManager.authenticate(
+			new UsernamePasswordAuthenticationToken(userId, userId)
+		);
+		UserDetailsImpl userDetails = (UserDetailsImpl)authentication.getPrincipal();
+
+		// --- 로그인 성공 ---
+		log.info("사용자 로그인 성공");
+
+		//토큰 생성
+		return generateTokens(userDetails, userTokenDto);
+	}
+
+
+	public AuthResponse generateTokens(UserDetailsImpl userDetails, UserTokenDto userTokenDto) {
+		// 현재 시스템은 사용자당 단일 권한을 가정하므로, 첫 번째 권한을 가져와 사용합니다.
+		// 향후 다중 권한을 지원하려면 이 로직의 수정이 필요합니다.
+
+		String roleName = userDetails.getAuthorities().stream()
+			.findFirst()
+			.map(GrantedAuthority::getAuthority)
+			.orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "사용자 권한 정보를 찾을 수 없습니다."));
+
+		// "ROLE_GUEST" -> "GUEST"
+		String roleEnumName = roleName.startsWith("ROLE_") ? roleName.substring(5) : roleName;
+
+		//액세스 토큰 생성(JWT) - 클라이언트가 저장
+		String accessToken = jwtTokenProvider.createAccessToken(userDetails.getUsername(), Role.valueOf(roleEnumName));
+
+		return new AuthResponse(accessToken,null);
+	}
+
+	@Transactional
     public LoginResponse login(LoginRequest request) {
         UserInfo userInfo = getUserInfo(request);
         User user = userRepository.findBySocialIdAndProviderTypeAndDeletedAtIsNull(userInfo.socialId(), userInfo.providerType())
                 .orElseGet(() -> signUp(userInfo));
-		System.out.println("사용자 getId : " + user.getId());
         System.out.println("사용자 저장완료 : " + user.getProfileNickName());
 
 		//return new LoginResponse(jwtTokenProvider.createAccessToken(user.getUserId(), user.getRole()),
@@ -83,7 +134,7 @@ public class AuthService {
         return userRepository.save(userInfo.toUser());
     }
 
-	public LoginResponse generateTokens(UserDetailsImpl userDetails) {
+	public LoginResponse generateNewTokens(UserDetailsImpl userDetails) {
 	    // 현재 시스템은 사용자당 단일 권한을 가정하므로, 첫 번째 권한을 가져와 사용합니다.
 	    // 향후 다중 권한을 지원하려면 이 로직의 수정이 필요합니다.
 
@@ -154,7 +205,7 @@ public class AuthService {
 			log.info("사용자 {}의 기존 리프레시 토큰을 무효화했습니다.", userId);
 
 			// 6. 새로운 Access Token 및 Refresh Token 발급
-			LoginResponse newTokens = generateTokens(userDetails);
+			LoginResponse newTokens = generateNewTokens(userDetails);
 			log.info("사용자 {}에게 새로운 액세스 토큰과 리프레시 토큰을 발급했습니다.", userId);
 
 			return newTokens;

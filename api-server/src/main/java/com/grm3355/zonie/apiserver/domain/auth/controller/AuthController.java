@@ -38,10 +38,11 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @Tag(name = "Auth & User", description = "사용자 토큰 발급")
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 	private final AuthService authService;
+	private final RedisTokenService redisTokenService;
 
 	@Operation(summary = "사용자 토큰 발급", description = "위경도 정보를 입력받아 사용자 Access 토큰을 발급합니다.")
 	@ApiResponses({
@@ -56,54 +57,6 @@ public class AuthController {
 					value = "{\"success\":true,\"data\":{\"accessToken\":\"...\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
 				)
 			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "400",
-			description = "입력값 유효성 검증 실패",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "BAD_REQUEST",
-					value = "{\"success\":false,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "405",
-			description = "허용되지 않은 메소드",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "METHOD_NOT_ALLOWED",
-					value = "{\"success\":false,\"error\":{\"code\":\"METHOD_NOT_ALLOWED\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "415",
-			description = "UNSUPPORTED_MEDIA_TYPE",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "UNSUPPORTED_MEDIA_TYPE",
-					value = "{\"success\":false,\"error\":{\"code\":\"UNSUPPORTED_MEDIA_TYPE\",\"message\":\"잘못된 콘텐츠 타입입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}"
-				)
-			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "429",
-			description = "요청 횟수 초과",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "TOO_MANY_REQUESTS",
-					value = "{\"success\":false,\"error\":{\"code\":\"TOO_MANY_REQUESTS\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:45:00.123456Z\"}"
-				)
-			)
 		)
 	})
 	@ApiError400
@@ -114,6 +67,12 @@ public class AuthController {
 	public ResponseEntity<?> register(@Valid @RequestBody LocationDto locationDto, HttpServletRequest request) {
 		String path = request != null ? request.getRequestURI() : null;
 		URI location = URI.create(Objects.requireNonNull(path));
+
+		// 토큰이 없으면 register 처리
+		AuthResponse response2 = authService.register(locationDto);
+		return ResponseEntity.created(location).body(ApiResponse.success(response2));
+	}
+
 	// 해당url은 지금은 사용할 일 없지만, 확장성을 위해서 보관한다.
 	// 개발할때 업스케일링하는 과정에서나온 url
 	@PostMapping("/oauth2")
@@ -139,16 +98,12 @@ public class AuthController {
 					value = "{\"success\":true,\"message\":\"OK\",\"data\":{\"accessToken\":\"...\",\"refreshToken\":\"...\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
 				)
 			)
-		),
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "리프레시 토큰 만료 또는 유효하지 않음",
-			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "TOKEN_INVALID",
-					value = "{\"success\":false,\"message\":\"TOKEN_INVALID\",\"message\":\"리프레시 토큰이 유효하지 않습니다.\",\"timestamp\":\"2025-09-02T10:40:00.543210Z\"}"
-				)
-			)
 		)
 	})
+	@ApiError400
+	@ApiError405
+	@ApiError415
+	@ApiError429
 	@PostMapping("/refresh")
 	public ResponseEntity<ApiResponse<LoginResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) {
 		LoginResponse authResponse = authService.refreshAccessToken(request.refreshToken());
@@ -161,6 +116,10 @@ public class AuthController {
 			content = @Content(mediaType = "application/json"
 			))
 	})
+	@ApiError400
+	@ApiError405
+	@ApiError415
+	@ApiError429
 	@PostMapping("/logout")
 	public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody RefreshTokenRequest request) {
 		//200 응답 나오면 프론트엔드에서 액세스토큰, 리프레시 토큰 삭제
