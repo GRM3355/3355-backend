@@ -50,3 +50,5 @@ chat-server/src/main/.DS_Store
 
 ### Log ###
 logs
+logs/
+*.log
