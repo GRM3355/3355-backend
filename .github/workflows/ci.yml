@@ -84,29 +84,32 @@ jobs:
           context: . # 빌드 컨텍스트
           file: ./api-server/Dockerfile # Dockerfile 위치
           tags: 548182874697.dkr.ecr.ap-northeast-2.amazonaws.com/zonie/api-server:${{ github.sha }}
-          push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' }}  # main, dev에서만 푸시
+          # PR일 땐 푸시 안하고, Push일 때 main, dev 브랜치에서만 푸시
+          push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
           cache-from: type=gha,scope=${{ github.workflow }}-api             # API 서버 전용 캐시 scope
           cache-to: type=gha,scope=${{ github.workflow }}-api,mode=max
 
       # 9-2: Chat 서버
-      - name: Build Docker Image (Chat Server) with Cache
+      - name: Build (and Push) Docker Image (Chat Server)
         uses: docker/build-push-action@v5
         with:
           context: .
           file: ./chat-server/Dockerfile
           tags: 548182874697.dkr.ecr.ap-northeast-2.amazonaws.com/zonie/chat-server:${{ github.sha }}
-          push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' }}  # main, dev에서만 푸시
+          # PR일 땐 푸시 안하고, Push일 때 main, dev 브랜치에서만 푸시
+          push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
           cache-from: type=gha,scope=${{ github.workflow }}-chat            # chat 서버 전용 캐시 scope
           cache-to: type=gha,scope=${{ github.workflow }}-chat,mode=max
 
       # 9-3: Batch 서버
-      - name: Build Docker Image (Batch Server) with Cache
+      - name: Build (and Push) Docker Image (Batch Server)
         uses: docker/build-push-action@v5
         with:
           context: . # 루트에서 실행
           file: ./batch-server/Dockerfile # 배치 서버 Dockerfile 경로
           tags: 548182874697.dkr.ecr.ap-northeast-2.amazonaws.com/zonie/batch-server:${{ github.sha }}
-          push: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev' }}  # main, dev에서만 푸시
+          # PR일 땐 푸시 안하고, Push일 때 main, dev 브랜치에서만 푸시
+          push: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev') }}
           cache-from: type=gha,scope=${{ github.workflow }}-batch           # batch 서버 전용 캐시 scope
           cache-to: type=gha,scope=${{ github.workflow }}-batch,mode=max
 
