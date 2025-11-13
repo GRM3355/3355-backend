@@ -87,7 +87,7 @@ public class MessageLikeService {
 		// 1. 메시지가 속한 채팅방 -> 축제 ID 조회
 		Message message = messageRepository.findById(messageId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "메시지를 찾을 수 없습니다."));
-		ChatRoom chatRoom = chatRoomRepository.findById(message.getChatRoomId())
+		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(message.getChatRoomId())
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
 
 		// chatRoom 엔티티에서 festivalId를 가져옵니다.

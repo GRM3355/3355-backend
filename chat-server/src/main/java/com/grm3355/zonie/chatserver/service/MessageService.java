@@ -40,7 +40,7 @@ public class MessageService {
 		User user = userRepository.findByUserId(userId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다. (MessageService)"));
 
-		ChatRoom room = chatRoomRepository.findById(roomId)
+		ChatRoom room = chatRoomRepository.findByChatRoomId(roomId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다. (MessageService)"));
 
 		String nickname = chatRoomUserRepository.findByUserAndChatRoom(user, room)
