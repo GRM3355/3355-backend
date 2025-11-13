@@ -46,7 +46,7 @@ public abstract class BaseIntegrationTest {
 	@BeforeAll
 	static void setupPostGIS() throws SQLException {
 		String jdbcUrl = String.format(
-			"jdbc:postgresql://%s:%d/testdb",
+			"jdbc:postgresql://%s:%d/testdb?sslmode=disable",
 			postgresContainer.getHost(),
 			postgresContainer.getMappedPort(5432)
 		);
@@ -64,7 +64,7 @@ public abstract class BaseIntegrationTest {
 		// PostgreSQL
 		registry.add("spring.datasource.url",
 			() -> String.format(
-				"jdbc:postgresql://%s:%d/testdb",
+				"jdbc:postgresql://%s:%d/testdb?sslmode=disable",
 				postgresContainer.getHost(),
 				postgresContainer.getMappedPort(5432)
 			)

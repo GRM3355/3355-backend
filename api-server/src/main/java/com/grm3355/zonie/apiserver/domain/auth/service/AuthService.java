@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 public class AuthService {
 
-    private static final String PRE_FIX = "user:";
+    private static final String PRE_FIX = "";
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
