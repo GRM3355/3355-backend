@@ -1,11 +1,23 @@
-# .github/workflows/deploy.yml
+# .github/workflows/cd.yml
 name: Zonie CD (Deploy to AWS ECS)
 
+# main 브랜치 race condition 고려; CI에서 먼저 빌드 및 캐싱하고 CD에서는 render와 deploy만
+# 'on: push' 대신 'on: workflow_run' 사용
 on:
-  push:
+  workflow_run:
+    # 'ci.yml' 이름
+    workflows: ["Zonie Backend CI (Build & Test)"]
+    types:
+      - completed # CI 워크플로우가 완료되었을 때만 실행
     branches:
       - dev
       - main
+
+#on:
+#  push:
+#    branches:
+#      - dev
+#      - main
 
 env:
   ECR_REGISTRY: 548182874697.dkr.ecr.ap-northeast-2.amazonaws.com
@@ -40,11 +52,15 @@ jobs:
       chat-server: ${{ steps.filter.outputs.chat-server }}
       batch-server: ${{ steps.filter.outputs.batch-server }}
 
+    # CI 실패시 CD도 실행 안 함
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2 # 변경 사항 비교를 위해 최소 2개 커밋 가져오기, 0
+          fetch-depth: 2 # 변경 사항 비교를 위해 최소 2개 커밋 가져오기
+          ref: ${{ github.event.workflow_run.head_sha }} # push 이벤트 말고 CI를 실행시킨 커밋을 기준으로 checkout
 
       - name: Check for changed files
         uses: dorny/paths-filter@v3
@@ -70,23 +86,26 @@ jobs:
   deploy-api-server:
     name: Deploy API Server
     runs-on: ubuntu-latest
-    needs: check-changes # 1. '파일 감지' Job이 끝날 때까지 대기
-    if: needs.check-changes.outputs.api-server == 'true' # 2. 'api-server'가 변경되었을 때만 실행
+    needs: check-changes                                  # 1. '파일 감지' Job이 끝날 때까지 대기
+    if: needs.check-changes.outputs.api-server == 'true'  # 2. api-server가 변경되었을 때만 실행
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # Gradle 캐시 추가 (의존성 다운로드 방지)
-      - name: Restore Gradle Cache
-        uses: actions/cache@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: gradle-${{ runner.os }}-
+          ref: ${{ github.event.workflow_run.head_sha }}  # CI 커밋 기준으로 checkout
 
+#      # Gradle 캐시 추가 (의존성 다운로드 방지)
+#      - name: Restore Gradle Cache
+#        uses: actions/cache@v4
+#        with:
+#          path: |
+#            ~/.gradle/caches
+#            ~/.gradle/wrapper
+#          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+#          restore-keys: gradle-${{ runner.os }}-
+
+      # AWS 로그인 (ECS 배포)
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -94,24 +113,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
+#      - name: Login to Amazon ECR
+#        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push API Server image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./api-server/Dockerfile
-          push: true
-          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_API }}:latest
+#      - name: Build and push API Server image
+#        uses: docker/build-push-action@v5
+#        with:
+#          context: .
+#          file: ./api-server/Dockerfile
+#          push: true
+#          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_API }}:latest
 
+      # :latest 대신 CI의 커밋 SHA 사용
       - name: Render API Server Task Definition
         id: render-api-task
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: ${{ env.ECS_TASK_DEF_API }}
           container-name: ${{ env.CONTAINER_NAME_API }}
-          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_API }}:latest
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_API }}:${{ github.event.workflow_run.head_sha }}
 
       - name: Deploy API Server to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
@@ -125,47 +145,52 @@ jobs:
   deploy-chat-server:
     name: Deploy Chat Server
     runs-on: ubuntu-latest
-    needs: check-changes
-    if: needs.check-changes.outputs.chat-server == 'true' # 2. 'chat-server'가 변경되었을 때만 실행
+    needs: check-changes                                  # 1. '파일 감지' Job이 끝날 때까지 대기
+    if: needs.check-changes.outputs.chat-server == 'true' # 2. chat-server가 변경되었을 때만 실행
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      # Gradle 캐시 복원 (채팅서버가 Java/Gradle 기반일 경우)
-      - name: Restore Gradle Cache
-        uses: actions/cache@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: gradle-${{ runner.os }}-
+          ref: ${{ github.event.workflow_run.head_sha }}  # CI 커밋 기준으로 checkout
 
+#      # Gradle 캐시 복원
+#      - name: Restore Gradle Cache
+#        uses: actions/cache@v4
+#        with:
+#          path: |
+#            ~/.gradle/caches
+#            ~/.gradle/wrapper
+#          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+#          restore-keys: gradle-${{ runner.os }}-
+
+      # AWS 로그인 (ECS 배포)
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push Chat Server image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./chat-server/Dockerfile
-          push: true
-          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_CHAT }}:latest
+#      - name: Login to Amazon ECR
+#        uses: aws-actions/amazon-ecr-login@v2
 
+#      - name: Build and push Chat Server image
+#        uses: docker/build-push-action@v5
+#        with:
+#          context: .
+#          file: ./chat-server/Dockerfile
+#          push: true
+#          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_CHAT }}:latest
+
+      # :latest 대신 CI의 커밋 SHA 사용
       - name: Render Chat Server Task Definition
         id: render-chat-task
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: ${{ env.ECS_TASK_DEF_CHAT }}
           container-name: ${{ env.CONTAINER_NAME_CHAT }}
-          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_CHAT }}:latest
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_CHAT }}:${{ github.event.workflow_run.head_sha }}
 
       - name: Deploy Chat Server to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
@@ -179,23 +204,26 @@ jobs:
   deploy-batch-server:
     name: Deploy Batch Server
     runs-on: ubuntu-latest
-    needs: check-changes
-    if: needs.check-changes.outputs.batch-server == 'true' # 2. 'batch-server'가 변경되었을 때만 실행
+    needs: check-changes                                    # 1. '파일 감지' Job이 끝날 때까지 대기
+    if: needs.check-changes.outputs.batch-server == 'true'  # 2. batch-server가 변경되었을 때만 실행
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      #  Gradle 캐시 복원 (채팅서버가 Java/Gradle 기반일 경우)
-      - name: Restore Gradle Cache
-        uses: actions/cache@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: gradle-${{ runner.os }}-
+          ref: ${{ github.event.workflow_run.head_sha }}    # CI 커밋 기준으로 checkout
 
+#      #  Gradle 캐시 복원
+#      - name: Restore Gradle Cache
+#        uses: actions/cache@v4
+#        with:
+#          path: |
+#            ~/.gradle/caches
+#            ~/.gradle/wrapper
+#          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+#          restore-keys: gradle-${{ runner.os }}-
+
+      # AWS 로그인 (ECS 배포)
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -203,24 +231,25 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v2
+#      - name: Login to Amazon ECR
+#        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build and push Batch Server image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./batch-server/Dockerfile
-          push: true
-          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_BATCH }}:latest
+#      - name: Build and push Batch Server image
+#        uses: docker/build-push-action@v5
+#        with:
+#          context: .
+#          file: ./batch-server/Dockerfile
+#          push: true
+#          tags: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_BATCH }}:latest
 
+      # :latest 대신 CI의 커밋 SHA 사용
       - name: Render Batch Server Task Definition
         id: render-batch-task
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: ${{ env.ECS_TASK_DEF_BATCH }}
           container-name: ${{ env.CONTAINER_NAME_BATCH }}
-          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_BATCH }}:latest
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPO_BATCH }}:${{ github.event.workflow_run.head_sha }}
 
       - name: Deploy Batch Server to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
