@@ -31,6 +31,7 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
 		StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+		Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
 
 		// CONNECT 프레임일 때만 인증 수행
 		if (StompCommand.CONNECT.equals(accessor.getCommand())) {
@@ -62,7 +63,6 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
 					accessor.setUser(authentication);
 
 					// 5. 세션 속성에 userId를 직접 저장: 동일 세션의 모든 STOMP 메시지에서 공유됨
-					Map<String, Object> sessionAttributes = accessor.getSessionAttributes();
 					if (sessionAttributes != null) {
 						sessionAttributes.put("userId", userId);
 					}
@@ -73,6 +73,17 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
 					log.warn("STOMP Connection blocked: Invalid JWT token. {}", e.getMessage());
 					throw new RuntimeException("Invalid or Expired JWT token");
 				}
+			}
+
+			// CONNECT 외의 다른 명령어 (SEND, SUBSCRIBE)에 대한 검증
+		} else if (StompCommand.SEND.equals(accessor.getCommand()) || StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+
+			// 토큰 검증은 CONNECT 시점에만, 여기에선 세션에 userId가 있는지만 확인
+			// 세션 속성이나 userId가 없으면 비정상적인 접근으로 간주하고 차단
+			if (sessionAttributes == null || sessionAttributes.get("userId") == null) {
+				log.warn("STOMP operation blocked: No userId in session for command {}. SessionId: {}",
+					accessor.getCommand(), accessor.getSessionId());
+				throw new RuntimeException("User not authenticated for this operation.");
 			}
 		}
 
