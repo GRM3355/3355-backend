@@ -41,9 +41,16 @@ jwt:
   refresh-token-expiration-time: 604800000 # 7일
   location-token-expiration-time: 600000 # 10분
 
+
 chat:
-  max-chat-person: 500
+  max-chat-person: 300
   max-chat-room: 30
   radius: 1.0 #km
   pre-create-day: 7 #7일전부터 생성 가능
   pre-view-day: 7 #7일전부터 축제보기 가능
+
+location:
+  token:
+    ttl-minutes: 15
+  radius:
+    limit: 1.0
