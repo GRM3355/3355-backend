@@ -19571,3 +19571,472 @@ org.springframework.web.client.HttpClientErrorException$BadRequest: 400  on POST
 2025-11-13 14:49:21.094 [http-nio-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Not closing pre-bound JPA EntityManager after transaction
 2025-11-13 14:49:21.097 [http-nio-8080-exec-6] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor [] - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
 2025-11-13 14:49:21.172 [http-nio-8080-exec-7] WARN  c.g.z.a.g.j.JwtAuthenticationEntryPoint [] - 인증되지 않은 접근 시도: Full authentication is required to access this resource
+2025-11-13 16:22:40.605 [http-nio-8080-exec-10] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor [] - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-11-13 16:22:40.707 [http-nio-8080-exec-10] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor [] - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-11-13 16:24:57.769 [http-nio-8080-exec-2] INFO  o.a.coyote.http11.Http11Processor [] - Error parsing HTTP request header
+ Note: further occurrences of HTTP request parsing errors will be logged at DEBUG level.
+java.lang.IllegalArgumentException: Invalid character found in method name [0x160x030x010x070x120x010x000x070x0e0x030x030xf1~0xf70xcaE0xcc@0x900x100xb60x910x8a0xa2V0xc5L0xc90x040xe60xbd,*0xc5K0xf5hL0x85<0x1bOk ]. HTTP method names must be tokens
+	at org.apache.coyote.http11.Http11InputBuffer.parseRequestLine(Http11InputBuffer.java:402)
+	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:272)
+	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63)
+	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:903)
+	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1774)
+	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:973)
+	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:491)
+	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+2025-11-13 16:25:02.271 [http-nio-8080-exec-4] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor [] - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-11-13 16:25:02.578 [http-nio-8080-exec-4] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Found thread-bound EntityManager [SessionImpl(974415607<open>)] for JPA transaction
+2025-11-13 16:25:02.580 [http-nio-8080-exec-4] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Creating new transaction with name [com.grm3355.zonie.apiserver.domain.festival.service.FestivalService.getFestivalList]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-11-13 16:25:02.584 [http-nio-8080-exec-4] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@620c2543]
+2025-11-13 16:25:02.747 [http-nio-8080-exec-4] DEBUG org.hibernate.SQL [] - 
+    SELECT
+        *       
+    FROM
+        festivals f       
+    WHERE
+        f.festival_id is not null       
+        AND (
+            ? is null 
+            or f.region = ?
+        )        
+        AND (
+            ? is null 
+            OR f.title ILIKE '%' || ? || '%'
+        )     
+        AND (
+            CURRENT_TIMESTAMP >= (
+                f.event_start_date - make_interval(days => ?)
+            )                
+            AND CURRENT_TIMESTAMP <= f.event_end_date
+        )  
+        AND (
+            ? = 'ALL' 
+            or ? is null   
+            OR (
+                ? = 'ONGOING' 
+                AND f.event_start_date <= CURRENT_DATE 
+                AND f.event_end_date >= CURRENT_DATE
+            )   
+            OR (
+                ? = 'UPCOMING' 
+                AND f.event_start_date > CURRENT_DATE
+            )    
+        )  
+    order by
+        f.event_start_date asc 
+    fetch
+        first ? rows only
+2025-11-13 16:25:03.702 [http-nio-8080-exec-4] DEBUG org.hibernate.SQL [] - 
+    SELECT
+        COUNT(*)       
+    FROM
+        festivals f       
+    WHERE
+        f.festival_id is not null       
+        AND (
+            ? is null 
+            or f.region = ?
+        )        
+        AND (
+            ? is null 
+            or f.title ILIKE '%' || ? || '%'
+        )     
+        AND (
+            CURRENT_TIMESTAMP >= (
+                f.event_start_date - make_interval(days => ?)
+            )                
+            AND CURRENT_TIMESTAMP <= f.event_end_date
+        )  
+        AND (
+            ? = 'ALL' 
+            or ? is null   
+            OR (
+                ? = 'ONGOING' 
+                AND f.event_start_date <= CURRENT_DATE 
+                AND f.event_end_date >= CURRENT_DATE
+            )   
+            OR (
+                ? = 'UPCOMING' 
+                AND f.event_start_date > CURRENT_DATE
+            )    
+        ) 
+2025-11-13 16:25:03.708 [http-nio-8080-exec-4] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Initiating transaction commit
+2025-11-13 16:25:03.709 [http-nio-8080-exec-4] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Committing JPA transaction on EntityManager [SessionImpl(974415607<open>)]
+2025-11-13 16:25:03.709 [http-nio-8080-exec-4] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Not closing pre-bound JPA EntityManager after transaction
+2025-11-13 16:25:03.723 [http-nio-8080-exec-4] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor [] - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-11-13 16:25:51.165 [SpringApplicationShutdownHook] INFO  o.s.b.w.e.tomcat.GracefulShutdown [] - Commencing graceful shutdown. Waiting for active requests to complete
+2025-11-13 16:25:51.171 [tomcat-shutdown] INFO  o.s.b.w.e.tomcat.GracefulShutdown [] - Graceful shutdown complete
+2025-11-13 16:25:55.328 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean [] - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-11-13 16:25:55.331 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource [] - HikariPool-1 - Shutdown initiated...
+2025-11-13 16:25:55.334 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource [] - HikariPool-1 - Shutdown completed.
+2025-11-13 16:26:27.905 [main] INFO  c.grm3355.zonie.ApiServerApplication [] - Starting ApiServerApplication using Java 21.0.7 with PID 28960 (D:\workspace\Project\groom_project4_habban\3355-backend\api-server\build\classes\java\main started by jeongwon in D:\workspace\Project\groom_project4_habban\3355-backend)
+2025-11-13 16:26:27.907 [main] DEBUG c.grm3355.zonie.ApiServerApplication [] - Running with Spring Boot v3.5.7, Spring v6.2.12
+2025-11-13 16:26:27.907 [main] INFO  c.grm3355.zonie.ApiServerApplication [] - The following 2 profiles are active: "dev", "local"
+2025-11-13 16:26:29.093 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate [] - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-11-13 16:26:29.093 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate [] - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2025-11-13 16:26:29.283 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate [] - Finished Spring Data repository scanning in 172 ms. Found 5 JPA repository interfaces.
+2025-11-13 16:26:29.285 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate [] - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-11-13 16:26:29.286 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate [] - Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2025-11-13 16:26:29.295 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate [] - Finished Spring Data repository scanning in 7 ms. Found 1 MongoDB repository interface.
+2025-11-13 16:26:29.939 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate [] - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-11-13 16:26:29.940 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate [] - Bootstrapping Spring Data Reactive MongoDB repositories in DEFAULT mode.
+2025-11-13 16:26:30.017 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport [] - Spring Data Reactive MongoDB - Could not safely identify store assignment for repository candidate interface com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository; If you want this repository to be a Reactive MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.ReactiveMongoRepository
+2025-11-13 16:26:30.018 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport [] - Spring Data Reactive MongoDB - Could not safely identify store assignment for repository candidate interface com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomSyncRepository; If you want this repository to be a Reactive MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.ReactiveMongoRepository
+2025-11-13 16:26:30.019 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport [] - Spring Data Reactive MongoDB - Could not safely identify store assignment for repository candidate interface com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomUserRepository; If you want this repository to be a Reactive MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.ReactiveMongoRepository
+2025-11-13 16:26:30.020 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport [] - Spring Data Reactive MongoDB - Could not safely identify store assignment for repository candidate interface com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository; If you want this repository to be a Reactive MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.ReactiveMongoRepository
+2025-11-13 16:26:30.022 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport [] - Spring Data Reactive MongoDB - Could not safely identify store assignment for repository candidate interface com.grm3355.zonie.commonlib.domain.user.repository.UserRepository; If you want this repository to be a Reactive MongoDB repository, consider annotating your entities with one of these annotations: org.springframework.data.mongodb.core.mapping.Document (preferred), or consider extending one of the following types with your repository: org.springframework.data.mongodb.repository.ReactiveMongoRepository
+2025-11-13 16:26:30.022 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate [] - Finished Spring Data repository scanning in 80 ms. Found 0 Reactive MongoDB repository interfaces.
+2025-11-13 16:26:30.036 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate [] - Multiple Spring Data modules found, entering strict repository configuration mode
+2025-11-13 16:26:30.037 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate [] - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2025-11-13 16:26:30.109 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport [] - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-11-13 16:26:30.109 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport [] - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomSyncRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-11-13 16:26:30.110 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport [] - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomUserRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-11-13 16:26:30.110 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport [] - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-11-13 16:26:30.110 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport [] - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.grm3355.zonie.commonlib.domain.message.repository.MessageRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-11-13 16:26:30.110 [main] INFO  o.s.d.r.c.RepositoryConfigurationExtensionSupport [] - Spring Data Redis - Could not safely identify store assignment for repository candidate interface com.grm3355.zonie.commonlib.domain.user.repository.UserRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2025-11-13 16:26:30.111 [main] INFO  o.s.d.r.c.RepositoryConfigurationDelegate [] - Finished Spring Data repository scanning in 61 ms. Found 0 Redis repository interfaces.
+2025-11-13 16:26:30.879 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer [] - Tomcat initialized with port 8080 (http)
+2025-11-13 16:26:30.897 [main] INFO  o.a.catalina.core.StandardService [] - Starting service [Tomcat]
+2025-11-13 16:26:30.897 [main] INFO  o.a.catalina.core.StandardEngine [] - Starting Servlet engine: [Apache Tomcat/10.1.48]
+2025-11-13 16:26:31.038 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] [] - Initializing Spring embedded WebApplicationContext
+2025-11-13 16:26:31.039 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext [] - Root WebApplicationContext: initialization completed in 3086 ms
+2025-11-13 16:26:31.871 [main] DEBUG o.s.o.j.LocalContainerEntityManagerFactoryBean [] - Building JPA container EntityManagerFactory for persistence unit 'default'
+2025-11-13 16:26:31.912 [main] INFO  o.h.jpa.internal.util.LogHelper [] - HHH000204: Processing PersistenceUnitInfo [name: default]
+2025-11-13 16:26:32.002 [main] INFO  org.hibernate.Version [] - HHH000412: Hibernate ORM core version 6.6.33.Final
+2025-11-13 16:26:32.018 [main] INFO  o.h.s.integration.SpatialService [] - HHH80000001: hibernate-spatial integration enabled : true
+2025-11-13 16:26:32.061 [main] INFO  o.h.c.i.RegionFactoryInitiator [] - HHH000026: Second-level cache disabled
+2025-11-13 16:26:32.233 [main] INFO  com.zaxxer.hikari.HikariDataSource [] - HikariPool-1 - Starting...
+2025-11-13 16:26:32.491 [main] INFO  com.zaxxer.hikari.pool.HikariPool [] - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@6dadcf58
+2025-11-13 16:26:32.493 [main] INFO  com.zaxxer.hikari.HikariDataSource [] - HikariPool-1 - Start completed.
+2025-11-13 16:26:32.546 [main] WARN  org.hibernate.orm.deprecation [] - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2025-11-13 16:26:32.569 [main] INFO  o.hibernate.orm.connections.pooling [] - HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 16.10
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2025-11-13 16:26:32.583 [main] INFO  org.hibernate.spatial [] - HHH80000003: hibernate-spatial adding type contributions from : org.hibernate.spatial.dialect.postgis.PostgisDialectContributor
+2025-11-13 16:26:32.874 [main] INFO  o.s.o.j.p.SpringPersistenceUnitInfo [] - No LoadTimeWeaver setup: ignoring JPA class transformer
+2025-11-13 16:26:32.906 [main] INFO  org.hibernate.spatial [] - HHH80000003: hibernate-spatial adding type contributions from : org.hibernate.spatial.dialect.postgis.PostgisDialectContributor
+2025-11-13 16:26:33.417 [main] INFO  org.hibernate.spatial [] - HHH80000004: hibernate-spatial adding function contributions from : org.hibernate.spatial.dialect.postgis.PostgisDialectContributor
+2025-11-13 16:26:34.248 [main] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator [] - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2025-11-13 16:26:34.316 [main] DEBUG org.hibernate.SQL [] - 
+    create table chat_room_user (
+        chat_room_user_id bigint generated by default as identity,
+        created_at timestamp(6) not null,
+        deleted_at timestamp(6),
+        updated_at timestamp(6) not null,
+        last_read_at timestamp(6) not null,
+        nick_name varchar(50) not null,
+        chat_room_id varchar(50) not null,
+        user_id varchar(100) not null,
+        primary key (chat_room_user_id)
+    )
+2025-11-13 16:26:34.331 [main] DEBUG org.hibernate.SQL [] - 
+    create table chat_rooms (
+        id bigint generated by default as identity,
+        created_at timestamp(6) not null,
+        deleted_at timestamp(6),
+        updated_at timestamp(6) not null,
+        chat_room_id varchar(50) not null,
+        cover_image_url varchar(100),
+        last_message_at timestamp(6),
+        max_participants bigint not null,
+        participant_count bigint default 0 not null,
+        position geography(Point, 4326),
+        radius float(53) not null,
+        title varchar(100) not null,
+        festival_id bigint not null,
+        user_id varchar(100) not null,
+        primary key (id)
+    )
+2025-11-13 16:26:34.351 [main] DEBUG org.hibernate.SQL [] - 
+    create table festivals (
+        festival_id bigint generated by default as identity,
+        created_at timestamp(6) not null,
+        deleted_at timestamp(6),
+        updated_at timestamp(6) not null,
+        addr1 varchar(1024) not null,
+        area_code integer,
+        chat_room_count integer not null,
+        content_id integer not null,
+        event_end_date date not null,
+        event_start_date date not null,
+        first_image varchar(1024),
+        map_x varchar(20),
+        map_y varchar(20),
+        position geography(Point, 4326),
+        region varchar(20),
+        status varchar(20),
+        target_type varchar(20),
+        tel varchar(1024),
+        title varchar(1024),
+        total_participant_count bigint not null,
+        url varchar(500),
+        primary key (festival_id)
+    )
+2025-11-13 16:26:34.363 [main] DEBUG org.hibernate.SQL [] - 
+    create table users (
+        id bigint generated by default as identity,
+        created_at timestamp(6) not null,
+        deleted_at timestamp(6),
+        updated_at timestamp(6) not null,
+        account_email varchar(255),
+        password varchar(100),
+        profile_image varchar(255),
+        profile_nickname varchar(255),
+        provider_type varchar(255) check (provider_type in ('KAKAO','GOOGLE','NAVER','APPLE')),
+        role varchar(20) not null check (role in ('USER','ADMIN')),
+        social_id varchar(255),
+        user_id varchar(100) not null,
+        primary key (id)
+    )
+2025-11-13 16:26:34.375 [main] DEBUG org.hibernate.SQL [] - 
+    alter table if exists chat_room_user 
+       drop constraint if exists UKlgydf7yj229wk342vum00kkqn
+2025-11-13 16:26:34.377 [main] WARN  o.h.e.jdbc.spi.SqlExceptionHelper [] - SQL Warning Code: 0, SQLState: 00000
+2025-11-13 16:26:34.377 [main] WARN  o.h.e.jdbc.spi.SqlExceptionHelper [] - "uklgydf7yj229wk342vum00kkqn" 제약 조건(해당 테이블: "chat_room_user")이 없음, 건너뜀
+2025-11-13 16:26:34.378 [main] DEBUG org.hibernate.SQL [] - 
+    alter table if exists chat_room_user 
+       add constraint UKlgydf7yj229wk342vum00kkqn unique (chat_room_id, nick_name)
+2025-11-13 16:26:34.382 [main] DEBUG org.hibernate.SQL [] - 
+    alter table if exists chat_rooms 
+       drop constraint if exists UKr03dpnc53epra7qiogm7ylw2x
+2025-11-13 16:26:34.383 [main] WARN  o.h.e.jdbc.spi.SqlExceptionHelper [] - SQL Warning Code: 0, SQLState: 00000
+2025-11-13 16:26:34.383 [main] WARN  o.h.e.jdbc.spi.SqlExceptionHelper [] - "ukr03dpnc53epra7qiogm7ylw2x" 제약 조건(해당 테이블: "chat_rooms")이 없음, 건너뜀
+2025-11-13 16:26:34.384 [main] DEBUG org.hibernate.SQL [] - 
+    alter table if exists chat_rooms 
+       add constraint UKr03dpnc53epra7qiogm7ylw2x unique (chat_room_id)
+2025-11-13 16:26:34.387 [main] DEBUG org.hibernate.SQL [] - 
+    alter table if exists festivals 
+       drop constraint if exists UKyoo4vxqbkqgwg34axj41x3bb
+2025-11-13 16:26:34.388 [main] WARN  o.h.e.jdbc.spi.SqlExceptionHelper [] - SQL Warning Code: 0, SQLState: 00000
+2025-11-13 16:26:34.388 [main] WARN  o.h.e.jdbc.spi.SqlExceptionHelper [] - "ukyoo4vxqbkqgwg34axj41x3bb" 제약 조건(해당 테이블: "festivals")이 없음, 건너뜀
+2025-11-13 16:26:34.388 [main] DEBUG org.hibernate.SQL [] - 
+    alter table if exists festivals 
+       add constraint UKyoo4vxqbkqgwg34axj41x3bb unique (content_id)
+2025-11-13 16:26:34.392 [main] DEBUG org.hibernate.SQL [] - 
+    alter table if exists users 
+       drop constraint if exists UK6efs5vmce86ymf5q7lmvn2uuf
+2025-11-13 16:26:34.393 [main] WARN  o.h.e.jdbc.spi.SqlExceptionHelper [] - SQL Warning Code: 0, SQLState: 00000
+2025-11-13 16:26:34.393 [main] WARN  o.h.e.jdbc.spi.SqlExceptionHelper [] - "uk6efs5vmce86ymf5q7lmvn2uuf" 제약 조건(해당 테이블: "users")이 없음, 건너뜀
+2025-11-13 16:26:34.393 [main] DEBUG org.hibernate.SQL [] - 
+    alter table if exists users 
+       add constraint UK6efs5vmce86ymf5q7lmvn2uuf unique (user_id)
+2025-11-13 16:26:34.398 [main] DEBUG org.hibernate.SQL [] - 
+    alter table if exists chat_room_user 
+       add constraint FKepcbqqjdhtyfqnwmpuorw3q2l 
+       foreign key (chat_room_id) 
+       references chat_rooms (chat_room_id)
+2025-11-13 16:26:34.402 [main] DEBUG org.hibernate.SQL [] - 
+    alter table if exists chat_room_user 
+       add constraint FK1483pmv1lx4x5py5gm0m1109v 
+       foreign key (user_id) 
+       references users (user_id)
+2025-11-13 16:26:34.404 [main] DEBUG org.hibernate.SQL [] - 
+    alter table if exists chat_rooms 
+       add constraint FKdn702rmakesxeaqjt4jjbrg61 
+       foreign key (festival_id) 
+       references festivals
+2025-11-13 16:26:34.406 [main] DEBUG org.hibernate.SQL [] - 
+    alter table if exists chat_rooms 
+       add constraint FKsmng5d9b3wobj381j9x2otndu 
+       foreign key (user_id) 
+       references users (user_id)
+2025-11-13 16:26:34.409 [main] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean [] - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2025-11-13 16:26:34.834 [main] DEBUG c.g.z.a.g.j.JwtAuthenticationFilter [] - Filter 'jwtAuthenticationFilter' configured for use
+2025-11-13 16:26:34.835 [main] DEBUG c.g.z.a.g.filter.RateLimitingFilter [] - Filter 'rateLimitingFilter' configured for use
+2025-11-13 16:26:34.925 [main] INFO  o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer [] - Global AuthenticationManager configured with UserDetailsService bean with name userDetailsServiceImpl
+2025-11-13 16:26:35.161 [main] INFO  o.s.d.j.r.query.QueryEnhancerFactory [] - Hibernate is in classpath; If applicable, HQL parser will be used.
+2025-11-13 16:26:36.012 [main] INFO  org.mongodb.driver.client [] - MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "5.5.2"}, "os": {"type": "Windows", "name": "Windows 10", "architecture": "amd64", "version": "10.0"}, "platform": "Java/Oracle Corporation/21.0.7+8-LTS-245"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=MongoCredential{mechanism=null, userName='mongo_user', source='zonie_chat', password=<hidden>, mechanismProperties=<hidden>}, transportSettings=NettyTransportSettings{eventLoopGroup=io.netty.channel.nio.NioEventLoopGroup@15dee504, socketChannelClass=null, allocator=null, sslContext=null}, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@402ceac2], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@70fd1f5c, com.mongodb.Jep395RecordCodecProvider@7b7eb8c, com.mongodb.KotlinCodecProvider@26d443e3]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@47338b8b], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2025-11-13 16:26:36.093 [cluster-ClusterId{value='6915882bd955b308d0d07b26', description='null'}-localhost:27017] INFO  org.mongodb.driver.cluster [] - Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=27, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=53032000, minRoundTripTimeNanos=0}
+2025-11-13 16:26:36.527 [main] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration [] - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2025-11-13 16:26:36.860 [cluster-ClusterId{value='6915882cd955b308d0d07b27', description='null'}-localhost:27017] INFO  org.mongodb.driver.cluster [] - Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, cryptd=false, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=27, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=4548300, minRoundTripTimeNanos=0}
+2025-11-13 16:26:36.872 [main] INFO  org.mongodb.driver.client [] - MongoClient with metadata {"driver": {"name": "mongo-java-driver|reactive-streams|spring-boot", "version": "5.5.2"}, "os": {"type": "Windows", "name": "Windows 10", "architecture": "amd64", "version": "10.0"}, "platform": "Java/Oracle Corporation/21.0.7+8-LTS-245"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=MongoCredential{mechanism=null, userName='mongo_user', source='zonie_chat', password=<hidden>, mechanismProperties=<hidden>}, transportSettings=NettyTransportSettings{eventLoopGroup=io.netty.channel.nio.NioEventLoopGroup@1b8354aa, socketChannelClass=null, allocator=null, sslContext=null}, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@402ceac2], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@70fd1f5c, com.mongodb.Jep395RecordCodecProvider@7b7eb8c, com.mongodb.KotlinCodecProvider@26d443e3]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@47338b8b], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverMonitoringMode=AUTO, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null, timeoutMS=null}
+2025-11-13 16:26:37.042 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver [] - Exposing 2 endpoints beneath base path '/actuator'
+2025-11-13 16:26:37.926 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer [] - Tomcat started on port 8080 (http) with context path '/'
+2025-11-13 16:26:37.940 [main] INFO  c.grm3355.zonie.ApiServerApplication [] - Started ApiServerApplication in 10.777 seconds (process running for 12.279)
+2025-11-13 16:27:35.292 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] [] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2025-11-13 16:27:35.293 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet [] - Initializing Servlet 'dispatcherServlet'
+2025-11-13 16:27:35.294 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet [] - Completed initialization in 1 ms
+2025-11-13 16:27:35.348 [http-nio-8080-exec-1] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor [] - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-11-13 16:27:35.418 [http-nio-8080-exec-1] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Found thread-bound EntityManager [SessionImpl(285427896<open>)] for JPA transaction
+2025-11-13 16:27:35.418 [http-nio-8080-exec-1] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Creating new transaction with name [com.grm3355.zonie.apiserver.domain.festival.service.FestivalService.getFestivalList]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-11-13 16:27:35.424 [http-nio-8080-exec-1] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@5df29998]
+2025-11-13 16:27:35.480 [http-nio-8080-exec-1] DEBUG org.hibernate.SQL [] - 
+    SELECT
+        *       
+    FROM
+        festivals f       
+    WHERE
+        f.festival_id is not null       
+        AND (
+            ? is null 
+            or f.region = ?
+        )        
+        AND (
+            ? is null 
+            OR f.title ILIKE '%' || ? || '%'
+        )     
+        AND (
+            CURRENT_TIMESTAMP >= (
+                f.event_start_date - make_interval(days => ?)
+            )                
+            AND CURRENT_TIMESTAMP <= f.event_end_date
+        )  
+        AND (
+            ? = 'ALL' 
+            or ? is null   
+            OR (
+                ? = 'ONGOING' 
+                AND f.event_start_date <= CURRENT_DATE 
+                AND f.event_end_date >= CURRENT_DATE
+            )   
+            OR (
+                ? = 'UPCOMING' 
+                AND f.event_start_date > CURRENT_DATE
+            )    
+        )  
+    order by
+        f.event_start_date asc 
+    fetch
+        first ? rows only
+2025-11-13 16:27:35.527 [http-nio-8080-exec-1] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Initiating transaction commit
+2025-11-13 16:27:35.527 [http-nio-8080-exec-1] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Committing JPA transaction on EntityManager [SessionImpl(285427896<open>)]
+2025-11-13 16:27:35.529 [http-nio-8080-exec-1] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Not closing pre-bound JPA EntityManager after transaction
+2025-11-13 16:27:35.603 [http-nio-8080-exec-1] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor [] - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-11-13 16:27:49.537 [http-nio-8080-exec-2] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor [] - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-11-13 16:27:49.539 [http-nio-8080-exec-2] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Found thread-bound EntityManager [SessionImpl(1186228934<open>)] for JPA transaction
+2025-11-13 16:27:49.539 [http-nio-8080-exec-2] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Creating new transaction with name [com.grm3355.zonie.apiserver.domain.festival.service.FestivalService.getFestivalList]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-11-13 16:27:49.540 [http-nio-8080-exec-2] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@3b6ec74]
+2025-11-13 16:27:49.541 [http-nio-8080-exec-2] DEBUG org.hibernate.SQL [] - 
+    SELECT
+        *       
+    FROM
+        festivals f       
+    WHERE
+        f.festival_id is not null       
+        AND (
+            ? is null 
+            or f.region = ?
+        )        
+        AND (
+            ? is null 
+            OR f.title ILIKE '%' || ? || '%'
+        )     
+        AND (
+            CURRENT_TIMESTAMP >= (
+                f.event_start_date - make_interval(days => ?)
+            )                
+            AND CURRENT_TIMESTAMP <= f.event_end_date
+        )  
+        AND (
+            ? = 'ALL' 
+            or ? is null   
+            OR (
+                ? = 'ONGOING' 
+                AND f.event_start_date <= CURRENT_DATE 
+                AND f.event_end_date >= CURRENT_DATE
+            )   
+            OR (
+                ? = 'UPCOMING' 
+                AND f.event_start_date > CURRENT_DATE
+            )    
+        )  
+    order by
+        f.event_start_date asc 
+    fetch
+        first ? rows only
+2025-11-13 16:27:49.543 [http-nio-8080-exec-2] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Initiating transaction commit
+2025-11-13 16:27:49.543 [http-nio-8080-exec-2] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Committing JPA transaction on EntityManager [SessionImpl(1186228934<open>)]
+2025-11-13 16:27:49.543 [http-nio-8080-exec-2] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Not closing pre-bound JPA EntityManager after transaction
+2025-11-13 16:27:49.544 [http-nio-8080-exec-2] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor [] - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-11-13 16:31:40.636 [http-nio-8080-exec-4] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor [] - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-11-13 16:31:40.639 [http-nio-8080-exec-4] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Found thread-bound EntityManager [SessionImpl(999247510<open>)] for JPA transaction
+2025-11-13 16:31:40.639 [http-nio-8080-exec-4] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Creating new transaction with name [com.grm3355.zonie.apiserver.domain.festival.service.FestivalService.getFestivalList]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-11-13 16:31:40.640 [http-nio-8080-exec-4] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@7e8dd783]
+2025-11-13 16:31:40.641 [http-nio-8080-exec-4] DEBUG org.hibernate.SQL [] - 
+    SELECT
+        *       
+    FROM
+        festivals f       
+    WHERE
+        f.festival_id is not null       
+        AND (
+            ? is null 
+            or f.region = ?
+        )        
+        AND (
+            ? is null 
+            OR f.title ILIKE '%' || ? || '%'
+        )     
+        AND (
+            CURRENT_TIMESTAMP >= (
+                f.event_start_date - make_interval(days => ?)
+            )                
+            AND CURRENT_TIMESTAMP <= f.event_end_date
+        )  
+        AND (
+            ? = 'ALL' 
+            or ? is null   
+            OR (
+                ? = 'ONGOING' 
+                AND f.event_start_date <= CURRENT_DATE 
+                AND f.event_end_date >= CURRENT_DATE
+            )   
+            OR (
+                ? = 'UPCOMING' 
+                AND f.event_start_date > CURRENT_DATE
+            )    
+        )  
+    order by
+        f.event_start_date asc 
+    fetch
+        first ? rows only
+2025-11-13 16:31:40.643 [http-nio-8080-exec-4] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Initiating transaction commit
+2025-11-13 16:31:40.644 [http-nio-8080-exec-4] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Committing JPA transaction on EntityManager [SessionImpl(999247510<open>)]
+2025-11-13 16:31:40.644 [http-nio-8080-exec-4] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Not closing pre-bound JPA EntityManager after transaction
+2025-11-13 16:31:40.647 [http-nio-8080-exec-4] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor [] - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-11-13 17:10:50.804 [http-nio-8080-exec-6] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor [] - Opening JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-11-13 17:10:50.882 [http-nio-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Found thread-bound EntityManager [SessionImpl(88854417<open>)] for JPA transaction
+2025-11-13 17:10:50.883 [http-nio-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Creating new transaction with name [com.grm3355.zonie.apiserver.domain.auth.service.AuthService.login]: PROPAGATION_REQUIRED,ISOLATION_DEFAULT
+2025-11-13 17:10:50.885 [http-nio-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Exposing JPA transaction as JDBC [org.springframework.orm.jpa.vendor.HibernateJpaDialect$HibernateConnectionHandle@5078e00]
+2025-11-13 17:10:52.149 [http-nio-8080-exec-6] DEBUG org.hibernate.SQL [] - 
+    select
+        u1_0.id,
+        u1_0.account_email,
+        u1_0.created_at,
+        u1_0.deleted_at,
+        u1_0.password,
+        u1_0.profile_image,
+        u1_0.profile_nickname,
+        u1_0.provider_type,
+        u1_0.role,
+        u1_0.social_id,
+        u1_0.updated_at,
+        u1_0.user_id 
+    from
+        users u1_0 
+    where
+        u1_0.social_id=? 
+        and u1_0.provider_type=? 
+        and u1_0.deleted_at is null
+2025-11-13 17:10:52.160 [http-nio-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Found thread-bound EntityManager [SessionImpl(88854417<open>)] for JPA transaction
+2025-11-13 17:10:52.160 [http-nio-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Participating in existing transaction
+2025-11-13 17:10:52.201 [http-nio-8080-exec-6] DEBUG org.hibernate.SQL [] - 
+    insert 
+    into
+        users
+        (account_email, created_at, deleted_at, password, profile_image, profile_nickname, provider_type, role, social_id, updated_at, user_id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+2025-11-13 17:10:52.712 [http-nio-8080-exec-6] INFO  c.g.z.a.d.a.s.RedisTokenService [] - 사용자 4541132724kakao를 위해 Redis에 리프레시 토큰을 생성하고 저장했습니다: refreshToken:eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiI0NTQxMTMyNzI0a2FrYW8iLCJpYXQiOjE3NjMwMjE0NTIsImV4cCI6MTc2MzYyNjI1Mn0.DUKol2DJj5uZkjtXphsJ_ddaLylJrosh_UaOUQMZtabFFmUmrYANgvvsGrlNrrSDZ_owFi1UBHMg7qzkEHH5ZQ
+2025-11-13 17:10:52.713 [http-nio-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Initiating transaction commit
+2025-11-13 17:10:52.713 [http-nio-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Committing JPA transaction on EntityManager [SessionImpl(88854417<open>)]
+2025-11-13 17:10:52.724 [http-nio-8080-exec-6] DEBUG o.s.orm.jpa.JpaTransactionManager [] - Not closing pre-bound JPA EntityManager after transaction
+2025-11-13 17:10:52.731 [http-nio-8080-exec-6] DEBUG o.s.o.j.s.OpenEntityManagerInViewInterceptor [] - Closing JPA EntityManager in OpenEntityManagerInViewInterceptor
+2025-11-13 17:10:52.838 [http-nio-8080-exec-7] WARN  c.g.z.a.g.j.JwtAuthenticationEntryPoint [] - 인증되지 않은 접근 시도: Full authentication is required to access this resource
