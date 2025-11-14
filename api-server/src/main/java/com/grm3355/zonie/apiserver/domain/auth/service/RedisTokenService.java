@@ -120,21 +120,19 @@ public class RedisTokenService {
 		return token != null && !token.isBlank();
 	}
 
-	/**
-	 * 위치 + 디바이스 정보 업데이트 (TTL 갱신 포함)
-	 */
-	public boolean updateUserLocationInfo(LocationDto locationDto, String userId) {
-		String redisKey = buildKey(userId);
-		try {
-			String infoJson = buildLocationJson(userId, locationDto.getLat(), locationDto.getLon());
-			redisTemplate.opsForValue().set(redisKey, infoJson, this.tokenTtl); // 15분 TTL
-		} catch (Exception e) {
-			throw new RuntimeException("Redis 저장 중 오류 발생", e);
-		}
-		return true;
-	}
-
-
+	// /**
+	//  * 위치 + 디바이스 정보 업데이트 (TTL 갱신 포함)
+	//  */
+	// public boolean updateUserLocationInfo(LocationDto locationDto, String userId) {
+	// 	String redisKey = buildKey(userId);
+	// 	try {
+	// 		String infoJson = buildLocationJson(userId, locationDto.getLat(), locationDto.getLon());
+	// 		redisTemplate.opsForValue().set(redisKey, infoJson, this.tokenTtl); // 15분 TTL
+	// 	} catch (Exception e) {
+	// 		throw new RuntimeException("Redis 저장 중 오류 발생", e);
+	// 	}
+	// 	return true;
+	// }
 
 	/**
 	 * 위치 + 디바이스 정보 업데이트 (TTL 갱신 포함)
@@ -151,10 +149,10 @@ public class RedisTokenService {
 
 		// 기존 정보 유지 + 좌표만 갱신
 		// userId는 파라미터로 받은 값 사용
-		String clientIp = extractValue(oldValue, "clientIp");
-		String device = extractValue(oldValue, "device");
+		// String clientIp = extractValue(oldValue, "clientIp");
+		// String device = extractValue(oldValue, "device");
 
-		String newValue = buildLocationJson(userId, clientIp, device, locationDto.getLat(), locationDto.getLon());
+		String newValue = buildLocationJson(userId, /*clientIp, device,*/ locationDto.getLat(), locationDto.getLon());
 		redisTemplate.opsForValue().set(key, newValue, this.tokenTtl);
 
 		return true;
@@ -267,23 +265,33 @@ public class RedisTokenService {
 	}
 
 	private String buildKey(String userId, String contextId) {
+		if (contextId == null || contextId.isBlank()) {
+			log.warn("buildKey 호출 시 contextId가 null이거나 비어있습니다. UserId: {}", userId);
+			// 혹은 예외: // throw new IllegalArgumentException("ContextId는 필수입니다.");
+			// 임시로 UserId만 사용한 키를 반환하나, 이는 버그의 원인이 될 수 있음
+			return "locationToken:" + userId + ":(unknown_context)";
+		}
 		return "locationToken:" + userId + ":" + contextId;
 	}
-	private String buildKey(String userId) {
-		return "locationToken:" + userId;
-	}
+
+	// private String buildKey(String userId) {
+	// 	return "locationToken:" + userId;
+	// }
+
 	private String buildLocationJson(String userId, String clientIp, String device, double lat, double lon) {
 		return String.format(
 			"{\"userId\":\"%s\",\"clientIp\":\"%s\",\"device\":\"%s\",\"lat\":%.6f,\"lon\":%.6f,\"timestamp\":%d}",
 			userId, clientIp, device, lat, lon, System.currentTimeMillis()
 		);
 	}
+
 	private String buildLocationJson(String userId, double lat, double lon) {
 		return String.format(
 			"{\"userId\":\"%s\",\"lat\":%.6f,\"lon\":%.6f,\"timestamp\":%d}",
 			userId, lat, lon, System.currentTimeMillis()
 		);
 	}
+
 	private String extractValue(String json, String field) {
 		String search = "\"" + field + "\":\"";
 		int start = json.indexOf(search);

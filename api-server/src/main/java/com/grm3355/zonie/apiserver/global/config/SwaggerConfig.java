@@ -22,7 +22,6 @@ import io.swagger.v3.oas.models.media.Schema;
  */
 @OpenAPIDefinition(
 	servers = {
-		@Server(url = "https://www.zony.kro.kr", description = "운영 서버"),
 		@Server(url = "http://localhost:8080", description = "로컬 서버")
 	})
 @Configuration

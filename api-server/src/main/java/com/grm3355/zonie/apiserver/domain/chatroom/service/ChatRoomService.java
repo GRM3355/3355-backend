@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,11 +41,13 @@ import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 import com.grm3355.zonie.commonlib.global.util.RedisScanService;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class ChatRoomService {
 
 	private static final String PRE_FIX = "";
@@ -56,6 +59,9 @@ public class ChatRoomService {
 	private final StringRedisTemplate stringRedisTemplate;
 	GeometryFactory geometryFactory = new GeometryFactory(); // GeometryFactory 생성 (보통 한 번만 만들어 재사용)
 
+	private final RedisTemplate<String, Object> redisTemplate;
+	private static final String JOIN_EVENT_CHANNEL = "chat-events:join";
+
 	@Value("${chat.pre-create-day}")
 	private int pre_create_days;    //시작하기전 몇일전부터 생성가능
 	@Value("${chat.max-chat-person}")
@@ -65,32 +71,19 @@ public class ChatRoomService {
 	@Value("${chat.radius}")
 	private double max_radius;   //최대km
 
-	public ChatRoomService(RedisTokenService redisTokenService, FestivalInfoService festivalInfoService,
-		RedisScanService redisScanService,
-		ChatRoomRepository chatRoomRepository, UserRepository userRepository, StringRedisTemplate stringRedisTemplate
-	) {
-		this.redisTokenService = redisTokenService;
-		this.festivalInfoService = festivalInfoService;
-		this.redisScanService = redisScanService;
-		this.chatRoomRepository = chatRoomRepository;
-		this.userRepository = userRepository;
-		this.stringRedisTemplate = stringRedisTemplate;
-	}
-
 	/**
 	 * 채팅방 생성
 	 */
 	public ChatRoomResponse setCreateChatRoom(long festivalId,
 		ChatRoomRequest request, UserDetailsImpl userDetails) {
 
-		//0. 사용자 아이디 가져오기
+		// 0. 유저 조회
 		String userId = userDetails.getUsername();
 		User user = userRepository.findByUserId(userId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자 정보가 유효하지 않습니다."));
 
+		// 1. 축제 조회
 		String festivalIdStr = String.valueOf(festivalId);
-
-		// 1. 축제 존재여부체크
 		Festival festival = festivalInfoService.getDataValid(festivalId, pre_create_days);
 
 		// 2. 위치 정보 객체 생성
@@ -146,6 +139,24 @@ public class ChatRoomService {
 
 		//festival에 채팅방갯수 저장 /festivalId
 		festivalInfoService.increaseChatRoomCount(festivalId);
+
+		try {
+			// 5. 이벤트 페이로드 생성
+			Map<String, String> joinEvent = Map.of(
+				"userId", user.getUserId(),
+				"roomId", saveChatRoom.getChatRoomId()
+			);
+
+			// 6. Redis Pub/Sub으로 이벤트 발행
+			redisTemplate.convertAndSend(JOIN_EVENT_CHANNEL, joinEvent);
+			log.info("Published join event for User {} to Room {}", user.getUserId(), saveChatRoom.getChatRoomId());
+
+		} catch (Exception e) {
+			// 채팅방 생성 트랜잭션은 성공했으나, 이벤트 발행에 실패한 경우
+			// 사용자는 수동으로 '참여' 버튼을 눌러야 할 수 있음.
+			log.error("Failed to publish join event for User {} to Room {}: {}",
+				user.getUserId(), saveChatRoom.getChatRoomId(), e.getMessage());
+		}
 
 		//dto 변환
 		return ChatRoomResponse.builder()
