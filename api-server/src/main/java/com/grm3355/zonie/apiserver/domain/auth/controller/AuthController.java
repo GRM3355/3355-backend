@@ -82,6 +82,25 @@ public class AuthController {
 				.body(response);
 	}
 
+	@Operation(summary = "사용자 토큰 발급", description = "사용자 로그인후 AccessToken, RefreshToken 발급합니다.")
+	@ApiResponses({
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "200",
+			description = "토큰 발급 성공 (신규 생성)",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = AuthResponse.class),
+				examples = @ExampleObject(
+					name = "CREATED",
+					value = "{\"success\":true,\"data\":{\"accessToken\":\"...\", \"refreshToken\":\"...\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
+				)
+			)
+		)
+	})
+	@ApiError400
+	@ApiError405
+	@ApiError415
+	@ApiError429
 	@GetMapping("/kakao/callback")
 	public ResponseEntity<LoginResponse> loginWithKakao(@RequestParam("code") String code) {
 		LoginResponse response = authService.login(new LoginRequest(ProviderType.KAKAO, code));
@@ -89,13 +108,17 @@ public class AuthController {
 				.body(response);
 	}
 
-	@Operation(summary = "토큰 재발급", description = "유효한 Refresh 토큰을 사용하여 새로운 Access/Refresh 토큰 쌍을 발급받습니다. 보안 강화를 위해 토큰 로테이션이 적용되어, 사용된 Refresh 토큰은 무효화되고 새로운 Refresh 토큰이 발급됩니다.")
+	@Operation(summary = "사용자 토큰 발급", description = "사용자 로그인후 AccessToken, RefreshToken 발급합니다.")
 	@ApiResponses({
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "토큰 재발급 성공",
-			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "200",
+			description = "토큰 발급 성공 (신규 생성)",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = AuthResponse.class),
 				examples = @ExampleObject(
-					name = "OK",
-					value = "{\"success\":true,\"message\":\"OK\",\"data\":{\"accessToken\":\"...\",\"refreshToken\":\"...\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
+					name = "CREATED",
+					value = "{\"success\":true,\"data\":{\"accessToken\":\"...\", \"refreshToken\":\"...\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
 				)
 			)
 		)
@@ -110,7 +133,7 @@ public class AuthController {
 		return ResponseEntity.ok().body(ApiResponse.success(authResponse));
 	}
 
-	@Operation(summary = "로그아웃", description = "서버에 저장된 Refresh 토큰을 삭제하여 로그아웃 처리합니다. 클라이언트 측에서도 저장된 토큰을 모두 삭제해야 안전하게 로그아웃이 완료됩니다.")
+	@Operation(summary = "로그아웃", description = "서버에 저장된 Refresh 토큰을 삭제하여 로그아웃 처리합니다. 클라이언트 측에서도 저장된 액세스토큰, 리프레시 토큰을 모두 삭제해야 합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "로그아웃 성공",
 			content = @Content(mediaType = "application/json"

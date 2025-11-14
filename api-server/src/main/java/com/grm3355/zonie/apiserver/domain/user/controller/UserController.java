@@ -61,7 +61,7 @@ public class UserController {
 		return ResponseEntity.ok().body(ApiResponse.success(userProfile));
 	}
 
-	@Operation(summary = "회원탈퇴", description = "현재 로그인된 사용자의 비밀번호를 변경합니다. 변경 후 모든 기기에서 로그아웃됩니다.")
+	@Operation(summary = "회원탈퇴", description = "현재 가입한 회원의 정보를 삭제처리합니다. 클라이언트 측에서도 저장된 액세스토큰, 리프레시 토큰을 모두 삭제해야 합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "회원탈퇴 성공",
 			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
