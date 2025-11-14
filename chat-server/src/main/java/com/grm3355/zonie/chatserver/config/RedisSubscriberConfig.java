@@ -1,5 +1,7 @@
 package com.grm3355.zonie.chatserver.config;
 
+import java.util.Map;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -12,6 +14,7 @@ import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import com.grm3355.zonie.chatserver.service.ChatRoomService;
 import com.grm3355.zonie.commonlib.domain.message.entity.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -22,13 +25,16 @@ public class RedisSubscriberConfig {
 
 	private final SimpMessageSendingOperations messagingTemplate;
 	private final ObjectMapper objectMapper;
+	private final ChatRoomService chatRoomService;
 
 	// (1) Redis의 메시지를 STOMP 브로커로 전송하는 실제 핸들러
 	public class RedisSubscriber {
+
 		public void handleEcho(String message) {
 			System.out.println("LOG: Redis Pub/Sub received: " + message);
 			messagingTemplate.convertAndSend("/sub/echo", message); // 메시지를 받아서 STOMP 브로커(/sub/echo)로 브로드캐스팅
 		}
+
 		public void handleMessage(String messageJson, String channel) {
 			try {
 				// 1. JSON 파싱 (이중 포장 풀기)
@@ -54,6 +60,31 @@ public class RedisSubscriberConfig {
 				log.error("RedisSubscriber handleMessage Error", e);
 			}
 		}
+
+		/**
+		 * 'chat-events:join' 채널을 처리하는 핸들러
+		 */
+		public void handleJoinEvent(String messageJson) {
+			try {
+				// 1. JSON 파싱
+				Map<String, String> event = objectMapper.readValue(messageJson, Map.class);
+				String userId = event.get("userId");
+				String roomId = event.get("roomId");
+
+				if (userId == null || roomId == null) {
+					log.error("Invalid join event message: {}", messageJson);
+					return;
+				}
+
+				log.info(">>> REDIS SUB RECV [Channel: chat-events:join] -> User: {}, Room: {}", userId, roomId);
+
+				// 2. ChatRoomService의 joinRoom 로직 호출
+				chatRoomService.joinRoom(userId, roomId);
+
+			} catch (Exception e) {
+				log.error("RedisSubscriber handleJoinEvent Error", e);
+			}
+		}
 	}
 
 	// (2) 메시지 리스너 어댑터: 실제 핸들러(RedisSubscriber)를 연결
@@ -70,12 +101,19 @@ public class RedisSubscriberConfig {
 		// RedisSubscriber의 "handleEcho" 메소드가 메시지를 처리하도록 설정
 		return new MessageListenerAdapter(new RedisSubscriber(), "handleEcho");
 	}
+	// (2-C) 자동 참여 이벤트 리스너 어댑터
+	@Bean
+	MessageListenerAdapter joinEventListenerAdapter() {
+		// RedisSubscriber의 "handleJoinEvent" 메소드가 메시지를 처리하도록 설정
+		return new MessageListenerAdapter(new RedisSubscriber(), "handleJoinEvent");
+	}
 
 	// (3) Redis 메시지 리스너 컨테이너: 어떤 채널을 구독할지 설정
 	@Bean
 	RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory,
 		MessageListenerAdapter chatListenerAdapter,
-		MessageListenerAdapter echoListenerAdapter) {
+		MessageListenerAdapter echoListenerAdapter,
+		MessageListenerAdapter joinEventListenerAdapter) {
 
 		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
@@ -86,6 +124,8 @@ public class RedisSubscriberConfig {
 		// "echo-channel" 토픽을 구독 (echoListenerAdapter 사용)
 		container.addMessageListener(echoListenerAdapter, new ChannelTopic("echo-channel"));
 
+		// "chat-events:join" 토픽을 구독 (joinEventListenerAdapter 사용)
+		container.addMessageListener(joinEventListenerAdapter, new ChannelTopic("chat-events:join"));
 		return container;
 	}
 

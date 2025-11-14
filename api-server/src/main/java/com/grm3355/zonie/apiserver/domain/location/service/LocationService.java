@@ -26,8 +26,13 @@ public class LocationService {
 		this.festivalRepository = festivalRepository;
 	}
 
-	//위도 경도, 거리예산
+	/**
+	 * @deprecated PostGIS의 ST_Distance 함수를 사용하는 {@link com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository#findDistanceToFestival}
+	 * 메서드 사용을 권장합니다. 이 메서드는 Java 기반의 부정확한 하버사인 공식을 사용합니다.
+	 */
+	@Deprecated
 	public static double getDistanceCalculator(LocationDto location1, LocationDto location2) {
+		//위도 경도, 거리예산
 		double lat1 = location1.getLat();
 		double lon1 = location1.getLon();
 		double lat2 = location2.getLat();
@@ -48,13 +53,13 @@ public class LocationService {
 		return Math.round(distance * 100.0) / 100.0;
 	}
 
-	@Transactional
-	public LocationTokenResponse update(LocationDto locationDto, UserDetailsImpl userDetails) {
-		String userId = userDetails.getUsername();
-		boolean value = redisTokenService.updateUserLocationInfo(locationDto, userId);
-		String message = value ? "갱신되었습니다." : "갱신에 실패하였습니다.";
-		return new LocationTokenResponse(message);
-	}
+	// @Transactional
+	// public LocationTokenResponse update(LocationDto locationDto, UserDetailsImpl userDetails) {
+	// 	String userId = userDetails.getUsername();
+	// 	boolean value = redisTokenService.updateUserLocationInfo(locationDto, userId);
+	// 	String message = value ? "갱신되었습니다." : "갱신에 실패하였습니다.";
+	// 	return new LocationTokenResponse(message);
+	// }
 
 	public LocationTokenResponse verifyAndGenerateToken(UserDetailsImpl userDetails, long festivalId, LocationDto userLocationDto) {
 

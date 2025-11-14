@@ -43,7 +43,7 @@ public class MessageController {
 	private final MessageLikeService messageLikeService;
 	private final MessageQueryService messageQueryService;
 
-	@Operation(summary = "메시지 '좋아요' 토글", description = "메시지 '좋아요'를 누르거나 취소합니다. (위치 인증 필요)")
+	@Operation(summary = "메시지 '좋아요' 토글", description = "메시지 '좋아요'를 누르거나 취소합니다. (미연결 TODO: 위치 인증 필요)")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200", description = "좋아요 토글 성공",
