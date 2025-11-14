@@ -73,28 +73,25 @@ public class AuthController {
 		return ResponseEntity.created(location).body(ApiResponse.success(response2));
 	}
 
+	//현재는 사용안하므로 주석처리
 	// 해당url은 지금은 사용할 일 없지만, 확장성을 위해서 보관한다.
 	// 개발할때 업스케일링하는 과정에서나온 url
-	@PostMapping("/oauth2")
-	@Operation(summary = "로그인 (deprecated)", description = "")
-	public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-		LoginResponse response = authService.login(request);
-		return ResponseEntity.ok()
-				.body(response);
-	}
+	// @PostMapping("/oauth2")
+	// @Operation(summary = "로그인 (deprecated)", description = "")
+	// public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+	// 	LoginResponse response = authService.login(request);
+	// 	return ResponseEntity.ok()
+	// 			.body(response);
+	// }
 
 	@Operation(summary = "카카오 로그인 사용자 토큰 발급", description = "사용자 로그인후 AccessToken, RefreshToken 발급합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
-			description = "토큰 발급 성공 (신규 생성)",
+			description = "카카오 로그인 사용자 토큰 발급",
 			content = @Content(
 				mediaType = "application/json",
-				schema = @Schema(implementation = AuthResponse.class),
-				examples = @ExampleObject(
-					name = "CREATED",
-					value = "{\"success\":true,\"data\":{\"accessToken\":\"...\", \"refreshToken\":\"...\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
-				)
+				schema = @Schema(implementation = LoginResponse.class)
 			)
 		)
 	})
@@ -109,18 +106,14 @@ public class AuthController {
 				.body(response);
 	}
 
-	@Operation(summary = "리프레시 토큰 재발급", description = "사용자 토큰 만료시 AccessToken, RefreshToken 발급합니다.")
+	@Operation(summary = "리프레시 토큰 재발급", description = "사용자 토큰 만료시 AccessToken, RefreshToken 재발급합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
-			description = "토큰 발급 성공 (신규 생성)",
+			description = "리프레시 토큰 재발급",
 			content = @Content(
 				mediaType = "application/json",
-				schema = @Schema(implementation = AuthResponse.class),
-				examples = @ExampleObject(
-					name = "CREATED",
-					value = "{\"success\":true,\"data\":{\"accessToken\":\"...\", \"refreshToken\":\"...\"},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
-				)
+				schema = @Schema(implementation = LoginResponse.class)
 			)
 		)
 	})

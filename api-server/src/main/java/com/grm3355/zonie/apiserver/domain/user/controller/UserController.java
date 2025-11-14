@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserQuitResponse;
+import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 import com.grm3355.zonie.apiserver.domain.user.dto.EmailUpdateRequest;
 import com.grm3355.zonie.apiserver.domain.user.dto.PhoneNumberUpdateRequest;
 import com.grm3355.zonie.apiserver.domain.user.service.UserService;
@@ -26,8 +27,10 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
+@Tag(name = "User", description = "사용자 프로필 페이지")
 @RequestMapping("/api/v1/user")
 public class UserController {
     private final UserService userService;
@@ -35,21 +38,22 @@ public class UserController {
         this.userService = userService;
     }
 
-	@Operation(summary = "내 프로필 이메일 패치", description = "현재 로그인된 사용자의 이메일 정보를 수정합니다.")
-	@PatchMapping("/update/email")
-    public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                            @RequestBody EmailUpdateRequest request) {
-        userService.updateEmail(userDetails.getId(), request);
-    }
+	//현재는 사용안하므로 주석처리
+	// @Operation(summary = "내 프로필 이메일 패치", description = "현재 로그인된 사용자의 이메일 정보를 수정합니다.")
+	// @PatchMapping("/update/email")
+    // public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
+    //                         @RequestBody EmailUpdateRequest request) {
+    //     userService.updateEmail(userDetails.getUserId(), request);
+    // }
 
 	@Operation(summary = "내 프로필 조회", description = "현재 로그인된 사용자의 프로필(이메일) 및 주소 정보를 함께 조회합니다.")
 	@ApiResponses({
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "프로필 조회 성공",
-			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "OK",
-					value = "{\"success\": true,\"data\":{\"userId\": \"1234kakao\",\"profileNickName\": \"홍길동\",\"accountEmail\": \"hong@naver.com\",\"profileImage\":\"http://k.kakaocdn.net/dn/hWgDa/aabbbcc/img_110x110.jpg\",\"createdAt\": \"2025-11-13T17:10:52.170355\"},\"error\": null,\"timestamp\": \"2025-11-14T10:39:51.431745\"}"
-				)
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "200",
+			description = "리프레시 토큰 재발급",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = UserProfileResponse.class)
 			)
 		)
 	})
@@ -64,14 +68,9 @@ public class UserController {
 
 	@Operation(summary = "회원탈퇴", description = "현재 가입한 회원의 정보를 삭제처리합니다. 클라이언트 측에서도 저장된 액세스토큰, 리프레시 토큰을 모두 삭제해야 합니다.")
 	@ApiResponses({
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "회원탈퇴 성공",
-			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "NO_CONTENT",
-					value = "{\"success\":true,\"message\":\"NO_CONTENT\",\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
-				)
-			)
-		)
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "로그아웃 성공",
+			content = @Content(mediaType = "application/json"
+			))
 	})
 	@SecurityRequirement(name = "Authorization")
 	@PreAuthorize("isAuthenticated()")
