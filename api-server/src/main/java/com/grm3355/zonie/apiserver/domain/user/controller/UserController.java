@@ -35,12 +35,12 @@ public class UserController {
         this.userService = userService;
     }
 
-	//임시 주석처리
-    // @PatchMapping("/update/email")
-    // public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
-    //                         @RequestBody EmailUpdateRequest request) {
-    //     userService.updateEmail(userDetails.getId(), request);
-    // }
+	@Operation(summary = "내 프로필 이메일 패치", description = "현재 로그인된 사용자의 이메일 정보를 수정합니다.")
+	@PatchMapping("/update/email")
+    public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                            @RequestBody EmailUpdateRequest request) {
+        userService.updateEmail(userDetails.getId(), request);
+    }
 
 	@Operation(summary = "내 프로필 조회", description = "현재 로그인된 사용자의 프로필(이메일) 및 주소 정보를 함께 조회합니다.")
 	@ApiResponses({

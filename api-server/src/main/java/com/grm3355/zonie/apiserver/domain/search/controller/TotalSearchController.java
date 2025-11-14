@@ -31,7 +31,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@Tag(name = "Search (통합 검색)", description = "축제 및 채팅방 통합 검색")
+@Tag(name = "Search", description = "축제 및 채팅방 통합 검색")
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class TotalSearchController {

@@ -37,7 +37,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@Tag(name = "Auth & User", description = "사용자 토큰 발급")
+@Tag(name = "Auth", description = "사용자 토큰 발급")
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
@@ -75,12 +75,13 @@ public class AuthController {
 
 	// 해당url은 지금은 사용할 일 없지만, 확장성을 위해서 보관한다.
 	// 개발할때 업스케일링하는 과정에서나온 url
-	// @PostMapping("/oauth2")
-	// public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-	// 	LoginResponse response = authService.login(request);
-	// 	return ResponseEntity.ok()
-	// 			.body(response);
-	// }
+	@PostMapping("/oauth2")
+	@Operation(summary = "로그인 (deprecated)", description = "")
+	public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+		LoginResponse response = authService.login(request);
+		return ResponseEntity.ok()
+				.body(response);
+	}
 
 	@Operation(summary = "카카오 로그인 사용자 토큰 발급", description = "사용자 로그인후 AccessToken, RefreshToken 발급합니다.")
 	@ApiResponses({

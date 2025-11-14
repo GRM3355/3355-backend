@@ -16,6 +16,7 @@ public class HealthCheckController {
 		return ResponseEntity.ok("Zonie Api Server is healthy!~~~~~!!");
 	}
 
+	@Hidden
 	@RestController
 	public class RootController {
 
