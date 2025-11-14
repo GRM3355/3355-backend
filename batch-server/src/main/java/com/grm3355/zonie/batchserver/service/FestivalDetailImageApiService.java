@@ -13,6 +13,9 @@ import org.springframework.web.reactive.function.client.WebClient;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grm3355.zonie.batchserver.dto.ApiFestivalDetailImageDto;
+import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
+import com.grm3355.zonie.commonlib.domain.festival.entity.FestivalDetailImage;
+import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalDetailImageRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -26,8 +29,52 @@ public class FestivalDetailImageApiService {
 	private String serviceKey;
 	private final String OPENAPI_BASE_URL = "https://apis.data.go.kr/B551011/KorService2";
 
-	public FestivalDetailImageApiService(WebClient.Builder webClientBuilder) { // WebClient는 Non-Blocking I/O 통신에 사용
+	private final FestivalDetailImageRepository festivalDetailImageRepository;
+	private final FestivalDetailImageBatchMapper festivalDetailImageBatchMapper;
+
+	public FestivalDetailImageApiService(WebClient.Builder webClientBuilder,
+		FestivalDetailImageRepository festivalDetailImageRepository,
+		FestivalDetailImageBatchMapper festivalDetailImageBatchMapper) { // WebClient는 Non-Blocking I/O 통신에 사용
 		this.webClient = webClientBuilder.baseUrl(OPENAPI_BASE_URL).build();
+		this.festivalDetailImageRepository = festivalDetailImageRepository;
+		this.festivalDetailImageBatchMapper = festivalDetailImageBatchMapper;
+	}
+
+
+	//상세이미지 저장
+	public void saveFestivalDetailImages(List<Festival> festivals) {
+		log.info("축제 상세 이미지 동기화 시작");
+
+		for (Festival festival : festivals) {
+			try {
+				int contentId = festival.getContentId(); // 축제 contentId
+				if (contentId == 0) {
+					log.warn("contentId 없음 → 상세 이미지 스킵 (festivalId: {})", festival.getFestivalId());
+					continue;
+				}
+
+				// 상세 이미지 API 호출
+				List<ApiFestivalDetailImageDto> imageDtos = fetchFestivalDetailImages(contentId);
+
+				// DTO → Entity 변환
+				List<FestivalDetailImage> imageEntities = imageDtos.stream()
+					.map(festivalDetailImageBatchMapper::toDetailImageEntity)
+					.collect(Collectors.toList());
+
+				// 기존 이미지 삭제 후 새로 저장 (Upsert 규칙)
+				festivalDetailImageRepository.deleteByContentId(festival.getContentId());
+				festivalDetailImageRepository.saveAll(imageEntities);
+
+				log.info("상세 이미지 저장 완료 - festivalId: {}, {}건",
+					festival.getFestivalId(), imageEntities.size());
+
+			} catch (Exception e) {
+				log.error("상세 이미지 저장 실패 (festivalId: {}): {}",
+					festival.getFestivalId(), e.getMessage());
+			}
+		}
+
+		log.info("축제 상세 이미지 동기화 완료");
 	}
 
 	/**

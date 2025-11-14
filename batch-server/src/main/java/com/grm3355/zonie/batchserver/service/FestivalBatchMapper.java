@@ -3,6 +3,7 @@ package com.grm3355.zonie.batchserver.service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
+import org.hibernate.type.descriptor.sql.internal.Scale6IntervalSecondDdlType;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.WKTReader;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,7 @@ public class FestivalBatchMapper {
 		Point geometry = createPoint(dto.getMapx(), dto.getMapy());
 
 		// 2. 지역 코드 -> 지역명 변환
-		String regionName = RegionCode.getNameByCode(dto.getAreacode());
+		String regionName = areCodeChange(RegionCode.getNameByCode(dto.getAreacode()));
 
 		return Festival.builder()
 			.addr1(dto.getAddr1())
@@ -41,6 +42,47 @@ public class FestivalBatchMapper {
 			.mapy(dto.getMapy()) // String 타입 그대로 저장
 			// url, targetType, status 등 필요시 추가 매핑
 			.build();
+	}
+	//지역명 이름을 다시 코드로 변환
+	private String areCodeChange(String areaCode){
+		switch(areaCode){
+			case "서울":
+				return "SEOUL";
+			case "인천":
+				return "GYEONGGI";
+			case "대전":
+				return "CHUNGCHEONG";
+			case "대구":
+				return "GYEONGBUK";
+			case "광주":
+				return "JEOLLA";
+			case "부산":
+				return "GYEONGNAM";
+			case "울산":
+				return "GYEONGBUK";
+			case "세종":
+				return "CHUNGCHEONG";
+			case "경기":
+				return "GYEONGGI";
+			case "강원":
+				return "GANGWON";
+			case "충북":
+				return "CHUNGCHEONG";
+			case "충남":
+				return "CHUNGCHEONG";
+			case "경북":
+				return "GYEONGBUK";
+			case "경남":
+				return "GYEONGNAM";
+			case "전북":
+				return "JEOLLA";
+			case "전남":
+				return "JEOLLA";
+			case "제주":
+				return "JEJU";
+			default:
+				return areaCode;
+		}
 	}
 
 	// 경도(X), 위도(Y)로 PostGIS Point 객체를 생성하는 private 유틸리티 메서드

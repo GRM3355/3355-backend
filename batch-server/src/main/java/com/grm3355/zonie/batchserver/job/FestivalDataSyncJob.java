@@ -10,13 +10,9 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grm3355.zonie.batchserver.dto.ApiFestivalDto;
-import com.grm3355.zonie.batchserver.dto.ApiFestivalDetailImageDto;
 import com.grm3355.zonie.batchserver.service.FestivalBatchMapper;
-import com.grm3355.zonie.batchserver.service.FestivalDetailImageBatchMapper;
 import com.grm3355.zonie.batchserver.service.FestivalDetailImageApiService;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
-import com.grm3355.zonie.commonlib.domain.festival.entity.FestivalDetailImage;
-import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalDetailImageRepository;
 import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository;
 import com.grm3355.zonie.batchserver.service.FestivalApiService;
 
@@ -37,8 +33,6 @@ public class FestivalDataSyncJob {
 	private final ObjectMapper objectMapper;
 
 	private final FestivalDetailImageApiService festivalDetailImageService;
-	private final FestivalDetailImageRepository festivalDetailImageRepository;
-	private final FestivalDetailImageBatchMapper festivalDetailImageBatchMapper;
 
 	// @Scheduled가 제거: 순수 비즈니스 로직: -> Batch Step에서 관리
 	// - @Scheduled에 의해 호출되는 메서드
@@ -67,7 +61,7 @@ public class FestivalDataSyncJob {
 			festivalRepository.saveAll(entities);
 
 			//**추가** 상세 이미지 저장 로직 추가
-			saveFestivalDetailImages(entities);
+			festivalDetailImageService.saveFestivalDetailImages(entities);
 
 			// 2. Redis 캐싱 (festivalId를 키로 사용)
 			entities.forEach(festival -> {
@@ -93,42 +87,4 @@ public class FestivalDataSyncJob {
 			throw new RuntimeException("축제 동기화 중 오류 발생", e);	// Tasklet에서 이 예외를 받아 FAILED 처리
 		}
 	}
-
-	//상세이미지 저장
-	private void saveFestivalDetailImages(List<Festival> festivals) {
-		log.info("축제 상세 이미지 동기화 시작");
-
-		for (Festival festival : festivals) {
-			try {
-				int contentId = festival.getContentId(); // 축제 contentId
-				if (contentId == 0) {
-					log.warn("contentId 없음 → 상세 이미지 스킵 (festivalId: {})", festival.getFestivalId());
-					continue;
-				}
-
-				// 상세 이미지 API 호출
-				List<ApiFestivalDetailImageDto> imageDtos =
-					festivalDetailImageService.fetchFestivalDetailImages(contentId);
-
-				// DTO → Entity 변환
-				List<FestivalDetailImage> imageEntities = imageDtos.stream()
-					.map(festivalDetailImageBatchMapper::toDetailImageEntity)
-					.collect(Collectors.toList());
-
-				// 기존 이미지 삭제 후 새로 저장 (Upsert 규칙)
-				festivalDetailImageRepository.deleteByContentId(festival.getContentId());
-				festivalDetailImageRepository.saveAll(imageEntities);
-
-				log.info("상세 이미지 저장 완료 - festivalId: {}, {}건",
-					festival.getFestivalId(), imageEntities.size());
-
-			} catch (Exception e) {
-				log.error("상세 이미지 저장 실패 (festivalId: {}): {}",
-					festival.getFestivalId(), e.getMessage());
-			}
-		}
-
-		log.info("축제 상세 이미지 동기화 완료");
-	}
-
 }
