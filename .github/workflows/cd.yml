@@ -59,7 +59,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 2 # 변경 사항 비교를 위해 최소 2개 커밋 가져오기
+          fetch-depth: 0 # 변경 사항 비교를 위해 최소 2개 커밋 가져오기
           ref: ${{ github.event.workflow_run.head_sha }} # push 이벤트 말고 CI를 실행시킨 커밋을 기준으로 checkout
 
       - name: Check for changed files
