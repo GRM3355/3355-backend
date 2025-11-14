@@ -37,14 +37,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@Tag(name = "Auth & User", description = "사용자 토큰 발급")
+@Tag(name = "Auth", description = "사용자 토큰 발급")
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 	private final AuthService authService;
 	private final RedisTokenService redisTokenService;
 
-	@Operation(summary = "사용자 토큰 발급", description = "위경도 정보를 입력받아 사용자 Access 토큰을 발급합니다.")
+	@Operation(summary = "사용자 토큰 발급 (deprecated)", description = "위경도 정보를 입력받아 사용자 Access 토큰을 발급합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "201",
@@ -76,6 +76,7 @@ public class AuthController {
 	// 해당url은 지금은 사용할 일 없지만, 확장성을 위해서 보관한다.
 	// 개발할때 업스케일링하는 과정에서나온 url
 	@PostMapping("/oauth2")
+	@Operation(summary = "로그인 (deprecated)", description = "")
 	public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
 		LoginResponse response = authService.login(request);
 		return ResponseEntity.ok()

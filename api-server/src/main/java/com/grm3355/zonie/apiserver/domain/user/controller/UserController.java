@@ -26,7 +26,9 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
+@Tag(name = "User", description = "사용자 정보 관리")
 @RestController
 @RequestMapping("/api/v1/user")
 public class UserController {
@@ -35,7 +37,8 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PatchMapping("/update/email")
+	@Operation(summary = "내 프로필 이메일 패치", description = "현재 로그인된 사용자의 이메일 정보를 수정합니다.")
+	@PatchMapping("/update/email")
     public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
                             @RequestBody EmailUpdateRequest request) {
         userService.updateEmail(userDetails.getId(), request);
