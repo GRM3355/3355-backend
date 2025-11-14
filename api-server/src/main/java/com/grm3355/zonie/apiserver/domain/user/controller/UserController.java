@@ -46,7 +46,7 @@ public class UserController {
     //     userService.updateEmail(userDetails.getUserId(), request);
     // }
 
-	@Operation(summary = "내 프로필 조회", description = "현재 로그인된 사용자의 프로필(이메일) 및 주소 정보를 함께 조회합니다.")
+	@Operation(summary = "내 프로필 조회", description = "현재 아이디, 닉네임, Email, profileImage를 조회합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
