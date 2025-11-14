@@ -32,7 +32,7 @@ public class FestivalResponse {
 	@Schema(description = "이미지명", example = "http://tong.visitkorea.or.kr/cms/resource/76/3380276_image2_1.jpg")
 	private String firstImage;
 
-	@Schema(description = "위도", example = "(26.223)")
+	@Schema(description = "위도", example = "26.223")
 	private Double lat;
 
 	@Schema(description = "경도", example = "123.233")
