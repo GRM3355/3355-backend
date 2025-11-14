@@ -49,6 +49,9 @@ public class Festival extends BaseTimeEntity {
 	@Column(name = "first_image", length = 1024)
 	private String firstImage;
 
+	@Column(name = "first_image2", length = 1024)
+	private String firstImage2;
+
 	@Column(name = "position", columnDefinition = "geography(Point, 4326)")
 	private Point position;
 

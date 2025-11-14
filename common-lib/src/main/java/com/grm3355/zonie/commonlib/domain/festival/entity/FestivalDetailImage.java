@@ -7,6 +7,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import org.locationtech.jts.geom.Point;
@@ -21,69 +23,33 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "festivals")
+@Table(name = "festival_detail_images")
 @Builder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Getter
 @Setter
-public class Festival extends BaseTimeEntity {
+public class FestivalDetailImage extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "festival_id", nullable = false, unique = true, updatable = false)
-	private Long festivalId;
+	@Column(name = "festival_image_id", nullable = false, unique = true, updatable = false)
+	private Long festivalImageId;
 
-	@Column(name = "addr1", nullable = false, length = 1024)
-	private String addr1;
+	@JoinColumn(name = "content_id", referencedColumnName = "content_id", nullable = false)
+	@ManyToOne
+	private Festival festival;
 
-	@Column(name = "content_id", nullable = false, unique = true, updatable = false)
-	private int contentId;	// 공공데이터에서 제공하는 행사정보 자체 ID
+	@Column(name = "origin_img_url", nullable = false, length = 1024)
+	private String originImgUrl;
 
-	@Column(name = "event_start_date", nullable = false)
-	private LocalDate eventStartDate;
+	@Column(name = "img_name", nullable = false, length = 1024)
+	private String imgName;
 
-	@Column(name = "event_end_date", nullable = false)
-	private LocalDate eventEndDate;
+	@Column(name = "small_image_Url", nullable = false, length = 1024)
+	private String smallImageUrl;
 
-	@Column(name = "first_image", length = 1024)
-	private String firstImage;
+	@Column(name = "serial_num", nullable = false, length = 1024)
+	private String serialNum;
 
-	@Column(name = "position", columnDefinition = "geography(Point, 4326)")
-	private Point position;
-
-	@Column(name = "area_code")
-	private Integer areaCode;
-
-	@Column(name = "tel", length = 1024)
-	private String tel;
-
-	@Column(name = "title", length = 1024)
-	private String title;
-
-	@Column(name = "region", length = 20)
-	private String region;
-
-	@Column(name = "url", length = 500)
-	private String url;
-
-	@Column(name = "target_type", length = 20)
-	private String targetType;
-
-	@Column(name = "status", length = 20)
-	private String status;
-
-	@Column(name = "map_x", length = 20)
-	private String mapx;
-
-	@Column(name = "map_y", length = 20)
-	private String mapy;
-
-	@Builder.Default
-	@Column(name = "chat_room_count", nullable = false)
-	private int chatRoomCount = 0;
-
-	@Builder.Default
-	@Column(name = "total_participant_count")
-	private Long totalParticipantCount = 0L;
 }

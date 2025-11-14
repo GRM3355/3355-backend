@@ -56,6 +56,8 @@ public class FestivalDataSyncJob {
 
 			// 1. PostgreSQL에 벌크 저장/업데이트 실행
 			festivalRepository.saveAll(entities);
+			
+			//이미지 지저아
 
 			// 2. Redis 캐싱 (festivalId를 키로 사용)
 			entities.forEach(festival -> {
