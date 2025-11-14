@@ -35,11 +35,12 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PatchMapping("/update/email")
-    public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                            @RequestBody EmailUpdateRequest request) {
-        userService.updateEmail(userDetails.getId(), request);
-    }
+	//임시 주석처리
+    // @PatchMapping("/update/email")
+    // public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
+    //                         @RequestBody EmailUpdateRequest request) {
+    //     userService.updateEmail(userDetails.getId(), request);
+    // }
 
 	@Operation(summary = "내 프로필 조회", description = "현재 로그인된 사용자의 프로필(이메일) 및 주소 정보를 함께 조회합니다.")
 	@ApiResponses({
@@ -47,7 +48,7 @@ public class UserController {
 			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 				examples = @ExampleObject(
 					name = "OK",
-					value = "{\"success\":true,\"message\":\"OK\",\"data\":{\"userId\":\"아이디\",\"profileNickName\":\"닉네임\",\"accountEmail\":\"이메일\",\"createdAt\":\"등록일\"}},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
+					value = "{\"success\": true,\"data\":{\"userId\": \"1234kakao\",\"profileNickName\": \"홍길동\",\"accountEmail\": \"hong@naver.com\",\"profileImage\":\"http://k.kakaocdn.net/dn/hWgDa/aabbbcc/img_110x110.jpg\",\"createdAt\": \"2025-11-13T17:10:52.170355\"},\"error\": null,\"timestamp\": \"2025-11-14T10:39:51.431745\"}"
 				)
 			)
 		)
@@ -67,7 +68,7 @@ public class UserController {
 			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 				examples = @ExampleObject(
 					name = "NO_CONTENT",
-					value = "{\"success\":true,\"status\":204,\"message\":\"NO_CONTENT\",\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
+					value = "{\"success\":true,\"message\":\"NO_CONTENT\",\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
 				)
 			)
 		)

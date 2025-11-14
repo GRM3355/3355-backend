@@ -22,7 +22,7 @@ public class TotalSearchChatRoomResponse {
 	@Schema(description = "제목", example = "채팅방 제목입니다.")
 	private String title;
 
-	@Schema(description = "위도", example = "(123.233, 26.223)")
+	@Schema(description = "위도", example = "26.223")
 	private double lat;
 
 	@Schema(description = "경도", example = "123.233")

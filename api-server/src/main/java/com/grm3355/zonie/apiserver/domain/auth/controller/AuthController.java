@@ -44,7 +44,7 @@ public class AuthController {
 	private final AuthService authService;
 	private final RedisTokenService redisTokenService;
 
-	@Operation(summary = "사용자 토큰 발급", description = "위경도 정보를 입력받아 사용자 Access 토큰을 발급합니다.")
+	@Operation(summary = "임시 사용자 토큰 발급", description = "위경도 정보를 입력받아 사용자 Access 토큰을 발급합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "201",
@@ -75,14 +75,14 @@ public class AuthController {
 
 	// 해당url은 지금은 사용할 일 없지만, 확장성을 위해서 보관한다.
 	// 개발할때 업스케일링하는 과정에서나온 url
-	@PostMapping("/oauth2")
-	public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-		LoginResponse response = authService.login(request);
-		return ResponseEntity.ok()
-				.body(response);
-	}
+	// @PostMapping("/oauth2")
+	// public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+	// 	LoginResponse response = authService.login(request);
+	// 	return ResponseEntity.ok()
+	// 			.body(response);
+	// }
 
-	@Operation(summary = "사용자 토큰 발급", description = "사용자 로그인후 AccessToken, RefreshToken 발급합니다.")
+	@Operation(summary = "카카오 로그인 사용자 토큰 발급", description = "사용자 로그인후 AccessToken, RefreshToken 발급합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -108,7 +108,7 @@ public class AuthController {
 				.body(response);
 	}
 
-	@Operation(summary = "사용자 토큰 발급", description = "사용자 로그인후 AccessToken, RefreshToken 발급합니다.")
+	@Operation(summary = "리프레시 토큰 재발급", description = "사용자 토큰 만료시 AccessToken, RefreshToken 발급합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
