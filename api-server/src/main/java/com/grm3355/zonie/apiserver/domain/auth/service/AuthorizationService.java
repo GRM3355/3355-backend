@@ -33,7 +33,7 @@ public class AuthorizationService {
 	 */
 	public void authorizeCurrentUser(Long targetUserId) {
 		UserDetailsImpl currentUser = getCurrentUser();
-		String currentUserId = currentUser.getId();
+		String currentUserId = currentUser.getUserId();
 
 		boolean isAdmin = isAdmin(currentUser);
 

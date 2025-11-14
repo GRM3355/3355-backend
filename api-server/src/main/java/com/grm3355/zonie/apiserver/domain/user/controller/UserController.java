@@ -58,7 +58,7 @@ public class UserController {
 	@GetMapping("/me")
 	public ResponseEntity<ApiResponse<UserProfileResponse>> getProfile(
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
-		UserProfileResponse userProfile = userService.getUserProfile(userDetails.getId());
+		UserProfileResponse userProfile = userService.getUserProfile(userDetails.getUserId());
 		return ResponseEntity.ok().body(ApiResponse.success(userProfile));
 	}
 
@@ -78,7 +78,7 @@ public class UserController {
 	@PostMapping("/me/quit")
 	public ResponseEntity<ApiResponse<Void>> quit(@Valid @RequestBody UserQuitResponse request,
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
-		userService.quit(userDetails.getId(), request);
+		userService.quit(userDetails.getUserId(), request);
 		return ResponseEntity.noContent().build();
 	}
 
