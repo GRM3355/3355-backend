@@ -1,6 +1,14 @@
 package com.grm3355.zonie.batchserver.dto;
 
-public class ApiFestivalsDetailImage {
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class ApiFestivalDetailImageDto {
 	private String contentid;
 	private String originimgurl;
 	private String imgname;

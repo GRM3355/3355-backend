@@ -36,9 +36,8 @@ public class FestivalDetailImage extends BaseTimeEntity {
 	@Column(name = "festival_image_id", nullable = false, unique = true, updatable = false)
 	private Long festivalImageId;
 
-	@JoinColumn(name = "content_id", referencedColumnName = "content_id", nullable = false)
-	@ManyToOne
-	private Festival festival;
+	@Column(name = "content_id", nullable = false, updatable = false)
+	private int contentId;	// 공공데이터에서 제공하는 행사정보 자체 ID
 
 	@Column(name = "origin_img_url", nullable = false, length = 1024)
 	private String originImgUrl;

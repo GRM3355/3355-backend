@@ -31,6 +31,7 @@ public class FestivalBatchMapper {
 			.eventStartDate(LocalDate.parse(dto.getEventstartdate(), DATE_FORMATTER))
 			.eventEndDate(LocalDate.parse(dto.getEventenddate(), DATE_FORMATTER))
 			.firstImage(dto.getFirstimage())
+			.firstImage2(dto.getFirstimage2())
 			.position(geometry) // PostGIS Point 설정
 			.areaCode(parseAreaCode(dto.getAreacode()))
 			.tel(dto.getTel())
