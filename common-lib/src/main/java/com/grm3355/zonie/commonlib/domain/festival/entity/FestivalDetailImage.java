@@ -1,14 +1,18 @@
 package com.grm3355.zonie.commonlib.domain.festival.entity;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import org.locationtech.jts.geom.Point;
@@ -37,7 +41,7 @@ public class FestivalDetailImage extends BaseTimeEntity {
 	private Long festivalImageId;
 
 	@Column(name = "content_id", nullable = false, updatable = false)
-	private int contentId;	// 공공데이터에서 제공하는 행사정보 자체 ID
+	private Integer contentId; // FK, 반드시 필요
 
 	@Column(name = "origin_img_url", nullable = false, length = 1024)
 	private String originImgUrl;

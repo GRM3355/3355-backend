@@ -141,6 +141,6 @@ public class AuthController {
 	public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody RefreshTokenRequest request) {
 		//200 응답 나오면 프론트엔드에서 액세스토큰, 리프레시 토큰 삭제
 		redisTokenService.deleteByToken(request.refreshToken());
-		return ResponseEntity.ok().body(ApiResponse.<Void>noContent());
+		return ResponseEntity.noContent().build();
 	}
 }

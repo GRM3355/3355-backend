@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalCountResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalCreateRequest;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalDetailResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalPageResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
@@ -116,7 +117,7 @@ public class FestivalController {
 	public ResponseEntity<?> gefFestivalContent(@PathVariable long festivalId,
 		@ModelAttribute ChatRoomSearchRequest request
 	) {
-		FestivalResponse response = festivalService.getFestivalContent(festivalId);
+		FestivalDetailResponse response = festivalService.getFestivalContent(festivalId);
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 

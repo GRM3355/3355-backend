@@ -1,8 +1,10 @@
 package com.grm3355.zonie.apiserver.domain.festival.dto;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
+import com.grm3355.zonie.commonlib.domain.festival.entity.FestivalDetailImage;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -12,7 +14,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-public class FestivalResponse {
+public class FestivalDetailResponse {
 
 	@Schema(description = "축제 아이디", example = "1")
 	private Long festivalId;
@@ -32,8 +34,11 @@ public class FestivalResponse {
 	@Schema(description = "이미지명", example = "http://tong.visitkorea.or.kr/cms/resource/76/3380276_image2_1.jpg")
 	private String firstImage;
 
-	@Schema(description = "이미지명2", example = "http://tong.visitkorea.or.kr/cms/resource/76/3380276_image2_1.jpg")
+	@Schema(description = "이미지명2", example = "http://tong.visitkorea.or.kr/cms/resource/76/3380276_image2_2.jpg")
 	private String firstImage2;
+
+	@Schema(description = "상세이미지", example = "")
+	private List<FestivalDetailImageDto> detailImages;
 
 	@Schema(description = "위도", example = "26.223")
 	private Double lat;
@@ -50,14 +55,18 @@ public class FestivalResponse {
 	@Schema(description = "축제 총 참여자 수", example = "300")
 	private Long totalParticipantCount;
 
-
-	public static FestivalResponse fromEntity(Festival festival) {
+	public static FestivalDetailResponse fromEntity(Festival festival,
+		List<FestivalDetailImage> images) {
 
 		// PostGIS Point가 null일 경우를 대비한 방어 코드
 		Double lat = (festival.getPosition() != null) ? festival.getPosition().getY() : null;
 		Double lon = (festival.getPosition() != null) ? festival.getPosition().getX() : null;
 
-		return FestivalResponse.builder()
+		List<FestivalDetailImageDto> imageDtos = images.stream()
+			.map(FestivalDetailImageDto::fromEntity)
+			.toList();
+
+		return FestivalDetailResponse.builder()
 			.festivalId(festival.getFestivalId())
 			.title(festival.getTitle())
 			.addr1(festival.getAddr1())
@@ -65,6 +74,7 @@ public class FestivalResponse {
 			.eventEndDate(festival.getEventEndDate())
 			.firstImage(festival.getFirstImage())
 			.firstImage2(festival.getFirstImage2())
+			.detailImages(imageDtos)
 			.lat(lat)	// null 또는 실제 위도값
 			.lon(lon)	// null 또는 실제 경도값
 			.region(festival.getRegion())

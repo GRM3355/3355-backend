@@ -23,6 +23,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalDetailResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
@@ -93,7 +94,7 @@ class FestivalControllerTest {
 	@DisplayName("축제 내용 조회 테스트")
 	void testGetFestivalContent() throws Exception {
 		// given
-		FestivalResponse festivalResponse = FestivalResponse.builder().build();
+		FestivalDetailResponse festivalResponse = FestivalDetailResponse.builder().build();
 		Mockito.when(festivalService.getFestivalContent(1L))
 			.thenReturn(festivalResponse);
 
