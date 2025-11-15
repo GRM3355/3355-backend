@@ -21,7 +21,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grm3355.zonie.batchserver.dto.ApiFestivalDto;
 import com.grm3355.zonie.batchserver.service.FestivalApiService;
 import com.grm3355.zonie.batchserver.service.FestivalBatchMapper;
+import com.grm3355.zonie.batchserver.service.FestivalDetailImageApiService;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
+import com.grm3355.zonie.commonlib.domain.festival.entity.FestivalDetailImage;
+import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalDetailImageRepository;
 import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,6 +42,16 @@ class FestivalDataSyncJobTest {
 	private ObjectMapper objectMapper;
 	@Mock // RedisTemplate.opsForValue()가 반환할 Mock 객체
 	private ValueOperations<String, String> valueOperations;
+
+	@Mock
+	private FestivalDetailImageRepository festivalDetailImageRepository;
+
+	@Mock
+	private FestivalDetailImage	festivalDetailImage;
+
+	@Mock
+	private FestivalDetailImageApiService festivalDetailImageService;
+
 
 	@InjectMocks // @Mock 객체들을 주입받을 대상
 	private FestivalDataSyncJob festivalDataSyncJob;

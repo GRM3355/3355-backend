@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grm3355.zonie.batchserver.dto.ApiFestivalDto;
+import com.grm3355.zonie.batchserver.dto.FestivalResponse;
 import com.grm3355.zonie.batchserver.service.FestivalBatchMapper;
 import com.grm3355.zonie.batchserver.service.FestivalDetailImageApiService;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
@@ -65,7 +66,13 @@ public class FestivalDataSyncJob {
 			//** 저장여부 비교후 업데이트 또는 저장
 			List<Festival> upsertEntities = new ArrayList<>();
 			for (ApiFestivalDto dto : newFestivals) {
-				Festival existing = festivalRepository.findByContentId(Integer.parseInt(dto.getContentid()));
+				String contentIdStr = dto.getContentid();
+				if (contentIdStr == null || contentIdStr.isBlank()) {
+					log.warn("contentId가 null이므로 스킵: {}", dto);
+					continue; // 또는 적절히 처리
+				}
+				int contentId = Integer.parseInt(contentIdStr);
+				Festival existing = festivalRepository.findByContentId(contentId );
 				if (existing != null) {
 					// 기존 엔티티 → 업데이트
 					//existing.updateFromDto(dto);
@@ -76,14 +83,12 @@ public class FestivalDataSyncJob {
 					// 신규 엔티티 → 새로 생성
 					Festival newEntity = festivalBatchMapper.toEntity(dto);
 					upsertEntities.add(newEntity);
-
-					//festivalRepository.save(newFestival);
 				}
 			}
 			festivalRepository.saveAll(upsertEntities);
 
 			//**추가** 상세 이미지 저장 로직 추가
-			festivalDetailImageService.saveFestivalDetailImages(entities);
+			festivalDetailImageService.saveFestivalDetailImages(upsertEntities);
 
 			// 2. Redis 캐싱 (festivalId를 키로 사용)
 			entities.forEach(festival -> {
