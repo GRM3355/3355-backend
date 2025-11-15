@@ -15,7 +15,6 @@ public record UserInfo(
 	public User toUser() {
 		// 현재시간(밀리초) + 4자리 랜덤숫자
 		String uniqueSuffix = System.currentTimeMillis() + "" + (int)(Math.random() * 9000 + 1000);
-
 		return User.builder()
 			.userId(socialId + "kakao"+ uniqueSuffix)
 			.password("null")
