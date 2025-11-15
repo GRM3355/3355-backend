@@ -337,26 +337,4 @@ public class ChatRoomService {
 		return PRE_FIX + UUID.randomUUID();
 	}
 
-
-
-	//
-	// // 가능거리 계산
-	// private boolean festivalCalculator(LocationDto locationDto, LocationDto festivalDto) {
-	// 	double km = LocationService.getDistanceCalculator(locationDto, festivalDto);
-	// 	return km <= max_radius; // 로직: km이 MAX_RADIUS(1.0km)보다 작거나 같을 때 true 반환 (반경 내에 있을 때만 생성 가능)
-	// }
-	//
-	// //사용자 위치정보
-	// private LocationDto getUserPosition(String userId) {
-	// 	System.out.println("=======> userId=" + userId);
-	// 	UserTokenDto userTokenDto = redisTokenService.getLocationInfo(userId);
-	// 	return LocationDto.builder().lat(userTokenDto.getLat()).lon(userTokenDto.getLon()).build();
-	// }
-	//
-	// //축제위치정보
-	// private LocationDto getFestivalPosition(Festival festival) {
-	// 	return LocationDto.builder()
-	// 		.lat(festival.getPosition().getY())
-	// 		.lon(festival.getPosition().getX()).build();
-	// }
 }

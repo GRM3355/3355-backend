@@ -74,16 +74,6 @@ public class ChatRoomController {
 	}
 
 	@Operation(summary = "축제별 채팅방 목록", description = "특정 축제의 채팅방을 조회합니다.")
-	// @ApiResponses({
-	// 	@io.swagger.v3.oas.annotations.responses.ApiResponse(
-	// 		responseCode = "200",
-	// 		description = "목록표시",
-	// 		content = @Content(
-	// 			mediaType = "application/json",
-	// 			schema = @Schema(implementation = MyChatRoomPageResponse.class)
-	// 		)
-	// 	)
-	// })
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록 조회 성공",
 			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
@@ -119,16 +109,6 @@ public class ChatRoomController {
 	}
 
 	@Operation(summary = "내 채팅방 목록", description = "사용자 인증을 거쳐 사용자가 등록한 채팅방 목록을 조회합니다.")
-	// @ApiResponses({
-	// 	@io.swagger.v3.oas.annotations.responses.ApiResponse(
-	// 		responseCode = "200",
-	// 		description = "목록표시",
-	// 		content = @Content(
-	// 			mediaType = "application/json",
-	// 			schema = @Schema(implementation = ApiResponse.class)
-	// 		)
-	// 	)
-	// })
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록 조회 성공",
 			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
