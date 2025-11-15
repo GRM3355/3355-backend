@@ -17,6 +17,7 @@ import com.grm3355.zonie.commonlib.global.enums.RegionCode;
 public class FestivalBatchMapper {
 
 	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+	String TargetType ="OPENAPI";
 
 	// DTO를 Entity로 변환하는 public 메서드
 	public Festival toEntity(ApiFestivalDto dto) {
@@ -41,6 +42,7 @@ public class FestivalBatchMapper {
 			.region(regionName) // 지역명 설정
 			.mapx(dto.getMapx()) // String 타입 그대로 저장
 			.mapy(dto.getMapy()) // String 타입 그대로 저장
+			.targetType(TargetType)
 			// url, targetType, status 등 필요시 추가 매핑
 			.build();
 	}
@@ -116,22 +118,27 @@ public class FestivalBatchMapper {
 	}
 
 
-	public Festival updateFromDto(Festival festival, ApiFestivalDto dto){
+	public Festival updateFromDto(Festival existing, ApiFestivalDto dto){
 
+		// 1. PostGIS Point 객체 생성
+		Point geometry = createPoint(dto.getMapx(), dto.getMapy());
+
+		// 2. 지역 코드 -> 지역명 변환
 		String regionName = areCodeChange(RegionCode.getNameByCode(dto.getAreacode()));
 
-		Festival updated = Festival.builder()
-			.title(dto.getTitle())
-			.addr1(dto.getAddr1())
-			.firstImage(dto.getFirstimage())
-			.firstImage2(dto.getFirstimage2())
-			.eventStartDate(LocalDate.parse(dto.getEventstartdate()))
-			.eventEndDate(LocalDate.parse(dto.getEventenddate()))
-			.areaCode(Integer.valueOf(dto.getAreacode()))
-			.region(regionName)
-			.tel(dto.getTel())
-			.build();
-		return updated;
+		existing.setTitle(dto.getTitle());
+		existing.setAddr1(dto.getAddr1());
+		existing.setFirstImage(dto.getFirstimage());
+		existing.setFirstImage2(dto.getFirstimage2());
+		existing.setEventStartDate(LocalDate.parse(dto.getEventstartdate(), DATE_FORMATTER));
+		existing.setEventEndDate(LocalDate.parse(dto.getEventenddate(), DATE_FORMATTER));
+		existing.setPosition(geometry); // PostGIS Point 설정
+		existing.setMapx(dto.getMapx()); // String 타입 그대로 저장
+		existing.setMapy(dto.getMapy()); // String 타입 그대로 저장
+		existing.setAreaCode(parseAreaCode(dto.getAreacode()));
+		existing.setRegion(regionName);
+		existing.setTel(dto.getTel());
+		return existing;
 	}
 
 

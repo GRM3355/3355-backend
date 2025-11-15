@@ -76,6 +76,8 @@ public class FestivalDataSyncJob {
 					// 신규 엔티티 → 새로 생성
 					Festival newEntity = festivalBatchMapper.toEntity(dto);
 					upsertEntities.add(newEntity);
+
+					//festivalRepository.save(newFestival);
 				}
 			}
 			festivalRepository.saveAll(upsertEntities);

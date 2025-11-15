@@ -57,7 +57,7 @@ public class FestivalApiService {
 			.queryParam("eventStartDate", eventStartDate)
 			.queryParam("eventEndDate", eventEndDate)
 			.queryParam("arrange", "Q")
-			.queryParam("numOfRows", "9999")
+			.queryParam("numOfRows", "999")
 			.build(true) // true -> URL 인코딩
 			.toUri();
 
