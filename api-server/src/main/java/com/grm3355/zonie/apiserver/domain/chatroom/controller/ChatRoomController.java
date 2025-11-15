@@ -33,6 +33,7 @@ import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -73,13 +74,34 @@ public class ChatRoomController {
 	}
 
 	@Operation(summary = "축제별 채팅방 목록", description = "특정 축제의 채팅방을 조회합니다.")
+	// @ApiResponses({
+	// 	@io.swagger.v3.oas.annotations.responses.ApiResponse(
+	// 		responseCode = "200",
+	// 		description = "목록표시",
+	// 		content = @Content(
+	// 			mediaType = "application/json",
+	// 			schema = @Schema(implementation = MyChatRoomPageResponse.class)
+	// 		)
+	// 	)
+	// })
 	@ApiResponses({
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "200",
-			description = "목록표시",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = MyChatRoomPageResponse.class)
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록 조회 성공",
+			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
+				examples = @ExampleObject(
+					name = "OK",
+					value = "{\"success\": true,"
+						+ "\"data\":{"
+						+ "\"content\":["
+						+"{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
+						+ " ],"
+						+ "\"currentPage\": 1,"
+						+ "\"totalPages\": 5,"
+						+ "\"totalElements\": 41,"
+						+ "\"blockSize\": 10 "
+						+ "},"
+						+ "\"error\": null,"
+						+ "\"timestamp\": \"2025-11-14T10:39:51.431745\"}"
+				)
 			)
 		)
 	})
@@ -97,13 +119,34 @@ public class ChatRoomController {
 	}
 
 	@Operation(summary = "내 채팅방 목록", description = "사용자 인증을 거쳐 사용자가 등록한 채팅방 목록을 조회합니다.")
+	// @ApiResponses({
+	// 	@io.swagger.v3.oas.annotations.responses.ApiResponse(
+	// 		responseCode = "200",
+	// 		description = "목록표시",
+	// 		content = @Content(
+	// 			mediaType = "application/json",
+	// 			schema = @Schema(implementation = ApiResponse.class)
+	// 		)
+	// 	)
+	// })
 	@ApiResponses({
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "200",
-			description = "목록표시",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = ApiResponse.class)
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록 조회 성공",
+			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
+				examples = @ExampleObject(
+					name = "OK",
+					value = "{\"success\": true,"
+						+ "\"data\":{"
+						+ "\"content\":["
+						+"{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
+						+ " ],"
+						+ "\"currentPage\": 1,"
+						+ "\"totalPages\": 5,"
+						+ "\"totalElements\": 41,"
+						+ "\"blockSize\": 10 "
+						+ "},"
+						+ "\"error\": null,"
+						+ "\"timestamp\": \"2025-11-14T10:39:51.431745\"}"
+				)
 			)
 		)
 	})

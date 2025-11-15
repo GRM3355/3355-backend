@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserQuitResponse;
+import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 import com.grm3355.zonie.apiserver.domain.user.dto.EmailUpdateRequest;
 import com.grm3355.zonie.apiserver.domain.user.dto.PhoneNumberUpdateRequest;
 import com.grm3355.zonie.apiserver.domain.user.service.UserService;
@@ -28,8 +29,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-@Tag(name = "User", description = "사용자 정보 관리")
 @RestController
+@Tag(name = "User", description = "사용자 프로필 페이지")
 @RequestMapping("/api/v1/user")
 public class UserController {
     private final UserService userService;
@@ -37,21 +38,22 @@ public class UserController {
         this.userService = userService;
     }
 
-	@Operation(summary = "내 프로필 이메일 패치", description = "현재 로그인된 사용자의 이메일 정보를 수정합니다.")
-	@PatchMapping("/update/email")
-    public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                            @RequestBody EmailUpdateRequest request) {
-        userService.updateEmail(userDetails.getId(), request);
-    }
+	//현재는 사용안하므로 주석처리
+	// @Operation(summary = "내 프로필 이메일 패치", description = "현재 로그인된 사용자의 이메일 정보를 수정합니다.")
+	// @PatchMapping("/update/email")
+    // public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
+    //                         @RequestBody EmailUpdateRequest request) {
+    //     userService.updateEmail(userDetails.getUserId(), request);
+    // }
 
-	@Operation(summary = "내 프로필 조회", description = "현재 로그인된 사용자의 프로필(이메일) 및 주소 정보를 함께 조회합니다.")
+	@Operation(summary = "내 프로필 조회", description = "현재 아이디, 닉네임, Email, profileImage를 조회합니다.")
 	@ApiResponses({
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "프로필 조회 성공",
-			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "OK",
-					value = "{\"success\":true,\"message\":\"OK\",\"data\":{\"userId\":\"아이디\",\"profileNickName\":\"닉네임\",\"accountEmail\":\"이메일\",\"createdAt\":\"등록일\"}},\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
-				)
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(
+			responseCode = "200",
+			description = "리프레시 토큰 재발급",
+			content = @Content(
+				mediaType = "application/json",
+				schema = @Schema(implementation = UserProfileResponse.class)
 			)
 		)
 	})
@@ -60,27 +62,22 @@ public class UserController {
 	@GetMapping("/me")
 	public ResponseEntity<ApiResponse<UserProfileResponse>> getProfile(
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
-		UserProfileResponse userProfile = userService.getUserProfile(userDetails.getId());
+		UserProfileResponse userProfile = userService.getUserProfile(userDetails.getUserId());
 		return ResponseEntity.ok().body(ApiResponse.success(userProfile));
 	}
 
-	@Operation(summary = "회원탈퇴", description = "현재 로그인된 사용자의 비밀번호를 변경합니다. 변경 후 모든 기기에서 로그아웃됩니다.")
+	@Operation(summary = "회원탈퇴", description = "현재 가입한 회원의 정보를 삭제처리합니다. 클라이언트 측에서도 저장된 액세스토큰, 리프레시 토큰을 모두 삭제해야 합니다.")
 	@ApiResponses({
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "회원탈퇴 성공",
-			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-				examples = @ExampleObject(
-					name = "NO_CONTENT",
-					value = "{\"success\":true,\"status\":204,\"message\":\"NO_CONTENT\",\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"
-				)
-			)
-		)
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "로그아웃 성공",
+			content = @Content(mediaType = "application/json"
+			))
 	})
 	@SecurityRequirement(name = "Authorization")
 	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/me/quit")
 	public ResponseEntity<ApiResponse<Void>> quit(@Valid @RequestBody UserQuitResponse request,
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
-		userService.quit(userDetails.getId(), request);
+		userService.quit(userDetails.getUserId(), request);
 		return ResponseEntity.noContent().build();
 	}
 
