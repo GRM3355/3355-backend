@@ -2,7 +2,6 @@ package com.grm3355.zonie.apiserver.domain.location.service;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
@@ -52,14 +51,6 @@ public class LocationService {
 		// 소수점 첫째 자리까지 반올림
 		return Math.round(distance * 100.0) / 100.0;
 	}
-
-	// @Transactional
-	// public LocationTokenResponse update(LocationDto locationDto, UserDetailsImpl userDetails) {
-	// 	String userId = userDetails.getUsername();
-	// 	boolean value = redisTokenService.updateUserLocationInfo(locationDto, userId);
-	// 	String message = value ? "갱신되었습니다." : "갱신에 실패하였습니다.";
-	// 	return new LocationTokenResponse(message);
-	// }
 
 	public LocationTokenResponse verifyAndGenerateToken(UserDetailsImpl userDetails, long festivalId, LocationDto userLocationDto) {
 

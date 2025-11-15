@@ -62,11 +62,10 @@ public class MessageService {
 
 		// 3. Redis Pub/Sub으로 다른 서버에 전파 (채팅방 구독자들에게 브로드캐스팅)
 		try {
-			// 객체를 JSON 문자열로 직렬화하여 Publish
-			String messageJson = objectMapper.writeValueAsString(message);
-			redisTemplate.convertAndSend("chat-room:" + roomId, messageJson);
-		} catch (JsonProcessingException e) {
-			log.error("Message 직렬화 실패", e);
+			// message 객체 원본 전송
+			redisTemplate.convertAndSend("chat-room:" + roomId, message);
+		} catch (Exception e) {
+			log.error("Message Pub/Sub 발행 실패", e);
 		}
 
 		// 4. Redis에 마지막 대화 시각 갱신

@@ -28,6 +28,7 @@ import com.grm3355.zonie.apiserver.global.swagger.ApiError415;
 import com.grm3355.zonie.apiserver.global.swagger.ApiError429;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -44,6 +45,7 @@ public class AuthController {
 	private final AuthService authService;
 	private final RedisTokenService redisTokenService;
 
+	@Deprecated
 	@Operation(summary = "임시 사용자 토큰 발급", description = "위경도 정보를 입력받아 사용자 Access 토큰을 발급합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -73,17 +75,20 @@ public class AuthController {
 		return ResponseEntity.created(location).body(ApiResponse.success(response2));
 	}
 
-	//현재는 사용안하므로 주석처리
+	// 현재는 사용안하므로 주석처리
 	// 해당url은 지금은 사용할 일 없지만, 확장성을 위해서 보관한다.
 	// 개발할때 업스케일링하는 과정에서나온 url
-	// @PostMapping("/oauth2")
-	// @Operation(summary = "로그인 (deprecated)", description = "")
-	// public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
-	// 	LoginResponse response = authService.login(request);
-	// 	return ResponseEntity.ok()
-	// 			.body(response);
-	// }
+	@Deprecated
+	@Hidden
+	@PostMapping("/oauth2")
+	@Operation(summary = "로그인 (deprecated)", description = "")
+	public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+		LoginResponse response = authService.login(request);
+		return ResponseEntity.ok()
+				.body(response);
+	}
 
+	@Hidden
 	@Operation(summary = "카카오 로그인 사용자 토큰 발급", description = "사용자 로그인후 AccessToken, RefreshToken 발급합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -141,6 +146,6 @@ public class AuthController {
 	public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody RefreshTokenRequest request) {
 		//200 응답 나오면 프론트엔드에서 액세스토큰, 리프레시 토큰 삭제
 		redisTokenService.deleteByToken(request.refreshToken());
-		return ResponseEntity.noContent().build();
+		return ResponseEntity.ok().body(ApiResponse.<Void>noContent());
 	}
 }
