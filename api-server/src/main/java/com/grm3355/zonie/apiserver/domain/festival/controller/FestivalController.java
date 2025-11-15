@@ -122,16 +122,6 @@ public class FestivalController {
 	}
 
 	@Operation(summary = "축제 지역 목록 조회", description = "축제가 열리는 지역(시/도) 목록을 조회합니다.")
-	// @ApiResponses({
-	// 	@io.swagger.v3.oas.annotations.responses.ApiResponse(
-	// 		responseCode = "200",
-	// 		description = "지역 목록 조회 성공",
-	// 		content = @Content(
-	// 			mediaType = "application/json",
-	// 			schema = @Schema(type = "array", implementation = RegionResponse.class)
-	// 		)
-	// 	)
-	// })
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록 조회 성공",
 			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
