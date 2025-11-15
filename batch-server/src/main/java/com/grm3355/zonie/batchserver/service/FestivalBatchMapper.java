@@ -1,6 +1,7 @@
 package com.grm3355.zonie.batchserver.service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 import org.hibernate.type.descriptor.sql.internal.Scale6IntervalSecondDdlType;
@@ -113,4 +114,25 @@ public class FestivalBatchMapper {
 			return 0;
 		}
 	}
+
+
+	public Festival updateFromDto(Festival festival, ApiFestivalDto dto){
+
+		String regionName = areCodeChange(RegionCode.getNameByCode(dto.getAreacode()));
+
+		Festival updated = Festival.builder()
+			.title(dto.getTitle())
+			.addr1(dto.getAddr1())
+			.firstImage(dto.getFirstimage())
+			.firstImage2(dto.getFirstimage2())
+			.eventStartDate(LocalDate.parse(dto.getEventstartdate()))
+			.eventEndDate(LocalDate.parse(dto.getEventenddate()))
+			.areaCode(Integer.valueOf(dto.getAreacode()))
+			.region(regionName)
+			.tel(dto.getTel())
+			.build();
+		return updated;
+	}
+
+
 }

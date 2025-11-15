@@ -1,5 +1,6 @@
 package com.grm3355.zonie.batchserver.service;
 
+import java.net.URI;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.stream.StreamSupport;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +29,7 @@ public class FestivalDetailImageApiService {
 	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 	@Value("${openapi.serviceKey}")
 	private String serviceKey;
-	private final String OPENAPI_BASE_URL = "https://apis.data.go.kr/B551011/KorService2";
+	private final String OPENAPI_BASE_URL = "https://apis.data.go.kr/B551011/KorService2/detailImage2";
 
 	private final FestivalDetailImageRepository festivalDetailImageRepository;
 	private final FestivalDetailImageBatchMapper festivalDetailImageBatchMapper;
@@ -84,20 +86,23 @@ public class FestivalDetailImageApiService {
 		try {
 			//String url = buildDetailImageApiUrl(contentId);
 			//String response = restTemplate.getForObject(url, String.class);
-			String imageUrl = "/detailImage2";
+
+			URI uri = UriComponentsBuilder.fromUriString(OPENAPI_BASE_URL)
+				.queryParam("serviceKey", serviceKey)
+				.queryParam("MobileOS", "ETC")
+				.queryParam("MobileApp", "Zonie")
+				.queryParam("_type", "json")
+				.queryParam("contentId", contentId)
+				.queryParam("imageYN", "Y")
+				.queryParam("numOfRows", "10")
+				.build(true) // true -> URL 인코딩
+				.toUri();
+
+			System.out.println("====> 공공데이터 상세이미지 목록 Calling URL: " + uri);
 
 			// WebClient를 사용한 동기 호출
 			String response = webClient.get()
-				.uri(uriBuilder -> uriBuilder
-					.path(imageUrl)
-					.queryParam("serviceKey", serviceKey)
-					.queryParam("MobileOS", "ETC")
-					.queryParam("MobileApp", "Zonie")
-					.queryParam("_type", "json")
-					.queryParam("contentId", contentId)
-					.queryParam("imageYN", "Y")
-					.queryParam("numOfRows", "10")
-					.build())
+				.uri(uri)
 				.retrieve()
 				.bodyToMono(String.class)
 				.block(); // WebClient 동기식으로 사용

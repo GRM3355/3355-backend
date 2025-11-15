@@ -152,4 +152,6 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
         WHERE f.festival_id = sub.festival_id
         """, nativeQuery = true)
 	void syncTotalParticipantCounts();
+
+	Festival findByContentId(int contentid);
 }

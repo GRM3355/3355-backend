@@ -1,6 +1,8 @@
 package com.grm3355.zonie.batchserver.job;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,7 +60,25 @@ public class FestivalDataSyncJob {
 				.collect(Collectors.toList());
 
 			// 1. PostgreSQL에 벌크 저장/업데이트 실행
-			festivalRepository.saveAll(entities);
+			//festivalRepository.saveAll(entities);
+
+			//** 저장여부 비교후 업데이트 또는 저장
+			List<Festival> upsertEntities = new ArrayList<>();
+			for (ApiFestivalDto dto : newFestivals) {
+				Festival existing = festivalRepository.findByContentId(Integer.parseInt(dto.getContentid()));
+				if (existing != null) {
+					// 기존 엔티티 → 업데이트
+					//existing.updateFromDto(dto);
+					Festival existingUpdate = festivalBatchMapper.updateFromDto(existing, dto);
+					upsertEntities.add(existingUpdate);
+
+				} else {
+					// 신규 엔티티 → 새로 생성
+					Festival newEntity = festivalBatchMapper.toEntity(dto);
+					upsertEntities.add(newEntity);
+				}
+			}
+			festivalRepository.saveAll(upsertEntities);
 
 			//**추가** 상세 이미지 저장 로직 추가
 			festivalDetailImageService.saveFestivalDetailImages(entities);
