@@ -15,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import com.grm3355.zonie.chatserver.service.ChatRoomService;
+import com.grm3355.zonie.commonlib.domain.message.dto.LikeUpdatePushDto;
+import com.grm3355.zonie.commonlib.domain.message.dto.MessageBroadcastDto;
 import com.grm3355.zonie.commonlib.domain.message.entity.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -35,26 +37,28 @@ public class RedisSubscriberConfig {
 			messagingTemplate.convertAndSend("/sub/echo", message); // 메시지를 받아서 STOMP 브로커(/sub/echo)로 브로드캐스팅
 		}
 
+		/**
+		 * 채팅 메세지 핸들러
+		 */
 		public void handleMessage(String messageJson, String channel) {
 			try {
-				// 1. JSON 파싱 (이중 포장 풀기)
-				String innerJson = objectMapper.readValue(messageJson, String.class);
-				Message message = objectMapper.readValue(innerJson, Message.class);
+				// 1. JSON 파싱
+				Message message = objectMapper.readValue(messageJson, Message.class);
 
-				// --- 2. Message 객체에서 실제 roomId 가져오기 ---
+				// 2. Message 객체에서 실제 roomId 가져오기
 				String roomId = message.getChatRoomId(); // e.g., "my-local-room"
 				if (roomId == null || roomId.isEmpty()) {
 					log.error("Message에 chatRoomId가 없습니다!");
 					return;
 				}
 
-				// --- 3. STOMP 토픽 생성 ---
+				// 3. STOMP 토픽 생성
 				String stompTopic = "/sub/chat-rooms/" + roomId;
-				// (결과) "/sub/chat-rooms/my-local-room"
 				log.info(">>> REDIS SUB RECV [Channel: {}] -> [StompTopic: {}]", channel, stompTopic);
 
-				// 4. 해당 STOMP 토픽으로 메시지 브로드캐스팅
-				messagingTemplate.convertAndSend(stompTopic, message);
+				// 4. MessageResponse DTO로 변환해 해당 STOMP 토픽으로 메시지 브로드캐스팅
+				MessageBroadcastDto dto = MessageBroadcastDto.from(message);
+				messagingTemplate.convertAndSend(stompTopic, dto);
 
 			} catch (Exception e) {
 				log.error("RedisSubscriber handleMessage Error", e);
@@ -62,7 +66,7 @@ public class RedisSubscriberConfig {
 		}
 
 		/**
-		 * 'chat-events:join' 채널을 처리하는 핸들러
+		 * 'chat-events:join' 채널을 처리하는 핸들러 (자동 참여 이벤트)
 		 */
 		public void handleJoinEvent(String messageJson) {
 			try {
@@ -85,7 +89,37 @@ public class RedisSubscriberConfig {
 				log.error("RedisSubscriber handleJoinEvent Error", e);
 			}
 		}
+
+		/**
+		 * 'chat-events:like' 채널을 처리하는 핸들러 (좋아요 이벤트)
+		 */
+		public void handleLikeEvent(String messageJson){
+			try{
+				// 1. JSON 파싱
+				LikeUpdatePushDto dto = objectMapper.readValue(messageJson, LikeUpdatePushDto.class);
+
+				// 2. dto 객체에서 실제 roomId 가져오기
+				String roomId = dto.getRoomId();
+				if (roomId == null || roomId.isEmpty()) {
+					log.error("LikeUpdatePushDto에 roomId가 없습니다!");
+					return;
+				}
+
+				// 3. STOMP 토픽 생성
+				String stompTopic = "/sub/chat-rooms/" + roomId;
+				log.info(">>> REDIS SUB RECV [Channel: chat-events:like] -> [StompTopic: {}]", stompTopic);
+
+				// 4. 해당 STOMP 토픽으로 LikeUpdatePushDto 브로드캐스팅
+				messagingTemplate.convertAndSend(stompTopic, dto);
+			}
+			catch (Exception e) {
+				log.error("RedisSubscriber handleLikeEvent Error", e);
+			}
+		}
+
 	}
+
+
 
 	// (2) 메시지 리스너 어댑터: 실제 핸들러(RedisSubscriber)를 연결
 	// (2-A) 실제 채팅용 메시지 리스너 어댑터
@@ -107,13 +141,23 @@ public class RedisSubscriberConfig {
 		// RedisSubscriber의 "handleJoinEvent" 메소드가 메시지를 처리하도록 설정
 		return new MessageListenerAdapter(new RedisSubscriber(), "handleJoinEvent");
 	}
+	// (2-D) 좋아요 이벤트 리스너 어댑터
+	@Bean
+	MessageListenerAdapter likeEventListenerAdapter() {
+		// RedisSubscriber의 "handleLikeEvent" 메소드가 메시지를 처리하도록 설정
+		return new MessageListenerAdapter(new RedisSubscriber(), "handleLikeEvent");
+	}
+
+
+
 
 	// (3) Redis 메시지 리스너 컨테이너: 어떤 채널을 구독할지 설정
 	@Bean
 	RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory,
 		MessageListenerAdapter chatListenerAdapter,
 		MessageListenerAdapter echoListenerAdapter,
-		MessageListenerAdapter joinEventListenerAdapter) {
+		MessageListenerAdapter joinEventListenerAdapter,
+		MessageListenerAdapter likeEventListenerAdapter) {
 
 		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
@@ -126,7 +170,10 @@ public class RedisSubscriberConfig {
 
 		// "chat-events:join" 토픽을 구독 (joinEventListenerAdapter 사용)
 		container.addMessageListener(joinEventListenerAdapter, new ChannelTopic("chat-events:join"));
+
+		// "chat-events:like" 토픽을 구독 (likeEventListenerAdapter 사용)
+		container.addMessageListener(likeEventListenerAdapter, new ChannelTopic("chat-events:like"));
+
 		return container;
 	}
-
 }

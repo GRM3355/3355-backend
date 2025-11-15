@@ -7,6 +7,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+/**
+ * * Pub/Sub을 위한 redisTemplate (타입 정보 x)
+ */
 @Configuration("chatServerRedisConfig")
 public class RedisConfig {
 

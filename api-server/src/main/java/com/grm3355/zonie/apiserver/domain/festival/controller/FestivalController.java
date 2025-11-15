@@ -51,16 +51,6 @@ public class FestivalController {
 	private final FestivalService festivalService;
 
 	@Operation(summary = "축제 목록 조회", description = "조건에 맞는 축제 목록을 페이지네이션하여 조회합니다.")
-	// @ApiResponses({
-	// 	@io.swagger.v3.oas.annotations.responses.ApiResponse(
-	// 		responseCode = "200",
-	// 		description = "목록 조회 성공",
-	// 		content = @Content(
-	// 			mediaType = "application/json",
-	// 			schema = @Schema(implementation = FestivalPageResponse.class)
-	// 		)
-	// 	)
-	// })
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록 조회 성공",
 			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),

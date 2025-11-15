@@ -100,12 +100,4 @@ public class LocationController {
 		);
 		return ResponseEntity.ok(ApiResponse.success(response));
 	}
-
-	// @PostMapping("/update")
-	// public ResponseEntity<?> updateLocation(@AuthenticationPrincipal UserDetailsImpl userDetails,
-	// 	@Valid @RequestBody LocationDto locationDto) {
-	// 	//10분 단위로 호출함.
-	// 	LocationTokenResponse response = locationService.update(locationDto, userDetails);
-	// 	return ResponseEntity.ok(ApiResponse.success(response));
-	// }
 }
