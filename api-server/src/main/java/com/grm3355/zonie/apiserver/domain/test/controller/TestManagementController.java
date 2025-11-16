@@ -48,7 +48,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @ApiError400 // 공통 400
 @ApiError405 // 공통 405
-@ApiError415 // 공통 4152
+@ApiError415 // 공통 415
 @ApiError429 // 공통 429
 public class TestManagementController {
 
@@ -127,7 +127,7 @@ public class TestManagementController {
 	@PostMapping("/festivals")
 	public ResponseEntity<?> createFestival(@RequestBody FestivalCreateRequest request) {
 		FestivalResponse response = festivalService.createFestival(request);
-		return ResponseEntity.ok().body(ApiResponse.success(response));
+		return ResponseEntity.ok(ApiResponse.success(response));
 	}
 
 	@Operation(summary = "[FESTIVAL] 축제 강제 삭제 (채팅방, 메시지 포함)",
@@ -159,8 +159,10 @@ public class TestManagementController {
 			+ "채팅방(JPA), 참여자(JPA), 메시지(MongoDB)를 연쇄적으로 삭제합니다. <b>(DB 부하 주의)</b>"
 	)
 	@ApiResponses({
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", ref = "#/components/responses/NoContent"), // ApiSuccess204
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound") // ApiError404
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", ref = "#/components/responses/NoContent"),
+		// ApiSuccess204
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", ref = "#/components/responses/NotFound")
+		// ApiError404
 	})
 	@DeleteMapping("/chat-rooms/{chatRoomId}")
 	public ResponseEntity<ApiResponse<Void>> forceDeleteChatRoom(
@@ -169,6 +171,7 @@ public class TestManagementController {
 		testManagementService.deleteChatRoomCascade(chatRoomId);
 		return ResponseEntity.noContent().build();
 	}
+
 	@Operation(summary = "[REDIS] 채팅/좋아요 관련 Redis 키 전체 삭제",
 		description = "테스트 환경에서 쌓인 Redis의 가비지 데이터를 삭제합니다.<br>"
 			+ "- `message:*` (좋아요, 좋아요 수)<br>"

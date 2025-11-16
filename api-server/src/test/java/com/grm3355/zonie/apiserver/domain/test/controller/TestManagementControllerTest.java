@@ -28,8 +28,6 @@ import com.grm3355.zonie.apiserver.domain.test.service.TestManagementService;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
 import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
-import com.grm3355.zonie.commonlib.global.exception.BusinessException;
-import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 @DisplayName("TestManagementController 통합 테스트")
@@ -73,7 +71,6 @@ class TestManagementControllerTest {
 	@MockitoBean
 	private JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
-
 	@Test
 	@DisplayName("[AUTH] 테스트 유저 로그인 성공")
 	void getTestTokenSuccess() throws Exception {
@@ -100,7 +97,7 @@ class TestManagementControllerTest {
 		AuthResponse mockResponse = new AuthResponse("guest-access-token-123", null);
 		given(authService.register(any(LocationDto.class))).willReturn(mockResponse);
 
-		mockMvc.perform(post("/api/v1/test-management/auth/guest-token")
+		mockMvc.perform(post("/api/v1/test-management/auth/tokens")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(objectMapper.writeValueAsString(locationDto)))
 			.andExpect(status().isCreated())
@@ -122,21 +119,6 @@ class TestManagementControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.data.festivalId").value(999L));
-	}
-
-	@Test
-	@DisplayName("[FESTIVAL] 축제 강제 삭제 (mode=ERROR) 실패")
-	void forceDeleteFestivalSafeFailure() throws Exception {
-		// given: 400 Bad Request (채팅방이 존재함)
-		doThrow(new BusinessException(ErrorCode.BAD_REQUEST, "채팅방이 존재합니다."))
-			.when(testManagementService).deleteFestivalSafe(anyLong());
-
-		mockMvc.perform(delete("/api/v1/test-management/festivals/1")
-				.param("mode", "ERROR")
-				.contentType(MediaType.APPLICATION_JSON))
-			.andExpect(status().isBadRequest())
-			.andExpect(jsonPath("$.success").value(false))
-			.andExpect(jsonPath("$.error.message").value("채팅방이 존재합니다."));
 	}
 
 	@Test

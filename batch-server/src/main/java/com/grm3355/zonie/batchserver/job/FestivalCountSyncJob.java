@@ -17,9 +17,9 @@ public class FestivalCountSyncJob {
 
 	/**
 	 * 10분마다 실행
-		* Redis -> DB로 동기화된 채팅방(chat_rooms)의 참여자 수를
-     * 축제(festivals) 단위로 합산하여 total_participant_count 필드에 업데이트합니다.
-		*/
+	 * Redis -> DB로 동기화된 채팅방(chat_rooms)의 참여자 수를
+	 * 축제(festivals) 단위로 합산하여 total_participant_count 필드에 업데이트합니다.
+	 */
 	@Scheduled(cron = "0 */10 * * * *") // 매 10분마다 (0초, 10분 0초, 20분 0초...)
 	public void syncFestivalParticipantCounts() {
 		log.info("FestivalCountSyncJob 시작: 축제별 총 참여자 수 집계를 시작합니다.");

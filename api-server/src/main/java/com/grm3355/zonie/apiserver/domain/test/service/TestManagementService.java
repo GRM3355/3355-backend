@@ -42,7 +42,7 @@ public class TestManagementService {
 			return; // 이미 없으면 성공
 		}
 
-		long chatRoomCount = chatRoomRepository.countByFestival_FestivalId(festivalId);
+		long chatRoomCount = chatRoomRepository.countByFestivalFestivalId(festivalId);
 		if (chatRoomCount > 0) {
 			throw new BusinessException(ErrorCode.BAD_REQUEST,
 				"축제를 삭제할 수 없습니다. " + chatRoomCount + "개의 채팅방이 존재합니다. (mode=CASCADE를 사용하세요)");
@@ -61,7 +61,7 @@ public class TestManagementService {
 		}
 
 		// 1. 이 축제에 속한 모든 채팅방 ID 조회
-		List<ChatRoom> chatRooms = chatRoomRepository.findAllByFestival_FestivalId(festivalId);
+		List<ChatRoom> chatRooms = chatRoomRepository.findAllByFestivalFestivalId(festivalId);
 		if (!chatRooms.isEmpty()) {
 			List<String> roomIds = chatRooms.stream()
 				.map(ChatRoom::getChatRoomId)
@@ -103,7 +103,6 @@ public class TestManagementService {
 			.map(Message::getId)
 			.toList();
 		log.warn("[TEST-MGMT] Found {} message IDs to delete from rooms: {}", messageIds.size(), chatRoomIds);
-
 
 		// 2. (Redis) 좋아요 관련 키 삭제
 		if (!messageIds.isEmpty()) {

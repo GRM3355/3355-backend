@@ -1,5 +1,8 @@
 package com.grm3355.zonie.chatserver;
 
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -10,9 +13,6 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
-
-import java.sql.DriverManager;
-import java.sql.SQLException;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test") // application-test.yml (빈 파일)을 로드
@@ -27,7 +27,7 @@ public abstract class BaseIntegrationTest {
 			.withEnv("POSTGRES_DB", "testdb")
 			.withEnv("POSTGRES_USER", "testuser")
 			.withEnv("POSTGRES_PASSWORD", "testpass");
-			// .withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64")); // M1/M2 호환
+	// .withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64")); // M1/M2 호환
 
 	// === 2. Redis 컨테이너 ===
 	@Container
@@ -40,10 +40,9 @@ public abstract class BaseIntegrationTest {
 	static MongoDBContainer mongoContainer =
 		new MongoDBContainer(DockerImageName.parse("mongo:7.0"));
 
-
 	// === 4. PostGIS 확장 설치 (테스트 시작 전 1회) ===
 	@BeforeAll
-	static void setupPostGIS() throws SQLException {
+	static void setupPostgis() throws SQLException {
 		String jdbcUrl = String.format(
 			"jdbc:postgresql://%s:%d/testdb?sslmode=disable",
 			postgresContainer.getHost(),

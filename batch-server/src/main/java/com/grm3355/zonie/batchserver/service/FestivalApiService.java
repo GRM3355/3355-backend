@@ -21,11 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class FestivalApiService {
 
-	private final WebClient webClient;
 	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
+	private final WebClient webClient;
+	@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
+	private final String OPENAPI_BASE_URL = "https://apis.data.go.kr/B551011/KorService2";
 	@Value("${openapi.serviceKey}")
 	private String serviceKey;
-	private final String OPENAPI_BASE_URL = "https://apis.data.go.kr/B551011/KorService2";
 
 	public FestivalApiService(WebClient.Builder webClientBuilder) { // WebClient는 Non-Blocking I/O 통신에 사용
 		this.webClient = webClientBuilder.baseUrl(OPENAPI_BASE_URL).build();
@@ -77,6 +78,7 @@ public class FestivalApiService {
 
 		return parseApiResponse(response);
 	}
+
 	private List<ApiFestivalDto> parseApiResponse(String response) {
 		// JSON 응답 구조: { response: { body: { items: { item: [{}, {}] } } } }
 		try {
@@ -89,9 +91,8 @@ public class FestivalApiService {
 			// items 노드가 배열일 경우 ApiFestivalDto 리스트로 변환
 			if (items.isArray() && !items.isEmpty()) {
 				return mapper.readerForListOf(ApiFestivalDto.class).readValue(items);
-			}
-			// items가 1개일 때 객체로 오는 경우 방어
-			else if (items.isObject()) {
+			} else if (items.isObject()) {
+				// items가 1개일 때 객체로 오는 경우 방어
 				return List.of(mapper.treeToValue(items, ApiFestivalDto.class));
 			}
 

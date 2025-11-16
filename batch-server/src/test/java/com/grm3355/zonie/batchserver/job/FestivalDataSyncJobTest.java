@@ -30,6 +30,7 @@ import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository
 @ExtendWith(MockitoExtension.class)
 class FestivalDataSyncJobTest {
 
+	private final int TEST_BATCH_DATE = 7;
 	@Mock
 	private FestivalApiService festivalApiService;
 	@Mock
@@ -56,8 +57,6 @@ class FestivalDataSyncJobTest {
 	@InjectMocks // @Mock 객체들을 주입받을 대상
 	private FestivalDataSyncJob festivalDataSyncJob;
 
-	private final int TEST_BATCH_DATE = 7;
-
 	@BeforeEach
 	void setUp() {
 		// @Value 필드 수동 주입
@@ -67,7 +66,7 @@ class FestivalDataSyncJobTest {
 
 	@Test
 	@DisplayName("축제 동기화 Job 로직 전체 테스트")
-	void syncFestivalData_Success() throws Exception {
+	void syncFestivalDataSuccess() throws Exception {
 		// given: 테스트용 데이터 준비
 		LocalDate syncDate = LocalDate.now();
 		LocalDate expectedEndDate = syncDate.plusDays(TEST_BATCH_DATE);
@@ -101,7 +100,7 @@ class FestivalDataSyncJobTest {
 
 	@Test
 	@DisplayName("API 호출 실패 시 RuntimeException 발생")
-	void syncFestivalData_ApiFails() {
+	void syncFestivalDataApiFails() {
 		// given
 		LocalDate syncDate = LocalDate.now();
 		when(festivalApiService.fetchAndParseFestivals(any(), any()))

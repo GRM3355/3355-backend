@@ -1,10 +1,8 @@
 package com.grm3355.zonie.batchserver.service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import org.hibernate.type.descriptor.sql.internal.Scale6IntervalSecondDdlType;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.io.WKTReader;
 import org.springframework.stereotype.Component;
@@ -18,7 +16,7 @@ import com.grm3355.zonie.commonlib.global.enums.RegionCode;
 public class FestivalBatchMapper {
 
 	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
-	String TargetType ="OPENAPI";
+	String TargetType = "OPENAPI";
 
 	// DTO를 Entity로 변환하는 public 메서드
 	public Festival toEntity(ApiFestivalDto dto) {
@@ -56,7 +54,7 @@ public class FestivalBatchMapper {
 	private Point createPoint(String mapx, String mapy) {
 		try {
 			WKTReader reader = new WKTReader();
-			return (Point) reader.read("POINT (" + mapx + " " + mapy + ")");
+			return (Point)reader.read("POINT (" + mapx + " " + mapy + ")");
 		} catch (Exception e) {
 			System.err.println("Geo Point Creation Error: mapx=" + mapx + ", mapy=" + mapy + " - " + e.getMessage());
 			return null;
@@ -82,7 +80,7 @@ public class FestivalBatchMapper {
 	}
 
 
-	public Festival updateFromDto(Festival existing, ApiFestivalDto dto){
+	public Festival updateFromDto(Festival existing, ApiFestivalDto dto) {
 
 		// 1. PostGIS Point 객체 생성
 		Point geometry = createPoint(dto.getMapx(), dto.getMapy());

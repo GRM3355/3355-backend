@@ -14,10 +14,10 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class BatchJobScheduler {				// 시간 맞춰 Job을 실행하는 트리거 역할만
+public class BatchJobScheduler {                // 시간 맞춰 Job을 실행하는 트리거 역할만
 
-	private final JobLauncher jobLauncher; 		// Batch Job 실행기
-	private final ApplicationContext context; 	// Bean을 이름으로 찾기 위해
+	private final JobLauncher jobLauncher;        // Batch Job 실행기
+	private final ApplicationContext context;    // Bean을 이름으로 찾기 위해
 
 	// 일단, 관리가 필요한 일일 작업만 Spring Batch로 옮기고, 잦은 동기화 작업은 Scheduler로 남김
 	// * FestivalDataSyncJob, ChatRoomRedisCleanupJob, MessageLikeCleanupJob은 스프링 배치로 리팩토링
@@ -32,10 +32,12 @@ public class BatchJobScheduler {				// 시간 맞춰 Job을 실행하는 트리�
 	// 1. 축제 데이터 동기화
 	@Scheduled(cron = "0 0 4 * * *")
 	public void runFestivalSyncJob() throws Exception {
-		Job job = context.getBean("festivalSyncJob", Job.class);		// FestivalSyncBatchConfig에 정의한 Bean 이름: "festivalSyncJob" 이름으로 등록된 Job Bean을 찾아서 실행
+		Job job = context.getBean("festivalSyncJob",
+			Job.class);        // FestivalSyncBatchConfig에 정의한 Bean 이름: "festivalSyncJob" 이름으로 등록된 Job Bean을 찾아서 실행
 
 		JobParameters params = new JobParametersBuilder()
-			.addString("run.time", LocalDateTime.now().toString())		// Job 실행 시 파라미터 전달 - run time: 고유한 값 (매번 다른 실행으로 인식되도록)
+			.addString("run.time",
+				LocalDateTime.now().toString())        // Job 실행 시 파라미터 전달 - run time: 고유한 값 (매번 다른 실행으로 인식되도록)
 			.toJobParameters();
 
 		jobLauncher.run(job, params);
@@ -44,7 +46,7 @@ public class BatchJobScheduler {				// 시간 맞춰 Job을 실행하는 트리�
 	// 2. ChatRoomRedisCleanupJob
 	@Scheduled(cron = "0 0 4 * * ?")
 	public void runChatRoomCleanupJob() throws Exception {
-		Job job = context.getBean("chatRoomCleanupBatchJob", Job.class); 	// CleanupBatchConfig에 정의한 Bean 이름
+		Job job = context.getBean("chatRoomCleanupBatchJob", Job.class);    // CleanupBatchConfig에 정의한 Bean 이름
 		JobParameters params = new JobParametersBuilder()
 			.addString("run.time", LocalDateTime.now().toString())
 			.toJobParameters();

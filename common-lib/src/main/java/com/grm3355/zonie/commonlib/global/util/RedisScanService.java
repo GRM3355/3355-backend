@@ -3,8 +3,9 @@ package com.grm3355.zonie.commonlib.global.util;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
+
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.core.Cursor;
@@ -67,7 +68,7 @@ public class RedisScanService {
 		Map<String, Long> countMap = new HashMap<>();
 		int i = 0;
 		for (String key : keys) {
-			countMap.put(key, (Long) results.get(i++));
+			countMap.put(key, (Long)results.get(i++));
 		}
 
 		return countMap;
@@ -80,7 +81,7 @@ public class RedisScanService {
 	 * @return Map<String, String> (예: {"chatroom:last_msg_at:1": "1678886400000", ...})
 	 */
 	public Map<String, String> multiGetLastMessageTimestamps(Set<String> keys) {
-		List<String> values = stringRedisTemplate.opsForValue().multiGet(keys);		// MGET: 파이프라인과 유사한 동작
+		List<String> values = stringRedisTemplate.opsForValue().multiGet(keys);        // MGET: 파이프라인과 유사한 동작
 
 		Map<String, String> timestampMap = new HashMap<>();
 		int i = 0;
@@ -98,11 +99,11 @@ public class RedisScanService {
 	 * likedByKeys 키(Set) 목록을 받아, 각 키의 모든 멤버를 파이프라인으로 일괄 조회합니다. (SMEMBERS)
 	 *
 	 * @param keys (예: "message:liked_by:msg1", "message:liked_by:msg2", ...)
-	 * @return Map<String, Set<String>> (예: {"message:liked_by:msg1": {"user1", "user2"}, ...})
+	 * @return Map<String, Set < String>> (예: {"message:liked_by:msg1": {"user1", "user2"}, ...})
 	 */
 	public Map<String, Set<String>> getSetMembers(Set<String> keys) {
 		List<Object> results = stringRedisTemplate.executePipelined((RedisConnection connection) -> {
-			StringRedisConnection stringConnection = (StringRedisConnection) connection;
+			StringRedisConnection stringConnection = (StringRedisConnection)connection;
 			for (String key : keys) {
 				stringConnection.sMembers(key);
 			}
@@ -112,7 +113,7 @@ public class RedisScanService {
 		Map<String, Set<String>> membersMap = new HashMap<>();
 		int i = 0;
 		for (String key : keys) {
-			membersMap.put(key, (Set<String>) results.get(i++));
+			membersMap.put(key, (Set<String>)results.get(i++));
 		}
 		return membersMap;
 	}

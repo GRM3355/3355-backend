@@ -33,20 +33,20 @@ public class CleanupBatchConfig {
 
 	@Bean
 	public Job chatRoomCleanupBatchJob() {
-		return new JobBuilder("chatRoomCleanupBatchJob", jobRepository) 	// JobBuilder 객체로 곧바로 Job 정의
-			.start(chatRoomCleanupStep())										// 1개만
+		return new JobBuilder("chatRoomCleanupBatchJob", jobRepository)    // JobBuilder 객체로 곧바로 Job 정의
+			.start(chatRoomCleanupStep())                                        // 1개만
 			.build();
 	}
 
 	@Bean
 	public Step chatRoomCleanupStep() {
-		return new StepBuilder("chatRoomCleanupStep", jobRepository)	// Step 정의
+		return new StepBuilder("chatRoomCleanupStep", jobRepository)    // Step 정의
 			.tasklet(chatRoomCleanupTasklet(), transactionManager)
 			.build();
 	}
 
 	@Bean
-	public Tasklet chatRoomCleanupTasklet() {								// Tasklet 정의
+	public Tasklet chatRoomCleanupTasklet() {                                // Tasklet 정의
 		return (contribution, chunkContext) -> {
 			log.info(">>>>> Spring Batch: ChatRoomRedisCleanupJob 시작");
 			try {

@@ -15,7 +15,6 @@ import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchDto;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchResponse;
 import com.grm3355.zonie.apiserver.domain.search.service.TotalSearchService;
-import com.grm3355.zonie.apiserver.global.dto.PageResponse;
 import com.grm3355.zonie.apiserver.global.swagger.ApiError400;
 import com.grm3355.zonie.apiserver.global.swagger.ApiError405;
 import com.grm3355.zonie.apiserver.global.swagger.ApiError415;
@@ -61,16 +60,6 @@ public class TotalSearchController {
 	}
 
 	@Operation(summary = "검색 - 채팅방 목록", description = "검색 결과 중 내 채팅방 목록만 상세 조회합니다.")
-	// @ApiResponses({
-	// 	@io.swagger.v3.oas.annotations.responses.ApiResponse(
-	// 		responseCode = "200",
-	// 		description = "채팅방 목록 조회 성공",
-	// 		content = @Content(
-	// 			mediaType = "application/json",
-	// 			schema = @Schema(implementation = MyChatRoomPageResponse.class)
-	// 		)
-	// 	)
-	// })
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록 조회 성공",
 			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
@@ -79,7 +68,7 @@ public class TotalSearchController {
 					value = "{\"success\": true,"
 						+ "\"data\":{"
 						+ "\"content\":["
-						+"{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
+						+ "{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
 						+ " ],"
 						+ "\"currentPage\": 1,"
 						+ "\"totalPages\": 5,"
