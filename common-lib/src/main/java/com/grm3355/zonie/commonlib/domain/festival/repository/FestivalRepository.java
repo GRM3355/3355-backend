@@ -1,6 +1,7 @@
 package com.grm3355.zonie.commonlib.domain.festival.repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -153,5 +154,6 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
         """, nativeQuery = true)
 	void syncTotalParticipantCounts();
 
-	Festival findByContentId(int contentid);
+	Festival findByContentId(int contentId);
+	List<Festival> findByContentIdIn(List<Integer> contentIds);
 }

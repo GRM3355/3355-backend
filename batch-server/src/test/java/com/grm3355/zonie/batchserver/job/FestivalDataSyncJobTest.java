@@ -73,6 +73,7 @@ class FestivalDataSyncJobTest {
 		LocalDate expectedEndDate = syncDate.plusDays(TEST_BATCH_DATE);
 
 		ApiFestivalDto dto = new ApiFestivalDto(); // 테스트용 DTO
+		dto.setContentid("1"); // contentId 존재
 		Festival entity = Festival.builder().festivalId(1L).build(); // 테스트용 Entity
 		String entityAsJson = "{\"festivalId\":1}"; // 캐싱될 JSON
 		long deletedCount = 5L; // 삭제 건수

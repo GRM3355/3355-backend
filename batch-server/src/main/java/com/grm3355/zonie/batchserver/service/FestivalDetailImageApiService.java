@@ -98,7 +98,7 @@ public class FestivalDetailImageApiService {
 				.build(true) // true -> URL 인코딩
 				.toUri();
 
-			System.out.println("====> 공공데이터 상세이미지 목록 Calling URL: " + uri);
+			log.info("====> 공공데이터 상세이미지 목록 Calling URL: {}",uri);
 
 			// WebClient를 사용한 동기 호출
 			String response = webClient.get()

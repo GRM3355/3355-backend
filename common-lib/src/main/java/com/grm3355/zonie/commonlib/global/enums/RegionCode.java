@@ -13,12 +13,12 @@ public enum RegionCode {
 	SEJONG("8", "세종"),
 	GYEONGGI("31", "경기"),
 	GANGWON("32", "강원"),
-	CHUNGBUK("33", "충북"),
-	CHUNGNAM("34", "충남"),
-	GYEONGBUK("35", "경북"),
-	GYEONGNAM("36", "경남"),
-	JEONBUK("37", "전북"),
-	JEONNAM("38", "전남"),
+	CHUNGBUK("33", "충청"),	//충복
+	CHUNGNAM("34", "충청"),	//충남
+	GYEONGBUK("35", "경북"),	//경북
+	GYEONGNAM("36", "경남"),	//경남
+	JEONBUK("37", "전라"),	//전북
+	JEONNAM("38", "전라"),	//전남
 	JEJU("39", "제주"),
 	ETC("0", "기타"); // 지역 코드가 매핑되지 않는 경우를 대비
 

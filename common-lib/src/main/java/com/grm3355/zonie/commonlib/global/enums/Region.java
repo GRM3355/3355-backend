@@ -20,4 +20,19 @@ public enum Region {
 	}
 
 
+	/**
+	 * 한글 지역명 → Enum 이름 변환
+	 */
+	public static String fromKorean(String areaCode) {
+		for (Region region : Region.values()) {
+			String[] codes = region.name.split("/"); // 구분자로 분리
+			for (String code : codes) {
+				if (code.equals(areaCode)) {
+					return region.name();
+				}
+			}
+		}
+		return areaCode; // 매칭 없으면 그대로 반환
+	}
+
 }

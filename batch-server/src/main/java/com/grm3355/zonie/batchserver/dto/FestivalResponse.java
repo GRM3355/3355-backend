@@ -27,7 +27,7 @@ public class FestivalResponse {
 			.title(festival.getTitle())
 			.addr1(festival.getAddr1())
 			.areacode(String.valueOf(festival.getAreaCode()))
-			.areacode(festival.getTel())
+			.tel(festival.getTel())
 			.latitude(point != null ? point.getY() : 0)
 			.longitude(point != null ? point.getX() : 0)
 			.build();

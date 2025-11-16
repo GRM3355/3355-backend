@@ -8,10 +8,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
-@Builder
 @Getter
 @Setter
+@SuperBuilder
 public class FestivalResponse {
 
 	@Schema(description = "축제 아이디", example = "1")
