@@ -83,3 +83,9 @@ location:
 springdoc:
   swagger-ui:
     enabled: true # 실제 운영 환경에서는 false로 변경하기
+
+# --- Actuator (기본 경로 변경) ---
+management:
+  endpoints:
+    web:
+      base-path: /
