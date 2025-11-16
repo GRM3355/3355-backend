@@ -3,7 +3,7 @@
  * 개발 시에 무시하고 진행하시면 됩니다.
  */
 
-package com.grm3355.zonie.apiserver;
+package com.grm3355.zonie.apiserver.domain.test.service;
 
 import org.springframework.stereotype.Service;
 
