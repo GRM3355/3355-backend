@@ -20,6 +20,7 @@ import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -34,6 +35,8 @@ public class RedisTokenService {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final ObjectMapper objectMapper;
 
+
+	@Setter	// TestManagement: 비만료 토큰 발급 - TTL을 임시로 변경하기 위해 Setter 설정
 	@Value("${jwt.refresh-token-expiration-time}")
 	private long refreshTokenExpirationTime;
 
