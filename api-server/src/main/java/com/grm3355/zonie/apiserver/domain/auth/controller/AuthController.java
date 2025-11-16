@@ -200,7 +200,7 @@ public class AuthController {
 			.build();
 		response.addHeader("Set-Cookie", cookie.toString());
 
-		AccessTokenResponse accessTokenResponse = new AccessTokenResponse(authResponse.getRefreshToken());
+		AccessTokenResponse accessTokenResponse = new AccessTokenResponse(authResponse.getAccessToken());
 		return ResponseEntity.ok().body(ApiResponse.success(accessTokenResponse));
 	}
 
