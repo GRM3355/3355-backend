@@ -51,6 +51,55 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final OAuth2Clients oAuth2Clients;
 	private final UserDetailsServiceImpl userDetailsService;
+	/**
+	 * [TestManagement] 테스트용 유저 ID로 즉시 토큰을 발급합니다.
+	 *
+	 * @param userId      DB에 존재하는 userId (e.g., "test_user_01_kakao")
+	 * @param nonExpiring true 시 10년 만기 토큰 발급
+	 * @return LoginResponse
+	 */
+	@Transactional
+	public LoginResponse generateTestToken(String userId, boolean nonExpiring) {
+		// 1. DB에서 테스트 유저 조회
+		User user = userRepository.findByUserIdAndDeletedAtIsNull(userId)
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "테스트 사용자를 찾을 수 없습니다: " + userId));
+
+		// 2. UserDetails 생성 (refreshAccessToken에서 사용하는 로직과 동일)
+		UserDetailsImpl userDetails = userDetailsService.getUserDetailsByEmail(user.getUserId());
+
+		// 3. 비만료 토큰 처리
+		if (nonExpiring) {
+			long originalAccessTtl = jwtTokenProvider.getAccessTokenExpirationTime();
+			long originalRefreshTtl = jwtTokenProvider.getRefreshTokenExpirationTime();
+			long originalRedisTtl = redisTokenService.getRefreshTokenExpirationTime();
+
+			// 10년짜리 비만료 토큰 (ms)
+			long tenYearsMs = 315360000000L;
+
+			try {
+				log.warn("[TEST-MGMT] 비만료 토큰 발급 요청. 토큰 TTL을 임시 변경합니다.");
+				jwtTokenProvider.setAccessTokenExpirationTime(tenYearsMs);
+				jwtTokenProvider.setRefreshTokenExpirationTime(tenYearsMs);
+				redisTokenService.setRefreshTokenExpirationTime(tenYearsMs);
+
+				// 토큰 생성
+				String accessToken = jwtTokenProvider.createAccessToken(userDetails.getUsername(), user.getRole());
+				String refreshToken = redisTokenService.createRefreshToken(userDetails.getUsername());
+
+				return new LoginResponse(accessToken, refreshToken);
+
+			} finally {
+				// 토큰 TTL 원상 복구
+				jwtTokenProvider.setAccessTokenExpirationTime(originalAccessTtl);
+				jwtTokenProvider.setRefreshTokenExpirationTime(originalRefreshTtl);
+				redisTokenService.setRefreshTokenExpirationTime(originalRedisTtl);
+				log.warn("[TEST-MGMT] 토큰 TTL을 원상 복구합니다.");
+			}
+		}
+
+		// 4. 표준 만료 토큰 (기존 로직 재사용)
+		return generateNewTokens(userDetails);
+	}
 
 	@Transactional
 	public AuthResponse register(LocationDto locationDto) {

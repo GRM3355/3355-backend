@@ -5,9 +5,7 @@ import jakarta.validation.Valid;
 
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserQuitResponse;
-import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 import com.grm3355.zonie.apiserver.domain.user.dto.EmailUpdateRequest;
-import com.grm3355.zonie.apiserver.domain.user.dto.PhoneNumberUpdateRequest;
 import com.grm3355.zonie.apiserver.domain.user.service.UserService;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
@@ -23,9 +21,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -40,13 +38,15 @@ public class UserController {
         this.userService = userService;
     }
 
-	//현재는 사용안하므로 주석처리
-	// @Operation(summary = "내 프로필 이메일 패치", description = "현재 로그인된 사용자의 이메일 정보를 수정합니다.")
-	// @PatchMapping("/update/email")
-    // public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
-    //                         @RequestBody EmailUpdateRequest request) {
-    //     userService.updateEmail(userDetails.getUserId(), request);
-    // }
+	//현재는 사용안함.
+	@Deprecated
+	@Hidden
+	@Operation(summary = "내 프로필 이메일 패치", description = "현재 로그인된 사용자의 이메일 정보를 수정합니다.")
+	@PatchMapping("/update/email")
+    public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                            @RequestBody EmailUpdateRequest request) {
+        userService.updateEmail(userDetails.getUserId(), request);
+    }
 
 	@Operation(summary = "내 프로필 조회", description = "현재 아이디, 닉네임, Email, profileImage를 조회합니다.")
 	@ApiResponses({

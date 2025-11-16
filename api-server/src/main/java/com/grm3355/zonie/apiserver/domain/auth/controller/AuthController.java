@@ -1,14 +1,12 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
 import com.grm3355.zonie.apiserver.domain.auth.dto.AccessTokenResponse;
-import com.grm3355.zonie.apiserver.domain.auth.dto.RefreshTokenRequest;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.commonlib.global.enums.ProviderType;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.Objects;
 
@@ -62,7 +60,7 @@ public class AuthController {
 	private final RedisTokenService redisTokenService;
 
 	@Value("${spring.oauth2.client.registration.kakao.client-redirect-uri}")
-	String clientRediretUri;
+	String clientRedirectUri;
 
 	@Deprecated
 	@Operation(summary = "임시 사용자 토큰 발급", description = "위경도 정보를 입력받아 사용자 Access 토큰을 발급합니다.")
@@ -100,7 +98,7 @@ public class AuthController {
 	@Deprecated
 	@Hidden
 	@PostMapping("/oauth2")
-	@Operation(summary = "로그인 (deprecated)", description = "")
+	@Operation(summary = "로그인 (deprecated)", description = "로그인 처리")
 	public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
 		LoginResponse response = authService.login(request);
 		return ResponseEntity.ok()
@@ -124,7 +122,7 @@ public class AuthController {
 	@ApiError415
 	@ApiError429
 	@GetMapping("/kakao/callback")
-	public ResponseEntity<String>  loginWithKakao(@RequestParam("code") String code, HttpServletResponse response) throws IOException {
+	public ResponseEntity<String>  loginWithKakao(@RequestParam("code") String code, HttpServletResponse response) {
 
 		LoginResponse loginResponse = authService.login(new LoginRequest(ProviderType.KAKAO, code));
 		//return ResponseEntity.ok().body(response);
@@ -149,7 +147,7 @@ public class AuthController {
 				"  if (!window.posted) {" +
 				"    window.opener.postMessage({" +
 				"      accessToken: '" + accessToken + "'" +
-				"    }, '" + clientRediretUri + "');" +
+				"    }, '" + clientRedirectUri + "');" +
 				"    window.posted = true;" +
 				"    window.close();" +
 				"  }" +
@@ -235,7 +233,7 @@ public class AuthController {
 		response.addHeader("Set-Cookie", cookie.toString());
 
 		log.info("사용자 로그아웃 성공");
-		return ResponseEntity.ok().body(ApiResponse.<Void>noContent());
+		return ResponseEntity.ok().body(ApiResponse.noContent());
 	}
 }
 
