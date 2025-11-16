@@ -32,12 +32,10 @@ public class FestivalDataSyncJob {
 	private final FestivalBatchMapper festivalBatchMapper;
 	private final RedisTemplate<String, String> redisTemplate; // 캐싱용 Redis
 	private final ObjectMapper objectMapper;
-
+	private final FestivalDetailImageApiService festivalDetailImageService;
 	@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 	@Value("${festival.batch.date}")
 	private int FESTIVAL_BATCH_DATE;
-
-	private final FestivalDetailImageApiService festivalDetailImageService;
 
 	// @Scheduled가 제거: 순수 비즈니스 로직: -> Batch Step에서 관리
 	// - @Scheduled에 의해 호출되는 메서드
@@ -121,8 +119,6 @@ public class FestivalDataSyncJob {
 			log.info("종료된 축제 {}건 삭제", deletedCount);
 
 			log.info("--- [Batch] 동기화 완료: 총 {}건 처리 ---", upsertEntities.size());
-		} catch (Exception e) {
-			log.info("--- [Batch] 동기화 완료: 총 {}건 처리 ---", entities.size());
 		} catch (Exception e) {
 			log.error("--- [Batch] 축제 동기화 실패 ---", e);
 			throw new RuntimeException("축제 동기화 중 오류 발생", e);    // Tasklet에서 이 예외를 받아 FAILED 처리
