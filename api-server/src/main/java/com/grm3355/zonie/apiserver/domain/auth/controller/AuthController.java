@@ -238,3 +238,4 @@ public class AuthController {
 		return ResponseEntity.ok().body(ApiResponse.<Void>noContent());
 	}
 }
+
