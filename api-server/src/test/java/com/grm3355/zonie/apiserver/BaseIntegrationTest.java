@@ -29,7 +29,7 @@ public abstract class BaseIntegrationTest {
 			.withEnv("POSTGRES_DB", "testdb")
 			.withEnv("POSTGRES_USER", "testuser")
 			.withEnv("POSTGRES_PASSWORD", "testpass");
-			// .withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64"));
+	// .withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64"));
 
 	// === 2. Redis 컨테이너 ===
 	@Container
@@ -44,7 +44,7 @@ public abstract class BaseIntegrationTest {
 
 	// === 4. PostGIS 확장 설치 (테스트 시작 전 1회) ===
 	@BeforeAll
-	static void setupPostGIS() throws SQLException {
+	static void setupPostgis() throws SQLException {
 		String jdbcUrl = String.format(
 			"jdbc:postgresql://%s:%d/testdb?sslmode=disable",
 			postgresContainer.getHost(),

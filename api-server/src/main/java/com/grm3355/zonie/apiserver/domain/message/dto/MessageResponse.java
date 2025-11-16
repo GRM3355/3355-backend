@@ -27,7 +27,8 @@ public class MessageResponse {
 	private boolean liked; // Did the *current* user like this message?
 
 	// DTO
-	public static MessageResponse from(Message message, int liveLikeCount, Set<String> likedByUserIds, String currentUserId) {
+	public static MessageResponse from(Message message, int liveLikeCount, Set<String> likedByUserIds,
+		String currentUserId) {
 
 		boolean isLikedByCurrentUser = false;
 		if (likedByUserIds != null) {

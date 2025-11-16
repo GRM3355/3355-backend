@@ -23,10 +23,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class JwtChannelInterceptor implements ChannelInterceptor {
 
-	private final JwtTokenProvider jwtTokenProvider;
-
 	private static final String AUTHORIZATION_HEADER = "Authorization";
 	private static final String BEARER_PREFIX = "Bearer ";
+	private final JwtTokenProvider jwtTokenProvider;
 
 	@Override
 	public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -76,7 +75,8 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
 			}
 
 			// CONNECT 외의 다른 명령어 (SEND, SUBSCRIBE)에 대한 검증
-		} else if (StompCommand.SEND.equals(accessor.getCommand()) || StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+		} else if (StompCommand.SEND.equals(accessor.getCommand()) || StompCommand.SUBSCRIBE.equals(
+			accessor.getCommand())) {
 
 			// 토큰 검증은 CONNECT 시점에만, 여기에선 세션에 userId가 있는지만 확인
 			// 세션 속성이나 userId가 없으면 비정상적인 접근으로 간주하고 차단

@@ -29,14 +29,12 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 public class MessageQueryService {
 
+	private static final String LIKED_BY_KEY_PREFIX = "message:liked_by:";
+	private static final String LIKE_COUNT_KEY_PREFIX = "message:like_count:";
+	private static final int DEFAULT_PAGE_SIZE = 20;
 	private final MessageRepository messageRepository; // Mongo
 	private final StringRedisTemplate stringRedisTemplate;
 	private final RedisScanService redisScanService;
-
-	private static final String LIKED_BY_KEY_PREFIX = "message:liked_by:";
-	private static final String LIKE_COUNT_KEY_PREFIX = "message:like_count:";
-
-	private static final int DEFAULT_PAGE_SIZE = 20;
 
 	/**
 	 * 채팅방의 과거 메시지 목록을 커서 기반 페이지네이션으로 조회합니다.
@@ -60,7 +58,8 @@ public class MessageQueryService {
 			LocalDateTime cursorTimestamp = cursorMessage.getCreatedAt();
 
 			// 2) 해당 타임스탬프보다 오래된(LessThan) 메시지를 조회합니다.
-			messagesSlice = messageRepository.findByChatRoomIdAndCreatedAtLessThanOrderByCreatedAtDesc(chatRoomId, cursorTimestamp, pageable);
+			messagesSlice = messageRepository.findByChatRoomIdAndCreatedAtLessThanOrderByCreatedAtDesc(chatRoomId,
+				cursorTimestamp, pageable);
 		}
 
 		List<Message> messages = messagesSlice.getContent();
@@ -75,7 +74,8 @@ public class MessageQueryService {
 		Set<String> likeCountKeys = messageIds.stream()
 			.map(id -> LIKE_COUNT_KEY_PREFIX + id)
 			.collect(Collectors.toSet());
-		Map<String, String> likeCountStrMap = redisScanService.multiGetLastMessageTimestamps(likeCountKeys); // MGET (Key/Value)
+		Map<String, String> likeCountStrMap = redisScanService.multiGetLastMessageTimestamps(
+			likeCountKeys); // MGET (Key/Value)
 
 		// 2-2. messageId -> likedByUserIds (Map)
 		Set<String> likedByKeys = messageIds.stream()

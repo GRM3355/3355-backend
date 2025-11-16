@@ -4,9 +4,6 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,25 +19,27 @@ import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 @Service("chatRoomParticipationService")
 @RequiredArgsConstructor
 public class ChatRoomService {
 
-	private final ChatRoomRepository chatRoomRepository; // ChatRoom 엔티티용 레포지토리 (가정)
-	private final ChatRoomUserRepository chatRoomUserRepository;
-	private final UserRepository userRepository; // User 엔티티용 레포지토리 (가정)
-
-	private final RedisTemplate<String, Object> redisTemplate;
-
 	// Redis Key Prefix 정의 (재사용성 및 가독성 향상)
 	private static final String KEY_PARTICIPANTS = "chatroom:participants:"; // 실시간 참여자 (Set)
 	private static final String KEY_USER_ROOMS = "user:rooms:"; // 유저별 참여방 (Set)
+	private static final String NICKNAME_PREFIX = "#";
 
+	private final ChatRoomRepository chatRoomRepository; // ChatRoom 엔티티용 레포지토리 (가정)
+	private final ChatRoomUserRepository chatRoomUserRepository;
+	private final UserRepository userRepository; // User 엔티티용 레포지토리 (가정)
+	private final RedisTemplate<String, Object> redisTemplate;
+
+	@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 	@Value("${chat.max-chat-person}")
 	private long MAX_PARTICIPANTS = 300;
-
-	private static final String NICKNAME_PREFIX = "#";
 
 	/**
 	 * 사용자가 채팅방에 입장할 때 호출되는 메소드
@@ -60,7 +59,6 @@ public class ChatRoomService {
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
 		log.info("USER FETCHED: {}", user.getUserId());
 		log.info("ROOM FETCHED: {}", room.getChatRoomId());
-
 
 		// 3. (REQ-CHAT-08) 재방문자 처리: DB에 ChatRoomUser 데이터가 있는지 확인
 		Optional<ChatRoomUser> existingParticipant = chatRoomUserRepository.findByUserAndChatRoom(user, room);
@@ -82,7 +80,7 @@ public class ChatRoomService {
 		// 1. Redis에서 닉네임 순번 획득 (원자성 보장)
 		// KEY: chatroom:nickname_seq:{roomId}
 		String redisKey = "chatroom:nickname_seq:" + roomId;
-		redisTemplate.opsForValue().setIfAbsent(redisKey, 3354L);	// 3355번부터 부여
+		redisTemplate.opsForValue().setIfAbsent(redisKey, 3354L);    // 3355번부터 부여
 		Long nicknameSeq = redisTemplate.opsForValue().increment(redisKey, 1);
 		String newNickname = NICKNAME_PREFIX + nicknameSeq;
 
@@ -111,7 +109,6 @@ public class ChatRoomService {
 
 	/**
 	 * 브라우저 닫기, 연결 끊김 등 명시적 /leave 없이 세션이 끊겼을 때 처리
-	 * @param userId
 	 */
 	@Transactional
 	public void disconnectUser(String userId) {
@@ -127,7 +124,7 @@ public class ChatRoomService {
 
 		// 2. Redis에서 실시간 참여자 수 감소 및 역방향 매핑 제거
 		for (Object roomIdObj : roomIds) {
-			String roomId = (String) roomIdObj;
+			String roomId = (String)roomIdObj;
 
 			// 실시간 참여자 목록에서 제거
 			redisTemplate.opsForSet().remove(KEY_PARTICIPANTS + roomId, userId);
@@ -145,8 +142,6 @@ public class ChatRoomService {
 
 	/**
 	 * 사용자가 "나가기" 버튼을 눌러 명시적으로 퇴장할 때 처리
-	 * @param userId
-	 * @param roomId
 	 */
 	@Transactional
 	public void leaveRoom(String userId, String roomId) {

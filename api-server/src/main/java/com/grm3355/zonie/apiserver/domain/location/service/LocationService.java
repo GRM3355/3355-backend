@@ -19,8 +19,9 @@ public class LocationService {
 	private final RedisTokenService redisTokenService;
 	private final FestivalRepository festivalRepository;
 
-	public LocationService(@Value("${location.radius.limit}") double locationRadiusLimit, RedisTokenService redisTokenService, FestivalRepository festivalRepository) {
-		this.locationRadiusLimit = 	locationRadiusLimit;
+	public LocationService(@Value("${location.radius.limit}") double locationRadiusLimit,
+		RedisTokenService redisTokenService, FestivalRepository festivalRepository) {
+		this.locationRadiusLimit = locationRadiusLimit;
 		this.redisTokenService = redisTokenService;
 		this.festivalRepository = festivalRepository;
 	}
@@ -52,7 +53,8 @@ public class LocationService {
 		return Math.round(distance * 100.0) / 100.0;
 	}
 
-	public LocationTokenResponse verifyAndGenerateToken(UserDetailsImpl userDetails, long festivalId, LocationDto userLocationDto) {
+	public LocationTokenResponse verifyAndGenerateToken(UserDetailsImpl userDetails, long festivalId,
+		LocationDto userLocationDto) {
 
 		String userId = userDetails.getUsername();
 		String festivalIdStr = String.valueOf(festivalId);
@@ -77,7 +79,8 @@ public class LocationService {
 				.lon(userLocationDto.getLon())
 				.build();
 			redisTokenService.generateLocationToken(tokenInfo, festivalIdStr);
-			return new LocationTokenResponse(String.format("인증 성공. (%.2fkm / 반경 %.2fkm)", radius_km, locationRadiusLimit));
+			return new LocationTokenResponse(
+				String.format("인증 성공. (%.2fkm / 반경 %.2fkm)", radius_km, locationRadiusLimit));
 		} else {
 			// 에러 반환 (반경 외)
 			throw new BusinessException(ErrorCode.FORBIDDEN,

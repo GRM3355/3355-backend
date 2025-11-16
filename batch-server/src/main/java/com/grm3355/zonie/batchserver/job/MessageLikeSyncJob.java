@@ -53,7 +53,9 @@ public class MessageLikeSyncJob {
 			));
 
 		// (2) messageId -> 좋아요 개수(String)
-		Map<String, String> likeCountStrMap = redisScanService.multiGetLastMessageTimestamps(likeCountKeys).entrySet().stream()
+		Map<String, String> likeCountStrMap = redisScanService.multiGetLastMessageTimestamps(likeCountKeys)
+			.entrySet()
+			.stream()
 			.collect(Collectors.toMap(
 				entry -> entry.getKey().substring(LIKE_COUNT_PREFIX.length()), // key -> messageId
 				Map.Entry::getValue

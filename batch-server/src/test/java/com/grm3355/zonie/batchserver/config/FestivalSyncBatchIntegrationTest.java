@@ -24,7 +24,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.grm3355.zonie.batchserver.BaseIntegrationTest;
 import com.grm3355.zonie.batchserver.BatchServerApplication;
-import com.grm3355.zonie.batchserver.job.FestivalDataSyncJob; // Mocking할 서비스
+import com.grm3355.zonie.batchserver.job.FestivalDataSyncJob;
 
 @SpringBatchTest
 @SpringBootTest(classes = BatchServerApplication.class)
@@ -32,15 +32,15 @@ import com.grm3355.zonie.batchserver.job.FestivalDataSyncJob; // Mocking할 서�
 class FestivalSyncBatchIntegrationTest extends BaseIntegrationTest {
 
 	@Autowired
-	private JobLauncherTestUtils jobLauncherTestUtils; 		// Job을 실행시킬 테스트 유틸
+	private JobLauncherTestUtils jobLauncherTestUtils;        // Job을 실행시킬 테스트 유틸
 
 	@Autowired
-	private JobRepositoryTestUtils jobRepositoryTestUtils; 	// Job 실행 이력 정리용
+	private JobRepositoryTestUtils jobRepositoryTestUtils;    // Job 실행 이력 정리용
 
 	@Autowired
-	private Job festivalSyncJob;	// 테스트할 Job을 Bean 이름으로 주입
+	private Job festivalSyncJob;    // 테스트할 Job을 Bean 이름으로 주입
 
-	@MockitoBean 	// 실제 서비스 로직 Mocking (DB, Redis, API 호출 방지)
+	@MockitoBean    // 실제 서비스 로직 Mocking (DB, Redis, API 호출 방지)
 	private FestivalDataSyncJob festivalDataSyncJob;
 
 	@BeforeEach
@@ -51,13 +51,13 @@ class FestivalSyncBatchIntegrationTest extends BaseIntegrationTest {
 
 	@Test
 	@DisplayName("festivalSyncJob 실행 시 Job이 COMPLETED 상태로 종료")
-	void festivalSyncJob_Success() throws Exception {
+	void festivalSyncJobSuccess() throws Exception {
 		// given
 		// Job이 실행될 때 실제 로직(festivalDataSyncJob)이 성공했다고 가정
 		doNothing().when(festivalDataSyncJob).syncFestivalData(any(LocalDate.class)); // void -> doNothing() 사용
 		jobLauncherTestUtils.setJob(festivalSyncJob);
 		JobParameters params = new JobParametersBuilder()
-			.addString("test.run.time", LocalDateTime.now().toString())	// JobParameter 설정
+			.addString("test.run.time", LocalDateTime.now().toString())    // JobParameter 설정
 			.toJobParameters();
 
 		// when: Job 실행
@@ -73,7 +73,7 @@ class FestivalSyncBatchIntegrationTest extends BaseIntegrationTest {
 
 	@Test
 	@DisplayName("서비스 로직 실패 시 Job이 FAILED 상태로 종료")
-	void festivalSyncJob_Fails() throws Exception {
+	void festivalSyncJobFails() throws Exception {
 		// given
 		// Job 실행 시 서비스 로직이 실패했다고 가정
 		doThrow(new RuntimeException("테스트용 예외")).when(festivalDataSyncJob).syncFestivalData(any(LocalDate.class));

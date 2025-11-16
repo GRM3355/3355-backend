@@ -245,7 +245,7 @@ public class FestivalService {
 		return FestivalResponse.fromEntity(savedFestival);
 	}
 
-	public void syncTotalParticipantCounts(){
+	public void syncTotalParticipantCounts() {
 		festivalRepository.syncTotalParticipantCounts();
 	}
 }

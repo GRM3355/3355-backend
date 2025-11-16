@@ -5,8 +5,9 @@ public record ChatRoomInfoDto(
 	Long festivalId,            //
 	String title,               // SELECT c.title // 채팅방 이름
 	Long participantCount,      // SELECT c.participant_count
-	Long lastMessageAt,			// SELECT c.last_message_at
+	Long lastMessageAt,            // SELECT c.last_message_at
 	String festivalTitle,       // SELECT f.title AS festival_title // 축제 이름
 	Double lat,
 	Double lon
-) {}
+) {
+}
