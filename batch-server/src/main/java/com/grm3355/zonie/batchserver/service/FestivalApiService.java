@@ -1,5 +1,6 @@
 package com.grm3355.zonie.batchserver.service;
 
+import java.net.URI;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -8,6 +9,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,19 +49,23 @@ public class FestivalApiService {
 		String eventEndDate = endDate.format(DATE_FORMATTER);
 		log.info("공공데이터 API 호출: eventStartDate={}, eventEndDate={}", eventStartDate, eventEndDate);
 
+		URI uri = UriComponentsBuilder.fromUriString(OPENAPI_BASE_URL+apiUrl)
+			.queryParam("ServiceKey", serviceKey)
+			.queryParam("MobileOS", "WEB")
+			.queryParam("MobileApp", "zonie")
+			.queryParam("_type", "json")
+			.queryParam("eventStartDate", eventStartDate)
+			.queryParam("eventEndDate", eventEndDate)
+			.queryParam("arrange", "Q")
+			.queryParam("numOfRows", "999")
+			.build(true) // true -> URL 인코딩
+			.toUri();
+
+		log.info("====> 공공데이터 축제 목록 Calling URL: {}",uri);
+
 		// WebClient를 사용한 동기 호출
 		String response = webClient.get()
-			.uri(uriBuilder -> uriBuilder
-				.path(apiUrl)
-				.queryParam("ServiceKey", serviceKey)
-				.queryParam("MobileOS", "WEB")
-				.queryParam("MobileApp", "zonie")
-				.queryParam("_type", "json")
-				.queryParam("eventStartDate", eventStartDate) // eventStartDate 파라미터에 날짜를 사용
-				.queryParam("eventEndDate", eventEndDate) // eventStartDate 파라미터에 날짜를 사용
-				.queryParam("arrange", "Q")
-				.queryParam("numOfRows", "9999")
-				.build())
+			.uri(uri)
 			.retrieve()
 			.bodyToMono(String.class)
 			.block(); // WebClient 동기식으로 사용

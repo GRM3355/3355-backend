@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalCountResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalCreateRequest;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalDetailResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalPageResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
@@ -116,21 +117,11 @@ public class FestivalController {
 	public ResponseEntity<?> gefFestivalContent(@PathVariable long festivalId,
 		@ModelAttribute ChatRoomSearchRequest request
 	) {
-		FestivalResponse response = festivalService.getFestivalContent(festivalId);
+		FestivalDetailResponse response = festivalService.getFestivalContent(festivalId);
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 
 	@Operation(summary = "축제 지역 목록 조회", description = "축제가 열리는 지역(시/도) 목록을 조회합니다.")
-	// @ApiResponses({
-	// 	@io.swagger.v3.oas.annotations.responses.ApiResponse(
-	// 		responseCode = "200",
-	// 		description = "지역 목록 조회 성공",
-	// 		content = @Content(
-	// 			mediaType = "application/json",
-	// 			schema = @Schema(type = "array", implementation = RegionResponse.class)
-	// 		)
-	// 	)
-	// })
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록 조회 성공",
 			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
