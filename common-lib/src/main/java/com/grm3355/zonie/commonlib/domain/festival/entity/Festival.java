@@ -1,12 +1,17 @@
 package com.grm3355.zonie.commonlib.domain.festival.entity;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import org.locationtech.jts.geom.Point;
@@ -49,6 +54,9 @@ public class Festival extends BaseTimeEntity {
 	@Column(name = "first_image", length = 1024)
 	private String firstImage;
 
+	@Column(name = "first_image2", length = 1024)
+	private String firstImage2;
+
 	@Column(name = "position", columnDefinition = "geography(Point, 4326)")
 	private Point position;
 
@@ -86,4 +94,8 @@ public class Festival extends BaseTimeEntity {
 	@Builder.Default
 	@Column(name = "total_participant_count")
 	private Long totalParticipantCount = 0L;
+
+	@OneToMany(fetch = FetchType.LAZY)
+	@JoinColumn(name = "content_id", referencedColumnName = "content_id")
+	private List<FestivalDetailImage> detailImages = new ArrayList<>();
 }
