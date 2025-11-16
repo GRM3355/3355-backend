@@ -7,7 +7,9 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
@@ -26,7 +28,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     c.chat_room_id as chatRoomId,
 		     f.festival_id as festivalId,
 		     c.title,
-		     c.participant_count as participantCount, 
+		     c.participant_count as participantCount,
 		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt, 
 		     f.title AS festivalTitle
 		,ST_Y(c.position::geometry) AS lat
@@ -46,8 +48,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%'))
 		""";
 	String MY_ROOM_QUERY_BASE = """
-		     SELECT 
-		     c.chat_room_id as chatRoomId, 
+		     SELECT
+		     c.chat_room_id as chatRoomId,
 		     f.festival_id as festivalId, 
 		     c.title, 
 		     c.participant_count as participantCount, 
@@ -80,22 +82,37 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	 */
 	//종합 쿼리문
 	@Query(value = FESTIVAL_QUERY_BASE, countQuery = FESTIVAL_QUERY_BASE_COUNT, nativeQuery = true)
-	Page<ChatRoomInfoDto> chatFestivalRoomList
-	(long festivalId, String keyword, Pageable pageable);
+	Page<ChatRoomInfoDto> chatFestivalRoomList(long festivalId, String keyword, Pageable pageable);
 
 	/**
 	 * 내 채팅 관련 Native Query(userId로 조회)
 	 */
 	// 채팅방 종합쿼리문
 	@Query(value = MY_ROOM_QUERY_BASE, countQuery = MY_ROOM_QUERY_BASE_COUNT, nativeQuery = true)
-	Page<ChatRoomInfoDto> chatMyRoomList
-	(String userId, String keyword, Pageable pageable);
+	Page<ChatRoomInfoDto> chatMyRoomList(String userId, String keyword, Pageable pageable);
 
 	/**
 	 * 내 채팅 관련 JPQL(userId로 조회)
 	 */
-
 	// ChatRoomRedisCleanupJob에서 사용
 	List<ChatRoom> findAllByChatRoomIdIn(Collection<String> chatRoomIds);
 
+	/**
+	 * [TestManagement]
+	 * 특정 축제 ID에 속한 모든 ChatRoom 엔티티 목록을 조회합니다.
+	 */
+	List<ChatRoom> findAllByFestivalFestivalId(Long festivalId);
+
+	/**
+	 * [TestManagement]
+	 * 특정 축제 ID에 속한 ChatRoom의 개수를 조회합니다.
+	 */
+	long countByFestivalFestivalId(Long festivalId);
+
+	/**
+	 * [TestManagement]
+	 */
+	@Modifying
+	@Query("DELETE FROM ChatRoom c WHERE c.chatRoomId IN :chatRoomIds")
+	long deleteByChatRoomIdIn(@Param("chatRoomIds") List<String> chatRoomIds);
 }

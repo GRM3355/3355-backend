@@ -3,10 +3,12 @@
  * 개발 시에 무시하고 진행하시면 됩니다.
  */
 
-package com.grm3355.zonie.apiserver;
+package com.grm3355.zonie.apiserver.domain.test.controller;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.grm3355.zonie.apiserver.domain.test.service.TestService;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import lombok.RequiredArgsConstructor;

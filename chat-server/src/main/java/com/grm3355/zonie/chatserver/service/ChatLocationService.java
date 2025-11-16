@@ -15,7 +15,6 @@ import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -30,7 +29,8 @@ public class ChatLocationService {
 	@Value("${chat.radius}")
 	private double max_radius;
 
-	public ChatLocationService(StringRedisTemplate redisTemplate, ChatRoomRepository chatRoomRepository, ObjectMapper objectMapper, @Value("${location.token.ttl-minutes}") long ttlMinutes,
+	public ChatLocationService(StringRedisTemplate redisTemplate, ChatRoomRepository chatRoomRepository,
+		ObjectMapper objectMapper, @Value("${location.token.ttl-minutes}") long ttlMinutes,
 		FestivalRepository festivalRepository) {
 		this.redisTemplate = redisTemplate;
 		this.chatRoomRepository = chatRoomRepository;
@@ -60,8 +60,8 @@ public class ChatLocationService {
 
 	// 메인 검증 메소드
 	public void validateChatRoomEntry(String userId, String roomId) {
-		Long festivalId = getFestivalIdForRoom(roomId);	// roomId로 festivalId 조회
-		validateLocationToken(userId, festivalId);		// 토큰 유효성 검사 (거리 재계산 x)
+		Long festivalId = getFestivalIdForRoom(roomId);    // roomId로 festivalId 조회
+		validateLocationToken(userId, festivalId);        // 토큰 유효성 검사 (거리 재계산 x)
 		log.debug("Location token validation success for user {}.", userId);
 	}
 
@@ -154,7 +154,8 @@ public class ChatLocationService {
 
 		if (distanceKm > max_radius) {
 			// 1. 반경을 벗어난 경우: 토큰 발급/갱신을 하지 않고, 예외 없이 함수를 종료합니다.
-			log.warn("User {} is outside the radius ({}km) for room {}. Location token is NOT issued/updated. (Joining allowed)",
+			log.warn(
+				"User {} is outside the radius ({}km) for room {}. Location token is NOT issued/updated. (Joining allowed)",
 				userId, distanceKm, roomId);
 			return; // 토큰 발급 로직만 건너뛰고 정상 종료
 		}
@@ -167,7 +168,8 @@ public class ChatLocationService {
 			generateLocationToken(userId, contextId, lat, lon);
 		}
 
-		log.info("Location token set/updated on join for user {} in room {}. Within radius check passed.", userId, roomId);
+		log.info("Location token set/updated on join for user {} in room {}. Within radius check passed.", userId,
+			roomId);
 	}
 
 	/**

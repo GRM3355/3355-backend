@@ -1,19 +1,20 @@
 package com.grm3355.zonie.batchserver.job;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomSyncDto;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomSyncRepository;
 import com.grm3355.zonie.commonlib.global.util.RedisScanService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -34,8 +35,8 @@ public class RedisToDbSyncJob {
 		log.info("RedisToDbSyncJob 시작: Redis 데이터를 PostgreSQL로 동기화합니다.");
 
 		// 1. Redis 키 탐색: RedisScanService (SCAN)
-		Set<String> participantKeys = redisScanService.scanKeys(PARTICIPANTS_KEY_PATTERN); 	// (1) 실시간 참여자 수 키 스캔
-		Set<String> lastMsgAtKeys = redisScanService.scanKeys(LAST_MSG_AT_KEY_PATTERN);		// (2) 마지막 대화 시각 키 스캔
+		Set<String> participantKeys = redisScanService.scanKeys(PARTICIPANTS_KEY_PATTERN);    // (1) 실시간 참여자 수 키 스캔
+		Set<String> lastMsgAtKeys = redisScanService.scanKeys(LAST_MSG_AT_KEY_PATTERN);        // (2) 마지막 대화 시각 키 스캔
 
 		if (participantKeys.isEmpty() && lastMsgAtKeys.isEmpty()) {
 			log.info("동기화할 데이터가 없습니다. Job을 종료합니다.");
@@ -56,7 +57,8 @@ public class RedisToDbSyncJob {
 
 		// 3. PostgreSQL Bulk Update 실행
 		try {
-			ChatRoomSyncRepository.SyncDataWrapper wrapper = new ChatRoomSyncRepository.SyncDataWrapper(syncDataList);	// Native Query용 래퍼
+			ChatRoomSyncRepository.SyncDataWrapper wrapper = new ChatRoomSyncRepository.SyncDataWrapper(
+				syncDataList);    // Native Query용 래퍼
 			String roomIdsArray = listToPgArray(wrapper.getRoomIds());
 			String countsArray = listToPgArray(wrapper.getCounts());
 			String timestampsArray = listToPgArray(wrapper.getTimestamps());
@@ -99,7 +101,8 @@ public class RedisToDbSyncJob {
 	/**
 	 * 두 종류의 Redis 데이터(참여자 수, 마지막 대화 시각)를 roomId를 기준으로 병합하여 DTO 리스트로 변환합니다.
 	 */
-	private List<ChatRoomSyncDto> mergeSyncData(Map<String, Long> participantCounts, Map<String, String> lastMessageTimestamps) {
+	private List<ChatRoomSyncDto> mergeSyncData(Map<String, Long> participantCounts,
+		Map<String, String> lastMessageTimestamps) {
 
 		// 1. (Key, Value) -> (RoomId, Dto)로 변환
 		Map<String, ChatRoomSyncDto> participantDtoMap = participantCounts.entrySet().stream()

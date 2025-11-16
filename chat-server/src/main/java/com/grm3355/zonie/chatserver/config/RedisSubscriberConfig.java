@@ -11,14 +11,14 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grm3355.zonie.chatserver.service.ChatRoomService;
 import com.grm3355.zonie.commonlib.domain.message.dto.LikeUpdatePushDto;
 import com.grm3355.zonie.commonlib.domain.message.dto.MessageBroadcastDto;
 import com.grm3355.zonie.commonlib.domain.message.entity.Message;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
@@ -28,6 +28,61 @@ public class RedisSubscriberConfig {
 	private final SimpMessageSendingOperations messagingTemplate;
 	private final ObjectMapper objectMapper;
 	private final ChatRoomService chatRoomService;
+
+	// (2) 메시지 리스너 어댑터: 실제 핸들러(RedisSubscriber)를 연결
+	// (2-A) 실제 채팅용 메시지 리스너 어댑터
+	@Bean
+	MessageListenerAdapter chatListenerAdapter() {
+		// RedisSubscriber의 "handleMessage" 메소드가 메시지를 처리하도록 설정
+		return new MessageListenerAdapter(new RedisSubscriber(), "handleMessage");
+	}
+
+	// (2-B) Echo 테스트용 메시지 리스너 어댑터
+	@Bean
+	MessageListenerAdapter echoListenerAdapter() {
+		// RedisSubscriber의 "handleEcho" 메소드가 메시지를 처리하도록 설정
+		return new MessageListenerAdapter(new RedisSubscriber(), "handleEcho");
+	}
+
+	// (2-C) 자동 참여 이벤트 리스너 어댑터
+	@Bean
+	MessageListenerAdapter joinEventListenerAdapter() {
+		// RedisSubscriber의 "handleJoinEvent" 메소드가 메시지를 처리하도록 설정
+		return new MessageListenerAdapter(new RedisSubscriber(), "handleJoinEvent");
+	}
+
+	// (2-D) 좋아요 이벤트 리스너 어댑터
+	@Bean
+	MessageListenerAdapter likeEventListenerAdapter() {
+		// RedisSubscriber의 "handleLikeEvent" 메소드가 메시지를 처리하도록 설정
+		return new MessageListenerAdapter(new RedisSubscriber(), "handleLikeEvent");
+	}
+
+	// (3) Redis 메시지 리스너 컨테이너: 어떤 채널을 구독할지 설정
+	@Bean
+	RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory,
+		MessageListenerAdapter chatListenerAdapter,
+		MessageListenerAdapter echoListenerAdapter,
+		MessageListenerAdapter joinEventListenerAdapter,
+		MessageListenerAdapter likeEventListenerAdapter) {
+
+		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+		container.setConnectionFactory(connectionFactory);
+
+		// "chat-room:*" 패턴을 구독 (chatListenerAdapter 사용)
+		container.addMessageListener(chatListenerAdapter, new PatternTopic("chat-room:*"));
+
+		// "echo-channel" 토픽을 구독 (echoListenerAdapter 사용)
+		container.addMessageListener(echoListenerAdapter, new ChannelTopic("echo-channel"));
+
+		// "chat-events:join" 토픽을 구독 (joinEventListenerAdapter 사용)
+		container.addMessageListener(joinEventListenerAdapter, new ChannelTopic("chat-events:join"));
+
+		// "chat-events:like" 토픽을 구독 (likeEventListenerAdapter 사용)
+		container.addMessageListener(likeEventListenerAdapter, new ChannelTopic("chat-events:like"));
+
+		return container;
+	}
 
 	// (1) Redis의 메시지를 STOMP 브로커로 전송하는 실제 핸들러
 	public class RedisSubscriber {
@@ -93,8 +148,8 @@ public class RedisSubscriberConfig {
 		/**
 		 * 'chat-events:like' 채널을 처리하는 핸들러 (좋아요 이벤트)
 		 */
-		public void handleLikeEvent(String messageJson){
-			try{
+		public void handleLikeEvent(String messageJson) {
+			try {
 				// 1. JSON 파싱
 				LikeUpdatePushDto dto = objectMapper.readValue(messageJson, LikeUpdatePushDto.class);
 
@@ -111,69 +166,10 @@ public class RedisSubscriberConfig {
 
 				// 4. 해당 STOMP 토픽으로 LikeUpdatePushDto 브로드캐스팅
 				messagingTemplate.convertAndSend(stompTopic, dto);
-			}
-			catch (Exception e) {
+			} catch (Exception e) {
 				log.error("RedisSubscriber handleLikeEvent Error", e);
 			}
 		}
 
-	}
-
-
-
-	// (2) 메시지 리스너 어댑터: 실제 핸들러(RedisSubscriber)를 연결
-	// (2-A) 실제 채팅용 메시지 리스너 어댑터
-	@Bean
-	MessageListenerAdapter chatListenerAdapter() {
-		// RedisSubscriber의 "handleMessage" 메소드가 메시지를 처리하도록 설정
-		return new MessageListenerAdapter(new RedisSubscriber(), "handleMessage");
-	}
-
-	// (2-B) Echo 테스트용 메시지 리스너 어댑터
-	@Bean
-	MessageListenerAdapter echoListenerAdapter() {
-		// RedisSubscriber의 "handleEcho" 메소드가 메시지를 처리하도록 설정
-		return new MessageListenerAdapter(new RedisSubscriber(), "handleEcho");
-	}
-	// (2-C) 자동 참여 이벤트 리스너 어댑터
-	@Bean
-	MessageListenerAdapter joinEventListenerAdapter() {
-		// RedisSubscriber의 "handleJoinEvent" 메소드가 메시지를 처리하도록 설정
-		return new MessageListenerAdapter(new RedisSubscriber(), "handleJoinEvent");
-	}
-	// (2-D) 좋아요 이벤트 리스너 어댑터
-	@Bean
-	MessageListenerAdapter likeEventListenerAdapter() {
-		// RedisSubscriber의 "handleLikeEvent" 메소드가 메시지를 처리하도록 설정
-		return new MessageListenerAdapter(new RedisSubscriber(), "handleLikeEvent");
-	}
-
-
-
-
-	// (3) Redis 메시지 리스너 컨테이너: 어떤 채널을 구독할지 설정
-	@Bean
-	RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory,
-		MessageListenerAdapter chatListenerAdapter,
-		MessageListenerAdapter echoListenerAdapter,
-		MessageListenerAdapter joinEventListenerAdapter,
-		MessageListenerAdapter likeEventListenerAdapter) {
-
-		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-		container.setConnectionFactory(connectionFactory);
-
-		// "chat-room:*" 패턴을 구독 (chatListenerAdapter 사용)
-		container.addMessageListener(chatListenerAdapter, new PatternTopic("chat-room:*"));
-
-		// "echo-channel" 토픽을 구독 (echoListenerAdapter 사용)
-		container.addMessageListener(echoListenerAdapter, new ChannelTopic("echo-channel"));
-
-		// "chat-events:join" 토픽을 구독 (joinEventListenerAdapter 사용)
-		container.addMessageListener(joinEventListenerAdapter, new ChannelTopic("chat-events:join"));
-
-		// "chat-events:like" 토픽을 구독 (likeEventListenerAdapter 사용)
-		container.addMessageListener(likeEventListenerAdapter, new ChannelTopic("chat-events:like"));
-
-		return container;
 	}
 }

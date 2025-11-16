@@ -12,8 +12,8 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
  */
 @SpringBootApplication(scanBasePackages = "com.grm3355.zonie")
 
-/**
- * 2. JPA(PostgreSQL) 리포지토리, 엔티티 패키지들만 지정합니다.
+/*
+  2. JPA(PostgreSQL) 리포지토리, 엔티티 패키지들만 지정합니다.
  */
 @EnableJpaRepositories(basePackages = {
 	"com.grm3355.zonie.commonlib.domain.chatroom.repository",
@@ -26,8 +26,8 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 	"com.grm3355.zonie.commonlib.domain.user.entity"
 })
 
-/**
- * 3. Mongo 리포지토리 패키지를 별도로 지정합니다.
+/*
+  3. Mongo 리포지토리 패키지를 별도로 지정합니다.
  */
 @EnableMongoRepositories(basePackages = "com.grm3355.zonie.commonlib.domain.message.repository")
 public class ChatServerApplication {

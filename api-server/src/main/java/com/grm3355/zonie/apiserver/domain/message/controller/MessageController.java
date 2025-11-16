@@ -49,13 +49,13 @@ public class MessageController {
 			responseCode = "200", description = "좋아요 토글 성공",
 			content = @Content(mediaType = "application/json",
 				schema = @Schema(implementation = MessageLikeResponse.class),
-			examples = {
-				@ExampleObject(name = "좋아요 누르기 성공",
-					value = "{\"success\":true,\"data\":{\"liked\":true,\"likeCount\":6},\"error\":null,\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"),
-				@ExampleObject(name = "좋아요 취소 성공",
-					value = "{\"success\":true,\"data\":{\"liked\":false,\"likeCount\":5},\"error\":null,\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}")
-			}
-		)),
+				examples = {
+					@ExampleObject(name = "좋아요 누르기 성공",
+						value = "{\"success\":true,\"data\":{\"liked\":true,\"likeCount\":6},\"error\":null,\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"),
+					@ExampleObject(name = "좋아요 취소 성공",
+						value = "{\"success\":true,\"data\":{\"liked\":false,\"likeCount\":5},\"error\":null,\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}")
+				}
+			)),
 		// 400, 401, 403, 404 ( -> 고유한 설명 사용)
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 유효성 검증 실패 (e.g., messageId 형식 오류)", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 			examples = @ExampleObject(name = "BAD_REQUEST",
@@ -86,8 +86,8 @@ public class MessageController {
 		String userId = userDetails.getUsername();
 		Map<String, Object> result = messageLikeService.toggleLike(userId, messageId);
 		MessageLikeResponse response = new MessageLikeResponse(
-			(Boolean) result.get("liked"),
-			((Number) result.get("likeCount")).longValue() // Integer든 Long이든 long으로 변환
+			(Boolean)result.get("liked"),
+			((Number)result.get("likeCount")).longValue() // Integer든 Long이든 long으로 변환
 		);
 		return ResponseEntity.ok(ApiResponse.success(response));
 	}
