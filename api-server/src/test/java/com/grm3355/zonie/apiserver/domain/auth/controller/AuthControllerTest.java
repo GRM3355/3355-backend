@@ -1,36 +1,25 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import jakarta.servlet.http.HttpServletRequest;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;
-import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 import com.grm3355.zonie.apiserver.domain.auth.service.AuthService;
@@ -78,31 +67,9 @@ class AuthControllerTest {
 	@MockitoBean
 	private RedisTokenService redisTokenService;
 
-
-	@Test
-	void registerToken_Success() throws Exception {
-		LocationDto locationDto = new LocationDto();
-		locationDto.setLat(37.5665);
-		locationDto.setLon(126.9780);
-
-		AuthResponse mockResponse = new AuthResponse("access-token-12345", null);
-
-		Mockito.when(authService.register(
-			ArgumentMatchers.any(LocationDto.class))
-		).thenReturn(mockResponse);
-
-		mockMvc.perform(post("/api/auth/tokens")
-				//.header("Authorization", "Bearer test")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(locationDto)))
-			.andExpect(status().isCreated())
-			.andExpect(jsonPath("$.success").value(true))
-			.andExpect(jsonPath("$.data.accessToken").value("access-token-12345"))
-			.andExpect(jsonPath("$.timestamp").exists());
-	}
-
     @Test
-    void 카카오_OAuth2_로그인을_한다() throws Exception {
+	@DisplayName("카카오 OAuth2 로그인을 한다")
+    void loginWithKakaoSuccess() throws Exception {
         LoginResponse expected = new LoginResponse("accesstoken", "nickname");
         given(authService.login(any(LoginRequest.class)))
                 .willReturn(expected);

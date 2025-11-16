@@ -159,27 +159,6 @@ public class FestivalController {
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 
-	@Operation(summary = "축제 생성 (테스트용)", description = "개발 테스트를 위해 새로운 축제 레코드를 생성합니다.")
-	@ApiResponses({
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(
-			responseCode = "200",	// 테스트용이라서 201로 굳이 설정하지 않음
-			description = "축제 생성 성공",
-			content = @Content(
-				mediaType = "application/json",
-				schema = @Schema(implementation = FestivalResponse.class)
-			)
-		)
-	})
-	@ApiError400
-	@ApiError405
-	@ApiError415
-	@ApiError429
-	@PostMapping("/festivals")
-	public ResponseEntity<?> createFestival(@RequestBody FestivalCreateRequest request) {
-		FestivalResponse response = festivalService.createFestival(request);
-		return ResponseEntity.ok().body(ApiResponse.success(response));
-	}
-
 	@Operation(summary = "지역별 축제 개수 조회", description = "특정 지역(region)의 축제 개수를 조회합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(

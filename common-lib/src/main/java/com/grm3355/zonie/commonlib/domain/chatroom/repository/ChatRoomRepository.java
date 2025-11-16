@@ -7,7 +7,9 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
@@ -94,8 +96,25 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	/**
 	 * 내 채팅 관련 JPQL(userId로 조회)
 	 */
-
 	// ChatRoomRedisCleanupJob에서 사용
 	List<ChatRoom> findAllByChatRoomIdIn(Collection<String> chatRoomIds);
 
+	/**
+	 * [TestManagement]
+	 * 특정 축제 ID에 속한 모든 ChatRoom 엔티티 목록을 조회합니다.
+	 */
+	List<ChatRoom> findAllByFestival_FestivalId(Long festivalId);
+
+	/**
+	 * [TestManagement]
+	 * 특정 축제 ID에 속한 ChatRoom의 개수를 조회합니다.
+	 */
+	long countByFestival_FestivalId(Long festivalId);
+
+	/**
+	 * [TestManagement]
+	 */
+	@Modifying
+	@Query("DELETE FROM ChatRoom c WHERE c.chatRoomId IN :chatRoomIds")
+	long deleteByChatRoomIdIn(@Param("chatRoomIds") List<String> chatRoomIds);
 }

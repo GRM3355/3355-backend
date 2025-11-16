@@ -27,7 +27,6 @@ import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalDetailResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
-import com.grm3355.zonie.apiserver.global.dto.PageResponse;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
 import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
@@ -151,7 +150,7 @@ class FestivalControllerTest {
 
 	@Test
 	@DisplayName("축제 목록 조회 - 유효성 검사 실패 (잘못된 위도)")
-	void testGetFestivalList_InvalidLat() throws Exception {
+	void testGetFestivalListInvalidLat() throws Exception {
 		// given
 		// service.getFestivalList()는 어차피 호출되지 않아야 함
 
@@ -168,7 +167,7 @@ class FestivalControllerTest {
 
 	@Test
 	@DisplayName("축제 목록 조회 - 위치 기반 검색 성공")
-	void testGetFestivalList_LocationBased_Success() throws Exception {
+	void testGetFestivalListLocationBasedSuccess() throws Exception {
 		// given
 		Page<FestivalResponse> pageList = new PageImpl<>(List.of(FestivalResponse.builder().build()));
 		Mockito.when(festivalService.getFestivalList(any(FestivalSearchRequest.class)))
