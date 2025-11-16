@@ -21,11 +21,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalCreateRequest;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalDetailResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalOrderType;
 import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalStatus;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
+import com.grm3355.zonie.commonlib.domain.festival.entity.FestivalDetailImage;
+import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalDetailImageRepository;
 import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository;
 import com.grm3355.zonie.commonlib.global.enums.Region;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
@@ -38,13 +41,15 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional
 public class FestivalService {
 
+	private final FestivalDetailImageRepository detailImageRepository;
 	private final FestivalRepository festivalRepository;
 	private final ChatRoomService chatRoomService;
 	@Value("${chat.pre-view-day}")
 	private int preview_days; //시작하기전 몇일전부터 보여주기
 
-	public FestivalService(FestivalRepository festivalRepository,
+	public FestivalService(FestivalDetailImageRepository detailImageRepository, FestivalRepository festivalRepository,
 		ChatRoomService chatRoomService) {
+		this.detailImageRepository = detailImageRepository;
 		this.festivalRepository = festivalRepository;
 		this.chatRoomService = chatRoomService;
 	}
@@ -114,10 +119,14 @@ public class FestivalService {
 	 * @return 페스티벌 Response
 	 */
 	@Transactional
-	public FestivalResponse getFestivalContent(long festivalId) {
+	public FestivalDetailResponse getFestivalContent(long festivalId) {
 		Festival festival = festivalRepository.findById(festivalId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 내용을 찾을 수 없습니다."));
-		return FestivalResponse.fromEntity(festival);
+
+		List<FestivalDetailImage> images =
+			detailImageRepository.findByContentId(festival.getContentId());
+
+		return FestivalDetailResponse.fromEntity(festival, images);
 	}
 
 	/**
