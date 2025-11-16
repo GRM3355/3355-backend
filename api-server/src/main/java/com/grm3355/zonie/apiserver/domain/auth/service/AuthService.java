@@ -4,6 +4,7 @@ import com.grm3355.zonie.apiserver.domain.auth.domain.AuthProvider;
 import com.grm3355.zonie.apiserver.domain.auth.domain.OAuth2Client;
 import com.grm3355.zonie.apiserver.domain.auth.domain.OAuth2Clients;
 import com.grm3355.zonie.apiserver.domain.auth.domain.UserInfo;
+import com.grm3355.zonie.apiserver.domain.auth.dto.AccessTokenResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 
@@ -194,7 +195,7 @@ public class AuthService {
 
 			// 4. 토큰 정보와 사용자 정보 일치 여부 확인
 			if (!userId.equals(refreshTokenInfo.userId())) {
-				log.warn("리프레시 토큰의 이메일이 일치하지 않습니다. 토큰 아이디: {}, 사용자 아이디: {}", refreshTokenInfo.userId(), userId);
+				log.warn("리프레시 토큰의 아이디가 일치하지 않습니다. 토큰 아이디: {}, 사용자 아이디: {}", refreshTokenInfo.userId(), userId);
 				// 불일치 시 해당 토큰 삭제 (보안 강화)
 				redisTokenService.deleteByToken(requestRefreshToken);
 				throw new BusinessException(ErrorCode.TOKEN_INVALID, "리프레시 토큰의 사용자 정보가 일치하지 않습니다.");

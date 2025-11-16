@@ -1,5 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.user.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
@@ -11,6 +12,7 @@ import com.grm3355.zonie.apiserver.domain.user.service.UserService;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -76,8 +78,22 @@ public class UserController {
 	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/me/quit")
 	public ResponseEntity<ApiResponse<Void>> quit(@Valid @RequestBody UserQuitResponse request,
+		HttpServletResponse response,
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+		//사용자정보, Redis 정보 삭제
 		userService.quit(userDetails.getUserId(), request);
+
+		//리프레시 토큰 값 제거
+		ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+			.httpOnly(true)
+			.secure(false) // 로컬 환경
+			.path("/")
+			.maxAge(0)
+			.sameSite("Lax")
+			.build();
+		response.addHeader("Set-Cookie", cookie.toString());
+
 		return ResponseEntity.noContent().build();
 	}
 
