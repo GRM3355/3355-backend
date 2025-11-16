@@ -13,13 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -34,6 +35,7 @@ public class RedisTokenService {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final ObjectMapper objectMapper;
 
+	@Setter    // TestManagement: 비만료 토큰 발급 - TTL을 임시로 변경하기 위해 Setter 설정
 	@Value("${jwt.refresh-token-expiration-time}")
 	private long refreshTokenExpirationTime;
 
@@ -76,14 +78,11 @@ public class RedisTokenService {
 		return token;
 	}
 
-	public record RefreshTokenInfo(String userId, boolean used) {
-	}
-
 	// locationToken 발행 및 Redis에 clientIp, device, lat, lon 저장
 	public void generateLocationToken(UserTokenDto info, String contextId) {
 		String redisKey = buildKey(info.getUserId(), contextId);
 
-		log.info("====================>generateLocationToken="+redisKey);
+		log.info("====================>generateLocationToken=" + redisKey);
 		try {
 			String infoJson = buildLocationJson(info.getUserId(), "", "", info.getLat(), info.getLon());
 			redisTemplate.opsForValue().set(redisKey, infoJson, this.tokenTtl); // 15분 TTL
@@ -91,7 +90,8 @@ public class RedisTokenService {
 			// getLocationInfo 호출 시에도 contextId가 필요
 			UserTokenDto userTokenDto = getLocationInfo(info.getUserId(), contextId);
 
-			log.info("====================>generateLocationToken true" + userTokenDto.getLat() + "___" + userTokenDto.getLon());
+			log.info("====================>generateLocationToken true" + userTokenDto.getLat() + "___"
+				+ userTokenDto.getLon());
 		} catch (Exception e) {
 			throw new RuntimeException("Redis 저장 중 오류 발생", e);
 		}
@@ -125,20 +125,6 @@ public class RedisTokenService {
 		String token = redisTemplate.opsForValue().get(buildKey(userId, contextId));
 		return token != null && !token.isBlank();
 	}
-
-	// /**
-	//  * 위치 + 디바이스 정보 업데이트 (TTL 갱신 포함)
-	//  */
-	// public boolean updateUserLocationInfo(LocationDto locationDto, String userId) {
-	// 	String redisKey = buildKey(userId);
-	// 	try {
-	// 		String infoJson = buildLocationJson(userId, locationDto.getLat(), locationDto.getLon());
-	// 		redisTemplate.opsForValue().set(redisKey, infoJson, this.tokenTtl); // 15분 TTL
-	// 	} catch (Exception e) {
-	// 		throw new RuntimeException("Redis 저장 중 오류 발생", e);
-	// 	}
-	// 	return true;
-	// }
 
 	/**
 	 * 위치 + 디바이스 정보 업데이트 (TTL 갱신 포함)
@@ -189,8 +175,6 @@ public class RedisTokenService {
 
 	/**
 	 * 토큰 정보 읽기
-	 * @param token
-	 * @return
 	 */
 	private Optional<RedisTokenService.RefreshTokenInfo> readTokenInfo(String token) {
 		String redisKey = getRefreshTokenKey(token);
@@ -208,8 +192,6 @@ public class RedisTokenService {
 
 	/**
 	 * 토큰 정보 찾기
-	 * @param token
-	 * @return
 	 */
 	public Optional<RedisTokenService.RefreshTokenInfo> findByToken(String token) {
 		Optional<RedisTokenService.RefreshTokenInfo> tokenInfoOpt = readTokenInfo(token);
@@ -235,7 +217,6 @@ public class RedisTokenService {
 
 	/**
 	 * 토큰 삭제
-	 * @param token
 	 */
 	@Transactional
 	public void deleteByToken(String token) {
@@ -280,10 +261,6 @@ public class RedisTokenService {
 		return "locationToken:" + userId + ":" + contextId;
 	}
 
-	// private String buildKey(String userId) {
-	// 	return "locationToken:" + userId;
-	// }
-
 	private String buildLocationJson(String userId, String clientIp, String device, double lat, double lon) {
 		return String.format(
 			"{\"userId\":\"%s\",\"clientIp\":\"%s\",\"device\":\"%s\",\"lat\":%.6f,\"lon\":%.6f,\"timestamp\":%d}",
@@ -306,5 +283,8 @@ public class RedisTokenService {
 		start += search.length();
 		int end = json.indexOf("\"", start);
 		return json.substring(start, end);
+	}
+
+	public record RefreshTokenInfo(String userId, boolean used) {
 	}
 }

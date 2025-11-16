@@ -2,7 +2,6 @@ package com.grm3355.zonie.batchserver;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.time.Duration;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -11,7 +10,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -30,8 +28,8 @@ public abstract class BaseIntegrationTest {
 			.withEnv("POSTGRES_DB", "testdb")
 			.withEnv("POSTGRES_USER", "testuser")
 			.withEnv("POSTGRES_PASSWORD", "testpass");
-			 //.withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64"))
-			// .waitingFor(Wait.forLogMessage(".*database system is ready to accept connections.*\\n", 1).withStartupTimeout(Duration.ofSeconds(60)));
+	//.withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64"))
+	// .waitingFor(Wait.forLogMessage(".*database system is ready to accept connections.*\\n", 1).withStartupTimeout(Duration.ofSeconds(60)));
 
 	// === 2. Redis 컨테이너 ===
 	@Container
@@ -41,7 +39,7 @@ public abstract class BaseIntegrationTest {
 
 	// === 3. PostGIS 확장 설치 (테스트 시작 전 1회) ===
 	@BeforeAll
-	static void setupPostGIS() throws SQLException {
+	static void setupPostgis() throws SQLException {
 		String jdbcUrl = String.format(
 			"jdbc:postgresql://%s:%d/testdb?sslmode=disable",
 			postgresContainer.getHost(),

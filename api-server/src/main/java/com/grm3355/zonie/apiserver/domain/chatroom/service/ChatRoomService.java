@@ -51,17 +51,15 @@ import lombok.extern.slf4j.Slf4j;
 public class ChatRoomService {
 
 	private static final String PRE_FIX = "";
+	private static final String JOIN_EVENT_CHANNEL = "chat-events:join";
 	private final RedisTokenService redisTokenService;
 	private final FestivalInfoService festivalInfoService;
 	private final RedisScanService redisScanService;
 	private final ChatRoomRepository chatRoomRepository;
 	private final UserRepository userRepository;
 	private final StringRedisTemplate stringRedisTemplate;
-	GeometryFactory geometryFactory = new GeometryFactory(); // GeometryFactory 생성 (보통 한 번만 만들어 재사용)
-
 	private final RedisTemplate<String, Object> redisTemplate;
-	private static final String JOIN_EVENT_CHANNEL = "chat-events:join";
-
+	GeometryFactory geometryFactory = new GeometryFactory(); // GeometryFactory 생성 (보통 한 번만 만들어 재사용)
 	@Value("${chat.pre-create-day}")
 	private int pre_create_days;    //시작하기전 몇일전부터 생성가능
 	@Value("${chat.max-chat-person}")
@@ -204,7 +202,6 @@ public class ChatRoomService {
 		Set<String> timestampKeys = roomIds.stream()
 			.map(id -> "chatroom:last_msg_at:" + id)
 			.collect(Collectors.toSet());
-
 
 		// 2-2. RedisScanService 메소드 호출
 		// (1) 참여자 수 조회 (SCARD)

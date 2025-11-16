@@ -1,6 +1,5 @@
 package com.grm3355.zonie.apiserver.domain.auth.domain;
 
-import com.grm3355.zonie.apiserver.domain.auth.dto.auth.KakaoUserInfo;
 import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.global.enums.ProviderType;
 import com.grm3355.zonie.commonlib.global.enums.Role;
@@ -16,7 +15,7 @@ public record UserInfo(
 		// 현재시간(밀리초) + 4자리 랜덤숫자
 		String uniqueSuffix = System.currentTimeMillis() + "" + (int)(Math.random() * 9000 + 1000);
 		return User.builder()
-			.userId(socialId + "kakao"+ uniqueSuffix)
+			.userId(socialId + "kakao" + uniqueSuffix)
 			.password("null")
 			.role(Role.USER)
 			.profileNickName(nickname)

@@ -21,18 +21,18 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class FestivalSyncBatchConfig {		// Spring Batch의 Job, Step, Tasklet을 정의하는 설정 역할
+public class FestivalSyncBatchConfig {        // Spring Batch의 Job, Step, Tasklet을 정의하는 설정 역할
 
 	// 1. 기존 서비스 로직(festivalDataSyncJob) 주입
 	private final FestivalDataSyncJob festivalDataSyncJob;
-	private final JobRepository jobRepository; 						// Spring Batch가 Job 이력 저장할 DB
-	private final PlatformTransactionManager transactionManager; 	// 트랜잭션 관리
+	private final JobRepository jobRepository;                        // Spring Batch가 Job 이력 저장할 DB
+	private final PlatformTransactionManager transactionManager;    // 트랜잭션 관리
 
 	// 2. Spring Batch "Job" 정의 (이름: festivalSyncJob)
 	@Bean
 	public Job festivalSyncJob() {
-		return new JobBuilder("festivalSyncJob", jobRepository)	// JobBuilder 객체 직접 사용 - 5.x
-			.start(festivalSyncStep()) 								// 이 Job은 "festivalSyncStep" 1개로 구성됨
+		return new JobBuilder("festivalSyncJob", jobRepository)    // JobBuilder 객체 직접 사용 - 5.x
+			.start(festivalSyncStep())                                // 이 Job은 "festivalSyncStep" 1개로 구성됨
 			.build();
 	}
 
@@ -40,7 +40,7 @@ public class FestivalSyncBatchConfig {		// Spring Batch의 Job, Step, Tasklet을
 	@Bean
 	public Step festivalSyncStep() {
 		return new StepBuilder("festivalSyncStep", jobRepository)
-			.tasklet(festivalSyncTasklet(), transactionManager)		 // 4. 이 Step이 실행할 Tasklet
+			.tasklet(festivalSyncTasklet(), transactionManager)         // 4. 이 Step이 실행할 Tasklet
 			.build();
 	}
 

@@ -23,7 +23,6 @@ import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomPageResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
-import com.grm3355.zonie.apiserver.global.dto.PageResponse;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.global.swagger.ApiError400;
 import com.grm3355.zonie.apiserver.global.swagger.ApiError405;
@@ -92,7 +91,7 @@ public class ChatRoomController {
 					value = "{\"success\": true,"
 						+ "\"data\":{"
 						+ "\"content\":["
-						+"{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
+						+ "{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
 						+ " ],"
 						+ "\"currentPage\": 1,"
 						+ "\"totalPages\": 5,"
@@ -137,7 +136,7 @@ public class ChatRoomController {
 					value = "{\"success\": true,"
 						+ "\"data\":{"
 						+ "\"content\":["
-						+"{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
+						+ "{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
 						+ " ],"
 						+ "\"currentPage\": 1,"
 						+ "\"totalPages\": 5,"
@@ -153,7 +152,8 @@ public class ChatRoomController {
 	@ApiError400
 	@ApiError405
 	@ApiError415
-	@ApiError429@PreAuthorize("isAuthenticated()")
+	@ApiError429
+	@PreAuthorize("isAuthenticated()")
 	@SecurityRequirement(name = "Authorization")
 	@GetMapping("/chat-rooms/my-rooms")
 	public ResponseEntity<ApiResponse<MyChatRoomPageResponse>> getChatRoomList(

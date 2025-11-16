@@ -23,8 +23,8 @@ public class FestivalInfoService {
 			.findByIsValidFestival(festivalId, dayNum)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "축제 관련정보가 없습니다."));
 	}
-  
-	//채팅방 등록시 chatRoomCount +1
+
+	//채팅방 등록시 chatRoomCount++
 	@Transactional
 	public void increaseChatRoomCount(Long festivalId) {
 		festivalRepository.updateFestivalChatRoomCount(festivalId);

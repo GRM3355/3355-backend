@@ -28,6 +28,7 @@ import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 @ExtendWith(MockitoExtension.class)
 class ChatRoomServiceTest {
 
+	private static final Long MOCK_MAX_PARTICIPANTS = 300L;
 	@Mock
 	private ChatRoomRepository chatRoomRepository;
 	@Mock
@@ -36,17 +37,13 @@ class ChatRoomServiceTest {
 	private UserRepository userRepository;
 	@Mock
 	private RedisTemplate<String, Object> redisTemplate;
-
 	// Mocking이 필요한 Redis의 세부 동작들
 	@Mock
 	private ValueOperations<String, Object> valueOperations;
 	@Mock
 	private SetOperations<String, Object> setOperations;
-
 	@InjectMocks
 	private ChatRoomService chatRoomService;
-
-	private static final Long MOCK_MAX_PARTICIPANTS = 300L;
 
 	@BeforeEach
 	void setUp() {
@@ -61,7 +58,7 @@ class ChatRoomServiceTest {
 
 	@Test
 	@DisplayName("신규 유저가 입장하면 닉네임 '#1'을 받고 DB에 저장된다")
-	void testJoinRoom_NewUser() {
+	void testJoinRoomNewUser() {
 		// given
 		String userId = "new-user";
 		String roomId = "room-1";
@@ -96,7 +93,7 @@ class ChatRoomServiceTest {
 
 	@Test
 	@DisplayName("재방문 유저가 입장하면 기존 닉네임을 반환하고 DB 저장을 생략한다")
-	void testJoinRoom_ReturningUser() {
+	void testJoinRoomReturningUser() {
 		// given
 		String userId = "returning-user";
 		String roomId = "room-1";
@@ -126,7 +123,7 @@ class ChatRoomServiceTest {
 
 	@Test
 	@DisplayName("채팅방 정원이 꽉 차면 BusinessException이 발생한다")
-	void testJoinRoom_RoomFull() {
+	void testJoinRoomRoomFull() {
 		// given
 		String roomId = "room-1";
 		// (1) 방이 꽉 참 (MOCK_MAX_PARTICIPANTS)

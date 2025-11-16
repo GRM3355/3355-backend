@@ -14,8 +14,7 @@ public enum TestEnum {
 	SUCCESS("0000", "SUCCESS"),
 	UNKNOWN_ERROR("9999", "UNKNOWN_ERROR");
 
-	private String code;
-	private String message;
-
+	private final String code;
+	private final String message;
 
 }

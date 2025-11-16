@@ -231,7 +231,7 @@ public class GlobalExceptionHandler {
 	 * service에서 잘못입력된 부분을 400번 에러로 처리한다.
 	 */
 	@ExceptionHandler(CustomValidationException.class)
-	public ResponseEntity<ApiResponse<Object>> CustomValidationException(CustomValidationException ex,
+	public ResponseEntity<ApiResponse<Object>> customValidationException(CustomValidationException ex,
 		HttpServletRequest req) {
 		log.error("=================================> CustomValidationException.class 에러 로그 찍기", ex); // 예외 로그 찍기
 

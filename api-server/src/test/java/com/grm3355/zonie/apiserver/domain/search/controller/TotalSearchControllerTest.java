@@ -65,7 +65,7 @@ class TotalSearchControllerTest {
 
 	@Test
 	@DisplayName("통합검색 GET 요청 성공 테스트")
-	void testGetTotalSearch_success() throws Exception {
+	void testGetTotalSearchSuccess() throws Exception {
 		// given
 		TotalSearchResponse dummyResponse = new TotalSearchResponse(null, null);
 		Mockito.when(totalSearchService.getTotalSearch(any(TotalSearchDto.class)))
@@ -86,7 +86,7 @@ class TotalSearchControllerTest {
 
 	@Test
 	@DisplayName("검색 - 채팅방 목록 GET 요청 성공 테스트")
-	void testGetChatroomTotalSearch_success() throws Exception {
+	void testGetChatroomTotalSearchSuccess() throws Exception {
 		// given
 		// 서비스는 Page<T>를 반환합니다.
 		MyChatRoomResponse chatRoom = MyChatRoomResponse.builder().chatRoomId("1L").title("테스트방").build();
