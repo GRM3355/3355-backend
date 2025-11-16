@@ -37,6 +37,7 @@ spring:
           client-id: ${KAKAO_REST_API_KEY}
           client-secret: ${KAKAO_CLIENT_SECRET}
           redirect-uri: "https://api.zony.kro.kr/api/auth/kakao/callback" # prod 용 URI
+          client-redirect-uri: "http://www.zony.kro.kr/kakao/callback"
           authorization-grant-type: authorization_code
           client-authentication-method: POST # local.yml과 동일하게 맞춤
           client-name: Kakao

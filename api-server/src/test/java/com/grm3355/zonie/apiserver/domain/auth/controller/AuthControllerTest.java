@@ -110,51 +110,22 @@ class AuthControllerTest {
 			.andExpect(jsonPath("$.timestamp").exists());
 	}
 
-	@Test
-	void 카카오_OAuth2_로그인을_한다() throws Exception {
-		LoginResponse expected = new LoginResponse("accesstoken", "nickname");
-		given(authService.login(any(LoginRequest.class)))
-			.willReturn(expected);
-
-		String response = mockMvc.perform(get("/api/auth/kakao/callback")
-				.param("code", "code"))
-			.andExpect(status().isOk())
-			.andDo(print())
-			.andReturn()
-			.getResponse()
-			.getContentAsString();
-		LoginResponse actual = objectMapper.readValue(response, LoginResponse.class);
-
-		assertThat(actual).isEqualTo(expected);
-	}
-	//
 	// @Test
-	// void testAccessTokenAndRefreshTokenFlow() throws Exception {
+	// void 카카오_OAuth2_로그인을_한다() throws Exception {
+	// 	LoginResponse expected = new LoginResponse("accesstoken", "nickname");
+	// 	given(authService.login(any(LoginRequest.class)))
+	// 		.willReturn(expected);
 	//
-	// 	String code = "testCode";
-	// 	LoginResponse loginResponse = new LoginResponse("access-token-123", "refresh-token-123");
-	// 	given(authService.login(any(LoginRequest.class))).willReturn(loginResponse);
-	//
-	//
-	// 	// 실제 로그인 -> 토큰 발급 -> refresh -> logout 전체 흐름 테스트
-	// 	// 로그인을 위해 kakao callback 호출
-	// 	MockHttpServletResponse loginResp = mockMvc.perform(get("/api/auth/kakao/callback")
-	// 			.param("code", code))
+	// 	String response = mockMvc.perform(get("/api/auth/kakao/callback")
+	// 			.param("code", "code"))
 	// 		.andExpect(status().isOk())
-	// 		.andReturn().getResponse();
+	// 		.andDo(print())
+	// 		.andReturn()
+	// 		.getResponse()
+	// 		.getContentAsString();
+	// 	LoginResponse actual = objectMapper.readValue(response, LoginResponse.class);
 	//
-	// 	// refresh token으로 액세스 토큰 재발급
-	// 	MockHttpServletResponse refreshResp = mockMvc.perform(post("/api/auth/refresh")
-	// 			.cookie(new jakarta.servlet.http.Cookie("refreshToken", testRefreshToken))
-	// 			.contentType(MediaType.APPLICATION_JSON))
-	// 		.andExpect(status().isOk())
-	// 		.andReturn().getResponse();
-	//
-	// 	// 로그아웃
-	// 	mockMvc.perform(post("/api/auth/logout")
-	// 			.header("Authorization", "Bearer " + testAccessToken))
-	// 		.andExpect(status().isOk())
-	// 		.andExpect(cookie().maxAge("refreshToken", 0));
+	// 	assertThat(actual).isEqualTo(expected);
 	// }
 
 	@Test

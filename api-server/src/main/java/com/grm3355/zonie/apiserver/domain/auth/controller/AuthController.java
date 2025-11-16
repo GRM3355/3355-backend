@@ -50,7 +50,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @RestController
 @Tag(name = "Auth", description = "사용자 토큰 발급")
 @RequestMapping("/api/auth")
@@ -154,6 +156,7 @@ public class AuthController {
 				"</script>" +
 				"</body></html>";
 
+		log.info("사용자 토큰 내보내기 {}",html);
 		return ResponseEntity.ok()
 			.contentType(MediaType.TEXT_HTML)
 			.body(html);
@@ -197,7 +200,8 @@ public class AuthController {
 			.build();
 		response.addHeader("Set-Cookie", cookie.toString());
 
-		return ResponseEntity.ok().body(ApiResponse.success(authResponse));
+		AccessTokenResponse accessTokenResponse = new AccessTokenResponse(authResponse.getRefreshToken());
+		return ResponseEntity.ok().body(ApiResponse.success(accessTokenResponse));
 	}
 
 	@Operation(summary = "로그아웃", description = "서버에 저장된 Refresh 토큰을 삭제하여 로그아웃 처리합니다. 클라이언트 측에서도 저장된 액세스토큰, 리프레시 토큰을 모두 삭제해야 합니다.")
@@ -216,7 +220,7 @@ public class AuthController {
 	public ResponseEntity<ApiResponse<Void>> logout(HttpServletResponse response,
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
 		//200 응답 나오면 프론트엔드에서 액세스토큰, 리프레시 토큰 삭제
-		
+
 		//Redis에서 리프레시 토큰 삭제
 		redisTokenService.deleteByToken(userDetails.getUserId());
 
@@ -230,6 +234,7 @@ public class AuthController {
 			.build();
 		response.addHeader("Set-Cookie", cookie.toString());
 
+		log.info("사용자 로그아웃 성공");
 		return ResponseEntity.ok().body(ApiResponse.<Void>noContent());
 	}
 }
