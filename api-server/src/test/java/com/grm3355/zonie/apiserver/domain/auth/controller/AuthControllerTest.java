@@ -83,7 +83,9 @@ class AuthControllerTest {
 
 		// when: 컨트롤러 호출
 		mockMvc.perform(get("/api/auth/kakao/callback")
-				.param("code", code))
+				.param("code", code)
+				.param("state", "http://localhost:8082/kakao/callback")
+			)
 			.andExpect(status().isOk())
 			.andExpect(content().contentType(MediaType.TEXT_HTML))
 			.andExpect(header().string("Set-Cookie", containsString("refreshToken=mock-refresh-token")))
