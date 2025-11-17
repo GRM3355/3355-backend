@@ -1,32 +1,23 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.*;
-import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import java.util.List;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -39,7 +30,6 @@ import com.grm3355.zonie.apiserver.domain.auth.service.AuthService;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
-import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
 import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
@@ -82,12 +72,6 @@ class AuthControllerTest {
 	@MockitoBean
 	private RedisTokenService redisTokenService;
 
-	private String testAccessToken;
-	private String testRefreshToken;
-
-	@Value("${client.redirect.uri:http://localhost:8082}") // 실제 사용하는 프론트 주소
-	private String clientRedirectUri;
-
 	@Test
 	void registerToken_Success() throws Exception {
 		LocationDto locationDto = new LocationDto();
@@ -109,24 +93,6 @@ class AuthControllerTest {
 			.andExpect(jsonPath("$.data.accessToken").value("access-token-12345"))
 			.andExpect(jsonPath("$.timestamp").exists());
 	}
-
-	// @Test
-	// void 카카오_OAuth2_로그인을_한다() throws Exception {
-	// 	LoginResponse expected = new LoginResponse("accesstoken", "nickname");
-	// 	given(authService.login(any(LoginRequest.class)))
-	// 		.willReturn(expected);
-	//
-	// 	String response = mockMvc.perform(get("/api/auth/kakao/callback")
-	// 			.param("code", "code"))
-	// 		.andExpect(status().isOk())
-	// 		.andDo(print())
-	// 		.andReturn()
-	// 		.getResponse()
-	// 		.getContentAsString();
-	// 	LoginResponse actual = objectMapper.readValue(response, LoginResponse.class);
-	//
-	// 	assertThat(actual).isEqualTo(expected);
-	// }
 
 	@Test
 	@DisplayName("카카오 로그인후 callback")
@@ -159,7 +125,7 @@ class AuthControllerTest {
 
 	@Test
 	@DisplayName("새로운 액세스 토큰 발급")
-	void 새로운_액세스_토큰_발급() throws Exception {
+	void newAccessTokenSuccess() throws Exception {
 		// given
 		String oldRefreshToken = "mock-old-refresh-token";
 		String newAccessToken = "mock-new-access-token";
@@ -190,14 +156,14 @@ class AuthControllerTest {
 
 	@Test
 	@DisplayName("refreshToken 존재여부 실패")
-	void 리프레시토큰존재_실패() throws Exception {
+	void refreshTokenFailed() throws Exception {
 		mockMvc.perform(post("/api/auth/refresh"))
 			.andExpect(status().isUnauthorized());
 	}
 
 	@Test
 	@DisplayName("refreshToken 존재하고 Redis에 존재하지 않아서 실패")
-	void 리프레시토큰_존재_Redis_존재하지않음_실패() throws Exception {
+	void refreshTokenSuccessRedisFailed() throws Exception {
 		String invalidToken = "invalid-token";
 
 		given(redisTokenService.validateRefreshToken(invalidToken)).willReturn(false);

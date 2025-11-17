@@ -1,11 +1,14 @@
 package com.grm3355.zonie.apiserver.domain.user.controller;
 
+import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
-import com.grm3355.zonie.apiserver.domain.auth.dto.UserQuitResponse;
-import com.grm3355.zonie.apiserver.domain.user.service.UserService;
-import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
-import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
+import java.time.LocalDateTime;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,17 +24,11 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
+import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
+import com.grm3355.zonie.apiserver.domain.auth.dto.UserQuitResponse;
+import com.grm3355.zonie.apiserver.domain.user.service.UserService;
+import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
+import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
 
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false) //시큐리티 제외
@@ -48,17 +45,17 @@ class UserControllerTest {
 
 	@Test
 	@WithMockUser(roles = "USER")
-	void  사용자_내프로필조회_성공() throws Exception {
+	void userProfileSuccess() throws Exception {
 
 		// given: UserDetailsImpl 생성
 		UserDetailsImpl userDetails = new UserDetailsImpl(
-			"test-user","password","test@example.com",
-			null,false,false
+			"test-user", "password", "test@example.com",
+			null, false, false
 		);
 
 		// SecurityContext에 인증 객체 설정
 		UsernamePasswordAuthenticationToken authentication =
-			new UsernamePasswordAuthenticationToken(userDetails,null,List.of(() -> "ROLE_USER")
+			new UsernamePasswordAuthenticationToken(userDetails, null, List.of(() -> "ROLE_USER")
 			);
 
 		SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -67,13 +64,13 @@ class UserControllerTest {
 
 		// 서비스 Mocking: getUserProfile 반환값 지정
 		UserProfileResponse mockProfile = new UserProfileResponse(
-			"test-user", "TestNickname", "test@example.com", "profile.png",LocalDateTime.now()
+			"test-user", "TestNickname", "test@example.com", "profile.png", LocalDateTime.now()
 		);
 		when(userService.getUserProfile("test-user")).thenReturn(mockProfile);
 
 		// when: /logout 요청
 		mockMvc.perform(get("/api/v1/user/me")
-			.with(SecurityMockMvcRequestPostProcessors.authentication(authentication)))
+				.with(SecurityMockMvcRequestPostProcessors.authentication(authentication)))
 			.andExpect(status().isOk())
 			.andExpect(content().string(containsString("success")))
 			.andExpect(jsonPath("$.success").value(true))
@@ -90,13 +87,13 @@ class UserControllerTest {
 
 		// given: UserDetailsImpl 생성
 		UserDetailsImpl userDetails = new UserDetailsImpl(
-			"test-user","password","test@example.com",
-			null,false,false
+			"test-user", "password", "test@example.com",
+			null, false, false
 		);
 
 		// SecurityContext에 인증 객체 설정
 		UsernamePasswordAuthenticationToken authentication =
-			new UsernamePasswordAuthenticationToken(userDetails,null,List.of(() -> "ROLE_USER")
+			new UsernamePasswordAuthenticationToken(userDetails, null, List.of(() -> "ROLE_USER")
 			);
 
 		SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -112,7 +109,7 @@ class UserControllerTest {
 		// when: /api/v1/user/me/quit 요청
 		MockHttpServletResponse response = mockMvc.perform(post("/api/v1/user/me/quit")
 				.contentType(MediaType.APPLICATION_JSON)
-				.content("{\"reason\":\"No longer needed\"}"))
+				.content("{\"reason\":\"" + request + "\"}"))
 			.andExpect(status().isNoContent()) // 204 No Content
 			.andReturn()
 			.getResponse();
