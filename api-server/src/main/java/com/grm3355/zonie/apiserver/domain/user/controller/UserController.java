@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserQuitResponse;
+import com.grm3355.zonie.apiserver.domain.auth.util.CookieUtil;
 import com.grm3355.zonie.apiserver.domain.user.dto.EmailUpdateRequest;
 import com.grm3355.zonie.apiserver.domain.user.service.UserService;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
@@ -34,9 +35,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/api/v1/user")
 public class UserController {
     private final UserService userService;
-	public UserController(UserService userService) {
+	private final CookieUtil cookieUtil;
+
+	public UserController(UserService userService, CookieUtil cookieUtil) {
         this.userService = userService;
-    }
+		this.cookieUtil = cookieUtil;
+	}
 
 	//현재는 사용안함.
 	@Deprecated
@@ -85,14 +89,15 @@ public class UserController {
 		userService.quit(userDetails.getUserId(), request);
 
 		//리프레시 토큰 값 제거
-		ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
-			.httpOnly(true)
-			.secure(false) // 로컬 환경
-			.path("/")
-			.maxAge(0)
-			.sameSite("Lax")
-			.build();
-		response.addHeader("Set-Cookie", cookie.toString());
+		// ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+		// 	.httpOnly(true)
+		// 	.secure(false) // 로컬 환경
+		// 	.path("/")
+		// 	.maxAge(0)
+		// 	.sameSite("Lax")
+		// 	.build();
+		// response.addHeader("Set-Cookie", cookie.toString());
+		cookieUtil.addRefreshTokenCookie(response, "");
 
 		return ResponseEntity.noContent().build();
 	}

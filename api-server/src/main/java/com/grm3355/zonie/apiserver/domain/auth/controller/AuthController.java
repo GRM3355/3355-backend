@@ -22,6 +22,7 @@ import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 import com.grm3355.zonie.apiserver.domain.auth.service.AuthService;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
+import com.grm3355.zonie.apiserver.domain.auth.util.CookieUtil;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.global.swagger.ApiError400;
 import com.grm3355.zonie.apiserver.global.swagger.ApiError405;
@@ -48,6 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthController {
 	private final AuthService authService;
 	private final RedisTokenService redisTokenService;
+	private final CookieUtil cookieUtil;
 
 	// 현재는 사용안하므로 주석처리
 	// 해당url은 지금은 사용할 일 없지만, 확장성을 위해서 보관한다.
@@ -89,14 +91,16 @@ public class AuthController {
 		String refreshToken = loginResponse.getRefreshToken();
 
 		//HttpOnly 쿠키에 리프레시 토큰 저장
-		ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
-			.httpOnly(true)
-			.secure(false) // 로컬 개발 환경이라 false, https면 true
-			.path("/")
-			.maxAge(60 * 60 * 24 * 7) // 7일
-			.sameSite("Lax")
-			.build();
-		response.addHeader("Set-Cookie", cookie.toString());
+		// ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+		// 	.httpOnly(true)
+		// 	.secure(false) // 로컬 개발 환경이라 false, https면 true
+		// 	.path("/")
+		// 	.maxAge(60 * 60 * 24 * 7) // 7일
+		// 	.sameSite("Lax")
+		// 	.build();
+		// response.addHeader("Set-Cookie", cookie.toString());
+		cookieUtil.addRefreshTokenCookie(response, refreshToken);
+
 
 		//프론트에는 액세스 토큰만 전달
 		String html =
@@ -147,14 +151,15 @@ public class AuthController {
 		LoginResponse authResponse = authService.refreshAccessToken(refreshToken);
 
 		// HttpOnly 쿠키로 새 리프레시 토큰 발급
-		ResponseCookie cookie = ResponseCookie.from("refreshToken", authResponse.getRefreshToken())
-			.httpOnly(true)
-			.secure(false) // HTTPS 환경이면 true
-			.path("/")
-			.maxAge(60 * 60 * 24 * 7) // 7일
-			.sameSite("Lax")
-			.build();
-		response.addHeader("Set-Cookie", cookie.toString());
+		// ResponseCookie cookie = ResponseCookie.from("refreshToken", authResponse.getRefreshToken())
+		// 	.httpOnly(true)
+		// 	.secure(true) // HTTPS 환경이면 true
+		// 	.path("/")
+		// 	.maxAge(60 * 60 * 24 * 7) // 7일
+		// 	.sameSite("None")
+		// 	.build();
+		// response.addHeader("Set-Cookie", cookie.toString());
+		cookieUtil.addRefreshTokenCookie(response, authResponse.getRefreshToken());
 
 		AccessTokenResponse accessTokenResponse = new AccessTokenResponse(authResponse.getAccessToken());
 		return ResponseEntity.ok().body(ApiResponse.success(accessTokenResponse));
@@ -181,14 +186,15 @@ public class AuthController {
 		redisTokenService.deleteByToken(userDetails.getUserId());
 
 		//리프레시 토큰 값 제거
-		ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
-			.httpOnly(true)
-			.secure(false) // 로컬 환경
-			.path("/")
-			.maxAge(0)
-			.sameSite("Lax")
-			.build();
-		response.addHeader("Set-Cookie", cookie.toString());
+		// ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+		// 	.httpOnly(true)
+		// 	.secure(true) // 로컬 환경
+		// 	.path("/")
+		// 	.maxAge(0)
+		// 	.sameSite("None")
+		// 	.build();
+		// response.addHeader("Set-Cookie", cookie.toString());
+		cookieUtil.addRefreshTokenCookie(response, "");
 
 		log.info("사용자 로그아웃 성공");
 		return ResponseEntity.ok().body(ApiResponse.noContent());
