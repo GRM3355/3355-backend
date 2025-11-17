@@ -112,7 +112,7 @@ public class AuthController {
 				"</script>" +
 				"</body></html>";
 
-		log.info("사용자 토큰 내보내기 {}", html);
+		log.info("사용자 토큰 내보내기 ===> {}", html);
 		return ResponseEntity.ok()
 			.contentType(MediaType.TEXT_HTML)
 			.body(html);
