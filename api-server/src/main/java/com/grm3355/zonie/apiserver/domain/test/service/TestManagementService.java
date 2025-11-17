@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +20,7 @@ import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-@Profile("!prod")
+// @Profile("!prod") // prod 환경 -> 비활성화 (이 빈을 로드하지 않음) // 추후 주석 제거 예정
 @Service
 @RequiredArgsConstructor
 @Transactional
