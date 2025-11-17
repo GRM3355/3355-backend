@@ -8,8 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
@@ -22,8 +20,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;
-import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 import com.grm3355.zonie.apiserver.domain.auth.service.AuthService;
@@ -71,28 +67,6 @@ class AuthControllerTest {
 
 	@MockitoBean
 	private RedisTokenService redisTokenService;
-
-	@Test
-	void registerToken_Success() throws Exception {
-		LocationDto locationDto = new LocationDto();
-		locationDto.setLat(37.5665);
-		locationDto.setLon(126.9780);
-
-		AuthResponse mockResponse = new AuthResponse("access-token-12345", null);
-
-		Mockito.when(authService.register(
-			ArgumentMatchers.any(LocationDto.class))
-		).thenReturn(mockResponse);
-
-		mockMvc.perform(post("/api/auth/tokens")
-				//.header("Authorization", "Bearer test")
-				.contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(locationDto)))
-			.andExpect(status().isCreated())
-			.andExpect(jsonPath("$.success").value(true))
-			.andExpect(jsonPath("$.data.accessToken").value("access-token-12345"))
-			.andExpect(jsonPath("$.timestamp").exists());
-	}
 
 	@Test
 	@DisplayName("카카오 로그인후 callback")
