@@ -2,7 +2,6 @@ package com.grm3355.zonie.apiserver.domain.auth.controller;
 
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
@@ -50,9 +49,6 @@ public class AuthController {
 	private final AuthService authService;
 	private final RedisTokenService redisTokenService;
 
-	@Value("${spring.oauth2.client.registration.kakao.client-redirect-uri}")
-	String clientRedirectUri;
-
 	// 현재는 사용안하므로 주석처리
 	// 해당url은 지금은 사용할 일 없지만, 확장성을 위해서 보관한다.
 	// 개발할때 업스케일링하는 과정에서나온 url
@@ -83,7 +79,8 @@ public class AuthController {
 	@ApiError415
 	@ApiError429
 	@GetMapping("/kakao/callback")
-	public ResponseEntity<String> loginWithKakao(@RequestParam("code") String code, HttpServletResponse response) {
+	public ResponseEntity<String> loginWithKakao(@RequestParam("code") String code,
+		HttpServletResponse response, @RequestParam("state") String returnUrl) {
 
 		LoginResponse loginResponse = authService.login(new LoginRequest(ProviderType.KAKAO, code));
 		//return ResponseEntity.ok().body(response);
@@ -108,7 +105,7 @@ public class AuthController {
 				"  if (!window.posted) {" +
 				"    window.opener.postMessage({" +
 				"      accessToken: '" + accessToken + "'" +
-				"    }, '" + clientRedirectUri + "');" +
+				"    }, '" + returnUrl + "');" +
 				"    window.posted = true;" +
 				"    window.close();" +
 				"  }" +
