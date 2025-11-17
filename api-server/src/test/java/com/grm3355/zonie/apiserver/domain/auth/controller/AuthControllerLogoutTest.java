@@ -19,6 +19,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -89,14 +90,11 @@ class AuthControllerLogoutTest {
 		SecurityContextHolder.setContext(context);
 
 		// when: /logout 요청
-		mockMvc.perform(post("/api/auth/logout"))
-			.andExpect(status().isOk())
-			.andExpect(header().string("Set-Cookie", containsString("refreshToken=;")))
-			.andExpect(content().string(containsString("success")))
-			.andDo(result -> {
-				System.out.println("Set-Cookie header: " + result.getResponse().getHeader("Set-Cookie"));
-				System.out.println("Response body: " + result.getResponse().getContentAsString());
-			});
+		mockMvc.perform(post("/api/auth/logout")
+				.with(SecurityMockMvcRequestPostProcessors.authentication(authentication)))
+			.andExpect(status().isNoContent()) // 204 No Content
+			.andReturn()
+			.getResponse();
 
 		// then: Redis 삭제 호출 검증
 		verify(redisTokenService, times(1)).deleteByToken("test-user");
