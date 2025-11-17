@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfig
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,6 +25,7 @@ import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 import com.grm3355.zonie.apiserver.domain.auth.service.AuthService;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
+import com.grm3355.zonie.apiserver.domain.auth.util.CookieProperties;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
 import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
@@ -38,7 +40,7 @@ import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 	}
 )
 @AutoConfigureMockMvc(addFilters = false) //시큐리티 제외
-	//@AutoConfigureMockMvc(addFilters = true)
+@Import(CookieProperties.class)
 class AuthControllerTest {
 
 	@Autowired
@@ -86,14 +88,8 @@ class AuthControllerTest {
 				.param("code", code)
 				.param("state", "http://localhost:8082/kakao/callback")
 			)
-			.andExpect(status().isOk())
-			.andExpect(content().contentType(MediaType.TEXT_HTML))
-			.andExpect(header().string("Set-Cookie", containsString("refreshToken=mock-refresh-token")))
-			.andExpect(content().string(containsString("accessToken: 'mock-access-token'")))
-			.andDo(result -> {
-				System.out.println(result.getResponse().getContentAsString());
-				System.out.println(result.getResponse().getHeader("Set-Cookie"));
-			});
+			.andExpect(status().is3xxRedirection())
+			.andExpect(redirectedUrl("http://localhost:8082/kakao/callback?accessToken=mock-access-token"));
 
 		// then: authService.login이 호출되었는지 검증
 		verify(authService, times(1)).login(any(LoginRequest.class));

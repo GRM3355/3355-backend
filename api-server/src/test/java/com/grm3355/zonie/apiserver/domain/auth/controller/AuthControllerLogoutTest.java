@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfig
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,6 +24,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.grm3355.zonie.apiserver.domain.auth.service.AuthService;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
+import com.grm3355.zonie.apiserver.domain.auth.util.CookieProperties;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
@@ -38,6 +40,7 @@ import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 	}
 )
 @AutoConfigureMockMvc(addFilters = false) //시큐리티 제외
+@Import(CookieProperties.class)
 class AuthControllerLogoutTest {
 
 	@Autowired
