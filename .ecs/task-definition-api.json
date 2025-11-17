@@ -2,7 +2,9 @@
   "family": "zonie-api-server-task-def",
   "executionRoleArn": "arn:aws:iam::548182874697:role/ecsTaskExecutionRole",
   "networkMode": "awsvpc",
-  "requiresCompatibilities": ["FARGATE"],
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
   "cpu": "512",
   "memory": "1024",
   "containerDefinitions": [
@@ -25,22 +27,55 @@
         "interval": 10,
         "timeout": 5,
         "retries": 5,
-        "startPeriod": 120
+        "startPeriod": 150
       },
       "environment": [
-        { "name": "SPRING_PROFILES_ACTIVE", "value": "prod" }
+        {
+          "name": "SPRING_PROFILES_ACTIVE",
+          "value": "prod"
+        }
       ],
       "secrets": [
-        { "name": "DB_PROD_URL", "valueFrom": "DB_PROD_URL" },
-        { "name": "DB_PROD_USERNAME", "valueFrom": "DB_PROD_USERNAME" },
-        { "name": "DB_PROD_PASSWORD", "valueFrom": "DB_PROD_PASSWORD" },
-        { "name": "MONGO_PROD_URI", "valueFrom": "MONGO_PROD_URI" },
-        { "name": "REDIS_PROD_HOST", "valueFrom": "REDIS_PROD_HOST" },
-        { "name": "REDIS_PROD_PASSWORD", "valueFrom": "REDIS_PROD_PASSWORD" },
-        { "name": "JWT_SECRET_KEY", "valueFrom": "JWT_SECRET_KEY" },
-        { "name": "OPENAPI_SERVICE_KEY", "valueFrom": "OPENAPI_SERVICE_KEY" },
-        { "name": "KAKAO_REST_API_KEY", "valueFrom": "KAKAO_REST_API_KEY" },
-        { "name": "KAKAO_CLIENT_SECRET", "valueFrom": "KAKAO_CLIENT_SECRET" }
+        {
+          "name": "DB_PROD_URL",
+          "valueFrom": "DB_PROD_URL"
+        },
+        {
+          "name": "DB_PROD_USERNAME",
+          "valueFrom": "DB_PROD_USERNAME"
+        },
+        {
+          "name": "DB_PROD_PASSWORD",
+          "valueFrom": "DB_PROD_PASSWORD"
+        },
+        {
+          "name": "MONGO_PROD_URI",
+          "valueFrom": "MONGO_PROD_URI"
+        },
+        {
+          "name": "REDIS_PROD_HOST",
+          "valueFrom": "REDIS_PROD_HOST"
+        },
+        {
+          "name": "REDIS_PROD_PASSWORD",
+          "valueFrom": "REDIS_PROD_PASSWORD"
+        },
+        {
+          "name": "JWT_SECRET_KEY",
+          "valueFrom": "JWT_SECRET_KEY"
+        },
+        {
+          "name": "OPENAPI_SERVICE_KEY",
+          "valueFrom": "OPENAPI_SERVICE_KEY"
+        },
+        {
+          "name": "KAKAO_REST_API_KEY",
+          "valueFrom": "KAKAO_REST_API_KEY"
+        },
+        {
+          "name": "KAKAO_CLIENT_SECRET",
+          "valueFrom": "KAKAO_CLIENT_SECRET"
+        }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",

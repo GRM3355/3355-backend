@@ -1,7 +1,16 @@
 package com.grm3355.zonie.apiserver.domain.user.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
+import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
+import com.grm3355.zonie.apiserver.domain.auth.dto.UserQuitResponse;
+import com.grm3355.zonie.apiserver.domain.user.dto.EmailUpdateRequest;
+import com.grm3355.zonie.apiserver.domain.user.service.UserService;
+import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
+import com.grm3355.zonie.commonlib.global.response.ApiResponse;
+
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,13 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
-import com.grm3355.zonie.apiserver.domain.auth.dto.UserQuitResponse;
-import com.grm3355.zonie.apiserver.domain.user.dto.EmailUpdateRequest;
-import com.grm3355.zonie.apiserver.domain.user.service.UserService;
-import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
-import com.grm3355.zonie.commonlib.global.response.ApiResponse;
-
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -30,19 +33,20 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "User", description = "사용자 프로필 페이지")
 @RequestMapping("/api/v1/user")
 public class UserController {
-	private final UserService userService;
-
+    private final UserService userService;
 	public UserController(UserService userService) {
-		this.userService = userService;
-	}
+        this.userService = userService;
+    }
 
+	//현재는 사용안함.
 	@Deprecated
+	@Hidden
 	@Operation(summary = "내 프로필 이메일 패치", description = "현재 로그인된 사용자의 이메일 정보를 수정합니다.")
 	@PatchMapping("/update/email")
-	public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
-		@RequestBody EmailUpdateRequest request) {
-		userService.updateEmail(userDetails.getUserId(), request);
-	}
+    public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
+                            @RequestBody EmailUpdateRequest request) {
+        userService.updateEmail(userDetails.getUserId(), request);
+    }
 
 	@Operation(summary = "내 프로필 조회", description = "현재 아이디, 닉네임, Email, profileImage를 조회합니다.")
 	@ApiResponses({
@@ -74,16 +78,30 @@ public class UserController {
 	@PreAuthorize("isAuthenticated()")
 	@PostMapping("/me/quit")
 	public ResponseEntity<ApiResponse<Void>> quit(@Valid @RequestBody UserQuitResponse request,
+		HttpServletResponse response,
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+		//사용자정보, Redis 정보 삭제
 		userService.quit(userDetails.getUserId(), request);
+
+		//리프레시 토큰 값 제거
+		ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+			.httpOnly(true)
+			.secure(false) // 로컬 환경
+			.path("/")
+			.maxAge(0)
+			.sameSite("Lax")
+			.build();
+		response.addHeader("Set-Cookie", cookie.toString());
+
 		return ResponseEntity.noContent().build();
 	}
 
-	//todo 휴대전화 컬럼필요
-	//    @PatchMapping("/update/phoneNumber")
-	//    public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
-	//                            @RequestBody PhoneNumberUpdateRequest request) {
-	//        userService.updatePhoneNumber(userDetails.getId(), request);
-	//    }
+    //todo 휴대전화 컬럼필요
+//    @PatchMapping("/update/phoneNumber")
+//    public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
+//                            @RequestBody PhoneNumberUpdateRequest request) {
+//        userService.updatePhoneNumber(userDetails.getId(), request);
+//    }
 
 }

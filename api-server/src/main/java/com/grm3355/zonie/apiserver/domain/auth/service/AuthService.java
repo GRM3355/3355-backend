@@ -1,5 +1,13 @@
 package com.grm3355.zonie.apiserver.domain.auth.service;
 
+import com.grm3355.zonie.apiserver.domain.auth.domain.AuthProvider;
+import com.grm3355.zonie.apiserver.domain.auth.domain.OAuth2Client;
+import com.grm3355.zonie.apiserver.domain.auth.domain.OAuth2Clients;
+import com.grm3355.zonie.apiserver.domain.auth.domain.UserInfo;
+import com.grm3355.zonie.apiserver.domain.auth.dto.AccessTokenResponse;
+import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
+import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
+
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;
@@ -12,14 +20,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.grm3355.zonie.apiserver.domain.auth.domain.OAuth2Client;
-import com.grm3355.zonie.apiserver.domain.auth.domain.OAuth2Clients;
-import com.grm3355.zonie.apiserver.domain.auth.domain.UserInfo;
 import com.grm3355.zonie.apiserver.domain.auth.dto.AuthResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
-import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
-import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsServiceImpl;
 import com.grm3355.zonie.commonlib.domain.user.entity.User;
@@ -40,15 +43,14 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 public class AuthService {
 
-	private static final String PRE_FIX = "";
-	private final JwtTokenProvider jwtTokenProvider;
-	private final AuthenticationManager authenticationManager;
-	private final UserRepository userRepository;
-	private final RedisTokenService redisTokenService;
-	private final PasswordEncoder passwordEncoder;
-	private final OAuth2Clients oAuth2Clients;
+    private static final String PRE_FIX = "";
+    private final JwtTokenProvider jwtTokenProvider;
+    private final AuthenticationManager authenticationManager;
+    private final UserRepository userRepository;
+    private final RedisTokenService redisTokenService;
+    private final PasswordEncoder passwordEncoder;
+    private final OAuth2Clients oAuth2Clients;
 	private final UserDetailsServiceImpl userDetailsService;
-
 	/**
 	 * [TestManagement] 테스트용 유저 ID로 즉시 토큰을 발급합니다.
 	 *
@@ -132,6 +134,7 @@ public class AuthService {
 		return generateTokens(userDetails, userTokenDto);
 	}
 
+
 	public AuthResponse generateTokens(UserDetailsImpl userDetails, UserTokenDto userTokenDto) {
 		// 현재 시스템은 사용자당 단일 권한을 가정하므로, 첫 번째 권한을 가져와 사용합니다.
 		// 향후 다중 권한을 지원하려면 이 로직의 수정이 필요합니다.
@@ -147,16 +150,15 @@ public class AuthService {
 		//액세스 토큰 생성(JWT) - 클라이언트가 저장
 		String accessToken = jwtTokenProvider.createAccessToken(userDetails.getUsername(), Role.valueOf(roleEnumName));
 
-		return new AuthResponse(accessToken, null);
+		return new AuthResponse(accessToken,null);
 	}
 
 	@Transactional
-	public LoginResponse login(LoginRequest request) {
-		UserInfo userInfo = getUserInfo(request);
-		User user = userRepository.findBySocialIdAndProviderTypeAndDeletedAtIsNull(userInfo.socialId(),
-				userInfo.providerType())
-			.orElseGet(() -> signUp(userInfo));
-		System.out.println("사용자 저장완료 : " + user.getProfileNickName());
+    public LoginResponse login(LoginRequest request) {
+        UserInfo userInfo = getUserInfo(request);
+        User user = userRepository.findBySocialIdAndProviderTypeAndDeletedAtIsNull(userInfo.socialId(), userInfo.providerType())
+                .orElseGet(() -> signUp(userInfo));
+        System.out.println("사용자 저장완료 : " + user.getProfileNickName());
 
 		//return new LoginResponse(jwtTokenProvider.createAccessToken(user.getUserId(), user.getRole()),
 		//	userInfo.nickname());
@@ -170,36 +172,36 @@ public class AuthService {
 		String accessToken = jwtTokenProvider.createAccessToken(user.getUserId(), user.getRole());
 		String refreshToken = redisTokenService.createRefreshToken(user.getUserId());
 		return new LoginResponse(accessToken, refreshToken);
-	}
+    }
 
-	private UserInfo getUserInfo(LoginRequest request) {
-		OAuth2Client oAuth2Client = oAuth2Clients.getClient(request.providerType());
-		String accessToken = oAuth2Client.getAccessToken(request.code());
-		return oAuth2Client.getUserInfo(accessToken);
-	}
+    private UserInfo getUserInfo(LoginRequest request) {
+        OAuth2Client oAuth2Client = oAuth2Clients.getClient(request.providerType());
+        String accessToken = oAuth2Client.getAccessToken(request.code());
+        return oAuth2Client.getUserInfo(accessToken);
+    }
 
-	private User signUp(UserInfo userInfo) {
-		return userRepository.save(userInfo.toUser());
-	}
+    private User signUp(UserInfo userInfo) {
+        return userRepository.save(userInfo.toUser());
+    }
 
 	public LoginResponse generateNewTokens(UserDetailsImpl userDetails) {
-		// 현재 시스템은 사용자당 단일 권한을 가정하므로, 첫 번째 권한을 가져와 사용합니다.
-		// 향후 다중 권한을 지원하려면 이 로직의 수정이 필요합니다.
+	    // 현재 시스템은 사용자당 단일 권한을 가정하므로, 첫 번째 권한을 가져와 사용합니다.
+	    // 향후 다중 권한을 지원하려면 이 로직의 수정이 필요합니다.
 
-		String roleName = userDetails.getAuthorities().stream()
-			.findFirst()
-			.map(GrantedAuthority::getAuthority)
-			.orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "사용자 권한 정보를 찾을 수 없습니다."));
+	    String roleName = userDetails.getAuthorities().stream()
+	            .findFirst()
+	            .map(GrantedAuthority::getAuthority)
+	            .orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "사용자 권한 정보를 찾을 수 없습니다."));
 
-		// "ROLE_GUEST" -> "GUEST"
-		String roleEnumName = roleName.startsWith("ROLE_") ? roleName.substring(5) : roleName;
+	    // "ROLE_GUEST" -> "GUEST"
+	    String roleEnumName = roleName.startsWith("ROLE_") ? roleName.substring(5) : roleName;
 
-		//액세스 토큰 생성(JWT) - 클라이언트가 저장
-		String accessToken = jwtTokenProvider.createAccessToken(userDetails.getUsername(), Role.valueOf(roleEnumName));
+	    //액세스 토큰 생성(JWT) - 클라이언트가 저장
+	    String accessToken = jwtTokenProvider.createAccessToken(userDetails.getUsername(), Role.valueOf(roleEnumName));
 		String refreshToken = redisTokenService.createRefreshToken(userDetails.getUsername());
 
-		//위치 토큰 생성 - 실시간 저장을 위해서 Redis에만 저장
-		//redisTokenService.generateLocationToken(userTokenDto);
+	    //위치 토큰 생성 - 실시간 저장을 위해서 Redis에만 저장
+	    //redisTokenService.generateLocationToken(userTokenDto);
 
 		return new LoginResponse(accessToken, refreshToken);
 	}
@@ -209,53 +211,54 @@ public class AuthService {
 	 */
 	@Transactional
 	public LoginResponse refreshAccessToken(String requestRefreshToken) {
-		// 1. JWT 유효성 검증 (만료 여부, 서명 유효성 등)
-		try {
-			jwtTokenProvider.validateToken(requestRefreshToken);
-		} catch (ExpiredJwtException e) {
-			log.warn("리프레시 토큰이 만료되었습니다: {}", requestRefreshToken);
-			// 만료된 토큰은 Redis에서도 삭제
-			redisTokenService.deleteByToken(requestRefreshToken);
-			throw new BusinessException(ErrorCode.TOKEN_EXPIRED, "리프레시 토큰이 만료되었습니다.");
-		} catch (JwtException | IllegalArgumentException e) {
-			log.warn("유효하지 않은 JWT 토큰입니다: {}", e.getMessage());
-			throw new BusinessException(ErrorCode.TOKEN_INVALID, "유효하지 않은 리프레시 토큰입니다.");
-		}
+			// 1. JWT 유효성 검증 (만료 여부, 서명 유효성 등)
+			try {
+				jwtTokenProvider.validateToken(requestRefreshToken);
+			} catch (ExpiredJwtException e) {
+				log.warn("리프레시 토큰이 만료되었습니다: {}", requestRefreshToken);
+				// 만료된 토큰은 Redis에서도 삭제
+				redisTokenService.deleteByToken(requestRefreshToken);
+				throw new BusinessException(ErrorCode.TOKEN_EXPIRED, "리프레시 토큰이 만료되었습니다.");
+			} catch (JwtException | IllegalArgumentException e) {
+				log.warn("유효하지 않은 JWT 토큰입니다: {}", e.getMessage());
+				throw new BusinessException(ErrorCode.TOKEN_INVALID, "유효하지 않은 리프레시 토큰입니다.");
+			}
 
-		// 2. Redis에서 리프레시 토큰 정보 조회
-		RedisTokenService.RefreshTokenInfo refreshTokenInfo = redisTokenService.findByToken(requestRefreshToken)
+			// 2. Redis에서 리프레시 토큰 정보 조회
+			RedisTokenService.RefreshTokenInfo refreshTokenInfo = redisTokenService.findByToken(requestRefreshToken)
 			.orElseThrow(() -> {
 				log.warn("Redis에서 리프레시 토큰을 찾을 수 없거나 이미 사용된 토큰입니다: {}", requestRefreshToken);
 				// Redis에 없는 토큰은 유효하지 않거나 이미 사용된 것으로 간주
 				return new BusinessException(ErrorCode.TOKEN_INVALID, "유효하지 않거나 이미 사용된 리프레시 토큰입니다.");
 			});
 
-		if (refreshTokenInfo.used()) {
-			log.warn("사용자 {}의 리프레시 토큰 재사용이 감지되었습니다. 모든 토큰을 무효화합니다.", refreshTokenInfo.userId());
-			redisTokenService.deleteAllTokensForUser(refreshTokenInfo.userId());
-			throw new BusinessException(ErrorCode.TOKEN_INVALID, "리프레시 토큰이 이미 사용되었습니다. 모든 세션이 종료됩니다.");
-		}
+			if (refreshTokenInfo.used()) {
+				log.warn("사용자 {}의 리프레시 토큰 재사용이 감지되었습니다. 모든 토큰을 무효화합니다.", refreshTokenInfo.userId());
+				redisTokenService.deleteAllTokensForUser(refreshTokenInfo.userId());
+				throw new BusinessException(ErrorCode.TOKEN_INVALID, "리프레시 토큰이 이미 사용되었습니다. 모든 세션이 종료됩니다.");
+			}
 
-		// 3. 토큰에서 이메일 추출 및 사용자 정보 로드
-		String userId = jwtTokenProvider.getUserIdFromToken(requestRefreshToken);
-		UserDetailsImpl userDetails = userDetailsService.getUserDetailsByEmail(userId);
+			// 3. 토큰에서 이메일 추출 및 사용자 정보 로드
+			String userId = jwtTokenProvider.getUserIdFromToken(requestRefreshToken);
+			UserDetailsImpl userDetails = userDetailsService.getUserDetailsByEmail(userId);
 
-		// 4. 토큰 정보와 사용자 정보 일치 여부 확인
-		if (!userId.equals(refreshTokenInfo.userId())) {
-			log.warn("리프레시 토큰의 이메일이 일치하지 않습니다. 토큰 아이디: {}, 사용자 아이디: {}", refreshTokenInfo.userId(), userId);
-			// 불일치 시 해당 토큰 삭제 (보안 강화)
+			// 4. 토큰 정보와 사용자 정보 일치 여부 확인
+			if (!userId.equals(refreshTokenInfo.userId())) {
+				log.warn("리프레시 토큰의 아이디가 일치하지 않습니다. 토큰 아이디: {}, 사용자 아이디: {}", refreshTokenInfo.userId(), userId);
+				// 불일치 시 해당 토큰 삭제 (보안 강화)
+				redisTokenService.deleteByToken(requestRefreshToken);
+				throw new BusinessException(ErrorCode.TOKEN_INVALID, "리프레시 토큰의 사용자 정보가 일치하지 않습니다.");
+			}
+
+			// 5. 기존 리프레시 토큰 무효화 (토큰 로테이션)
 			redisTokenService.deleteByToken(requestRefreshToken);
-			throw new BusinessException(ErrorCode.TOKEN_INVALID, "리프레시 토큰의 사용자 정보가 일치하지 않습니다.");
-		}
+			log.info("사용자 {}의 기존 리프레시 토큰을 무효화했습니다.", userId);
 
-		// 5. 기존 리프레시 토큰 무효화 (토큰 로테이션)
-		redisTokenService.deleteByToken(requestRefreshToken);
-		log.info("사용자 {}의 기존 리프레시 토큰을 무효화했습니다.", userId);
+			// 6. 새로운 Access Token 및 Refresh Token 발급
+			LoginResponse newTokens = generateNewTokens(userDetails);
+			log.info("사용자 {}에게 새로운 액세스 토큰과 리프레시 토큰을 발급했습니다.", userId);
 
-		// 6. 새로운 Access Token 및 Refresh Token 발급
-		LoginResponse newTokens = generateNewTokens(userDetails);
-		log.info("사용자 {}에게 새로운 액세스 토큰과 리프레시 토큰을 발급했습니다.", userId);
-
-		return newTokens;
+			return newTokens;
 	}
+
 }
