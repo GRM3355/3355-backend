@@ -15,14 +15,4 @@ public class CookieProperties {
 	private long maxAge;
 	private String sameSite;
 	private String domain;
-
-	// getters & setters
-	//public boolean isHttpOnly() { return httpOnly; }
-	//public void setHttpOnly(boolean httpOnly) { this.httpOnly = httpOnly; }
-
-	//public boolean isSecure() { return secure; }
-	//public void setSecure(boolean secure) { this.secure = secure; }
-
-	//public String getSameSite() { return sameSite; }
-	//public void setSameSite(String sameSite) { this.sameSite = sameSite; }
 }
