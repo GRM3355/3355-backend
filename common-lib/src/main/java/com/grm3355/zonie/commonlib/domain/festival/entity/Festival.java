@@ -43,7 +43,7 @@ public class Festival extends BaseTimeEntity {
 	private String addr1;
 
 	@Column(name = "content_id", nullable = false, unique = true, updatable = false)
-	private int contentId;	// 공공데이터에서 제공하는 행사정보 자체 ID
+	private int contentId;    // 공공데이터에서 제공하는 행사정보 자체 ID
 
 	@Column(name = "event_start_date", nullable = false)
 	private LocalDate eventStartDate;
@@ -95,6 +95,7 @@ public class Festival extends BaseTimeEntity {
 	@Column(name = "total_participant_count")
 	private Long totalParticipantCount = 0L;
 
+	@Builder.Default
 	@OneToMany(fetch = FetchType.LAZY)
 	@JoinColumn(name = "content_id", referencedColumnName = "content_id")
 	private List<FestivalDetailImage> detailImages = new ArrayList<>();
