@@ -113,6 +113,12 @@ public class RedisTokenService {
 			return null;
 		}
 	}
+	//리프레시 토큰 값 체크
+	public boolean validateRefreshToken(String userId) {
+		String redisKey = getRefreshTokenKey(userId);
+		String token = redisTemplate.opsForValue().get(redisKey);
+		return token != null && !token.isBlank();
+	}
 
 	//토큰 값 체크
 	public boolean validateLocationToken(String userId, String contextId) {
