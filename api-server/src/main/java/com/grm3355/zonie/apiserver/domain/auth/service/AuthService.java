@@ -158,7 +158,6 @@ public class AuthService {
         UserInfo userInfo = getUserInfo(request);
         User user = userRepository.findBySocialIdAndProviderTypeAndDeletedAtIsNull(userInfo.socialId(), userInfo.providerType())
                 .orElseGet(() -> signUp(userInfo));
-        System.out.println("사용자 저장완료 : " + user.getProfileNickName());
 
 		//return new LoginResponse(jwtTokenProvider.createAccessToken(user.getUserId(), user.getRole()),
 		//	userInfo.nickname());

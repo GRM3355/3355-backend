@@ -14,6 +14,16 @@ spring:
           client-name: Kakao
           scope:
             - profile_nickname
+
+  #카카오 로그인후 쿠키값 저장
+  set-cookie:
+    httpOnly: true
+    secure: false  #local:false, cd:true
+    path: "/"
+    maxAge: 604800  #60 * 60 * 24 * 7
+    sameSite: "Lax"  #local : Lax, cd : None
+    domain: "zony.or.kr"    # 서브도메인 간 공유
+
 logging:
   level:
     com.grm3355.zonie: DEBUG
