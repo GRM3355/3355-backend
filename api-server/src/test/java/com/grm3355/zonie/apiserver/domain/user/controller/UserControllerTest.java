@@ -10,10 +10,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -26,12 +28,14 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserQuitResponse;
+import com.grm3355.zonie.apiserver.domain.auth.util.CookieProperties;
 import com.grm3355.zonie.apiserver.domain.user.service.UserService;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.global.service.RateLimitingService;
 
 @WebMvcTest(UserController.class)
 @AutoConfigureMockMvc(addFilters = false) //시큐리티 제외
+@Import(CookieProperties.class)
 class UserControllerTest {
 
 	@Autowired
@@ -44,6 +48,7 @@ class UserControllerTest {
 	private RateLimitingService rateLimitingService;
 
 	@Test
+	@DisplayName("내 프로필조회 성공")
 	@WithMockUser(roles = "USER")
 	void userProfileSuccess() throws Exception {
 
@@ -81,8 +86,9 @@ class UserControllerTest {
 
 	}
 
-	@WithMockUser(username = "test-user", roles = "USER") // SecurityContext 자동 설정
 	@Test
+	@WithMockUser(username = "test-user", roles = "USER") // SecurityContext 자동 설정
+	@DisplayName("회원 탈퇴")
 	void quit_shouldDeleteUserAndClearCookie() throws Exception {
 
 		// given: UserDetailsImpl 생성

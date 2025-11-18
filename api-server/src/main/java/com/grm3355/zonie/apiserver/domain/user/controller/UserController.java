@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserQuitResponse;
+import com.grm3355.zonie.apiserver.domain.auth.util.CookieProperties;
 import com.grm3355.zonie.apiserver.domain.user.dto.EmailUpdateRequest;
 import com.grm3355.zonie.apiserver.domain.user.service.UserService;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
@@ -34,9 +35,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @RequestMapping("/api/v1/user")
 public class UserController {
     private final UserService userService;
-	public UserController(UserService userService) {
+	private final CookieProperties cookieProperties;
+
+	public UserController(UserService userService, CookieProperties cookieProperties) {
         this.userService = userService;
-    }
+		this.cookieProperties = cookieProperties;
+	}
 
 	//현재는 사용안함.
 	@Deprecated
@@ -84,24 +88,17 @@ public class UserController {
 		//사용자정보, Redis 정보 삭제
 		userService.quit(userDetails.getUserId(), request);
 
-		//리프레시 토큰 값 제거
+		//리프레시 토큰 값 제git
 		ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
 			.httpOnly(true)
-			.secure(false) // 로컬 환경
+			.secure(cookieProperties.isSecure()) // 로컬 환경
 			.path("/")
-			.maxAge(0)
-			.sameSite("Lax")
+			.maxAge(cookieProperties.getMaxAge())
+			.sameSite(cookieProperties.getSameSite())
 			.build();
 		response.addHeader("Set-Cookie", cookie.toString());
 
 		return ResponseEntity.noContent().build();
 	}
-
-    //todo 휴대전화 컬럼필요
-//    @PatchMapping("/update/phoneNumber")
-//    public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
-//                            @RequestBody PhoneNumberUpdateRequest request) {
-//        userService.updatePhoneNumber(userDetails.getId(), request);
-//    }
 
 }
