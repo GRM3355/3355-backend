@@ -95,6 +95,7 @@ public class UserController {
 			.path("/")
 			.maxAge(cookieProperties.getMaxAge())
 			.sameSite(cookieProperties.getSameSite())
+			.domain(cookieProperties.getDomain())
 			.build();
 		response.addHeader("Set-Cookie", cookie.toString());
 

@@ -97,7 +97,8 @@ public class AuthController {
 		String accessToken = loginResponse.getAccessToken();
 		String refreshToken = loginResponse.getRefreshToken();
 
-		log.info("samSite 비교 {}", cookieProperties.getSameSite());
+		log.info("samSite3 비교 {} ", cookieProperties.getSameSite());
+		log.info("domain3 비교 {}", cookieProperties.getDomain());
 
 		//HttpOnly 쿠키에 리프레시 토큰 저장
 		ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
@@ -106,6 +107,7 @@ public class AuthController {
 			.path("/")
 			.maxAge(cookieProperties.getMaxAge()) // 7일
 			.sameSite(cookieProperties.getSameSite())
+			.domain(cookieProperties.getDomain())
 			.build();
 		response.addHeader("Set-Cookie", cookie.toString());
 
@@ -167,6 +169,7 @@ public class AuthController {
 			.path("/")
 			.maxAge(cookieProperties.getMaxAge()) // 7일
 			.sameSite(cookieProperties.getSameSite())
+			.domain(cookieProperties.getDomain())
 			.build();
 		response.addHeader("Set-Cookie", cookie.toString());
 
@@ -201,6 +204,7 @@ public class AuthController {
 			.path("/")
 			.maxAge(0)
 			.sameSite(cookieProperties.getSameSite())
+			.domain(cookieProperties.getDomain())
 			.build();
 		response.addHeader("Set-Cookie", cookie.toString());
 
