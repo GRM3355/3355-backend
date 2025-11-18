@@ -97,8 +97,8 @@ public class AuthController {
 		String accessToken = loginResponse.getAccessToken();
 		String refreshToken = loginResponse.getRefreshToken();
 
-		log.info("samSite 비교 {}", cookieProperties.getSameSite());
-		log.info("domain 비교 {}", cookieProperties.getSameSite());
+		log.info("samSite2 비교 {}", cookieProperties.getSameSite());
+		log.info("domain2 비교 {}", cookieProperties.getSameSite());
 
 		//HttpOnly 쿠키에 리프레시 토큰 저장
 		ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)

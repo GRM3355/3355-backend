@@ -70,7 +70,7 @@ public class RedisTokenService {
 			redisTemplate.opsForValue().set(redisKey, infoJson, Duration.ofMillis(refreshTokenExpirationTime));
 			redisTemplate.opsForSet().add(userTokensKey, token);
 			redisTemplate.expire(userTokensKey, Duration.ofMillis(refreshTokenExpirationTime));
-			log.info("사용자 {}를 위해 Redis에 리프레시 토큰을 생성하고 저장했습니다: {}", userId, redisKey);
+			log.info("사용자 {}를 위해 Redis에 리프레시 토큰을 생성하고 저장했습니다: {}", userId, redisKey.substring(0,30));
 		} catch (JsonProcessingException e) {
 			log.error("Redis를 위한 RefreshTokenInfo 직렬화에 실패했습니다: {}", e.getMessage());
 			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "리프레시 토큰 저장 중 오류가 발생했습니다.");
