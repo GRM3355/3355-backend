@@ -108,15 +108,18 @@ public class ChatRoomService {
 	}
 
 	/**
-	 * 브라우저 닫기, 연결 끊김 등 명시적 /leave 없이 세션이 끊겼을 때 처리
+	 * 연결 끊김 (Disconnect)
+	 * : 브라우저 닫기, 연결 끊김 등 명시적 /leave 없이 세션이 끊겼을 때 처리
+	 * - Redis 참여자 수 감소 (o)
+	 * - DB(ChatRoomUser) 삭제 (x) DB lastReadAt 갱신 (o)
+	 * 재방문 (Reconnect) 시 Redis 참여자 수 다시 증가, DB(ChatRoomUser) 조회
 	 */
 	@Transactional
 	public void disconnectUser(String userId) {
 		log.info("Disconnect event received for User: {}", userId);
 
-		// 1. (REQ-CHAT-10) 역방향 조회: 이 유저가 참여 중이던 모든 방을 Redis에서 조회
+		// 1. 역방향 조회: 이 유저가 참여 중이던 모든 방을 Redis에서 조회
 		Set<Object> roomIds = redisTemplate.opsForSet().members(KEY_USER_ROOMS + userId);
-
 		if (roomIds == null || roomIds.isEmpty()) {
 			log.info("User {} was not active in any tracked rooms in Redis.", userId);
 			return;
@@ -126,13 +129,14 @@ public class ChatRoomService {
 		for (Object roomIdObj : roomIds) {
 			String roomId = (String)roomIdObj;
 
-			// 실시간 참여자 목록에서 제거
+			// 실시간 참여자 목록에서 제거 (**)
 			redisTemplate.opsForSet().remove(KEY_PARTICIPANTS + roomId, userId);
 			log.debug("Removed user {} from participants set of room {}", userId, roomId);
 		}
 
-		// 3. (Ext 2) DB 갱신: User가 참여 중이던 모든 방에 대해 last_read_at을 지금 시간으로 업데이트
-		//    (안 읽은 메시지 계산 시 '끊어진 시점'까지 읽은 것으로 간주)
+		// 3. DB 갱신: 마지막 읽은 위치 갱신 (삭제는 안 함 -> 나중에 돌아오면 이어서 보기 가능)
+		// User가 참여 중이던 모든 방에 대해 last_read_at을 지금 시간으로 업데이트
+		// (안 읽은 메시지 계산 시 '끊어진 시점'까지 읽은 것으로 간주)
 		chatRoomUserRepository.updateLastReadAtByUserId(userId, LocalDateTime.now());
 		log.info("Updated lastReadAt for user {} in relevant chat rooms.", userId);
 
@@ -142,6 +146,8 @@ public class ChatRoomService {
 
 	/**
 	 * 사용자가 "나가기" 버튼을 눌러 명시적으로 퇴장할 때 처리
+	 * - Redis 참여자 수 감소 (o)
+	 * - DB 삭제 (o)
 	 */
 	@Transactional
 	public void leaveRoom(String userId, String roomId) {
@@ -153,12 +159,12 @@ public class ChatRoomService {
 		ChatRoom room = chatRoomRepository.findByChatRoomId(roomId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
 
-		// 2. Redis에서 실시간 참여자 수 감소 및 역방향 매핑 제거 (특정 방만)
+		// 2. Redis에서 실시간 참여자 수 감소 및 역방향 매핑 제거
 		redisTemplate.opsForSet().remove(KEY_PARTICIPANTS + roomId, userId);
 		redisTemplate.opsForSet().remove(KEY_USER_ROOMS + userId, roomId);
 
-		// 3. (REQ-CHAT-08) DB 삭제: user_chat_rooms 테이블에서 해당 데이터 DELETE
-		//    (재입장 시 신규 입장자로 간주되어 새 닉네임을 받게 됨)
+		// 3. DB 삭제: user_chat_rooms 테이블에서 해당 데이터 DELETE
+		// (재입장 시 신규 입장자로 간주되어 새 닉네임을 받게 됨)
 		chatRoomUserRepository.deleteByUserAndChatRoom(user, room);
 		log.info("Successfully removed user {} from room {} permanently.", userId, roomId);
 	}

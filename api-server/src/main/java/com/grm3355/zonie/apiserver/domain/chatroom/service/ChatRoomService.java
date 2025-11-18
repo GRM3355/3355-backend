@@ -71,6 +71,7 @@ public class ChatRoomService {
 
 	/**
 	 * 채팅방 생성
+	 * : 유저조회, 축제조회, 위치검증, 토큰발급, 채팅방제한개수체크, 엔티티생성저장, Redis Pub/Sub join 이벤트 발행
 	 */
 	public ChatRoomResponse setCreateChatRoom(long festivalId,
 		ChatRoomRequest request, UserDetailsImpl userDetails) {
@@ -111,12 +112,12 @@ public class ChatRoomService {
 			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "위치 인증 토큰 정보를 읽을 수 없습니다.");
 		}
 
-		// 5. 채팅방 갯수 체크
+		// 5. 채팅방 제한 개수 체크
 		if (festival.getChatRoomCount() >= max_room) {
 			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설은 " + max_room + "개까지 입니다.");
 		}
 
-		//5. 채팅방 저장
+		// 6. 채팅방 저장
 		// 채팅방의 위치(Point)는 갱신된(혹은 새로 생성된) 토큰의 위치를 사용합니다.
 		Point point = geometryFactory.createPoint(
 			new Coordinate(userTokenDto.getLon(), userTokenDto.getLat())); // lon=X, lat=Y
@@ -134,26 +135,23 @@ public class ChatRoomService {
 			.build();
 
 		ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
-
-		//festival에 채팅방갯수 저장 /festivalId
 		festivalInfoService.increaseChatRoomCount(festivalId);
 
 		try {
-			// 5. 이벤트 페이로드 생성
+			// 7. 이벤트 페이로드 생성
 			Map<String, String> joinEvent = Map.of(
 				"userId", user.getUserId(),
 				"roomId", saveChatRoom.getChatRoomId()
 			);
 
-			// 6. Redis Pub/Sub으로 이벤트 발행
+			// 8. Redis Pub/Sub으로 이벤트 발행
 			redisTemplate.convertAndSend(JOIN_EVENT_CHANNEL, joinEvent);
 			log.info("Published join event for User {} to Room {}", user.getUserId(), saveChatRoom.getChatRoomId());
 
 		} catch (Exception e) {
-			// 채팅방 생성 트랜잭션은 성공했으나, 이벤트 발행에 실패한 경우
-			// 사용자는 수동으로 '참여' 버튼을 눌러야 할 수 있음.
-			log.error("Failed to publish join event for User {} to Room {}: {}",
-				user.getUserId(), saveChatRoom.getChatRoomId(), e.getMessage());
+			log.error("Failed to publish join event. Redis 이벤트 발행 실패. 트랜잭션을 롤백합니다. User {}, Room {}",
+				user.getUserId(), saveChatRoom.getChatRoomId(), e);
+			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 생성 중 오류가 발생했습니다. (이벤트 발행 실패)");
 		}
 
 		//dto 변환
