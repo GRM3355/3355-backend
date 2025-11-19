@@ -25,10 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomCreateResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.enums.OrderType;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
@@ -73,7 +73,7 @@ public class ChatRoomService {
 	 * 채팅방 생성
 	 * : 유저조회, 축제조회, 위치검증, 토큰발급, 채팅방제한개수체크, 엔티티생성저장, Redis Pub/Sub join 이벤트 발행
 	 */
-	public ChatRoomResponse setCreateChatRoom(long festivalId,
+	public ChatRoomCreateResponse setCreateChatRoom(long festivalId,
 		ChatRoomRequest request, UserDetailsImpl userDetails) {
 
 		// 0. 유저 조회
@@ -155,7 +155,7 @@ public class ChatRoomService {
 		}
 
 		//dto 변환
-		return ChatRoomResponse.builder()
+		return ChatRoomCreateResponse.builder()
 			.chatRoomId(roomId)
 			.festivalId(festivalId)
 			.userId(userId)
@@ -167,17 +167,17 @@ public class ChatRoomService {
 
 	/**
 	 * 축제별 채팅방 목록
+	 * 정렬 기본: 참여자 많은 순(PART_DESC)
 	 */
 	@Transactional
-	public Page<MyChatRoomResponse> getFestivalChatRoomList(long festivalId, ChatRoomSearchRequest req) {
+	public Page<ChatRoomResponse> getFestivalChatRoomList(long festivalId, ChatRoomSearchRequest req) {
 
 		//정렬 순서
 		if (req.getOrder() == null)
-			req.setOrder(OrderType.DATE_ASC);
+			req.setOrder(OrderType.PART_DESC);
 
-		Sort.Order order = getSortOrder(req.getOrder());
-
-		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), Sort.by(order));
+		Sort sort = getSort(req.getOrder());
+		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), sort);
 
 		// 1. PG에서 기본 정보 조회: ListType 내용 가져오기
 		Page<ChatRoomInfoDto> pageList = getFestivalListTypeUser(festivalId, req, pageable);
@@ -213,7 +213,7 @@ public class ChatRoomService {
 		Map<String, String> lastTimestampsMap = redisScanService.multiGetLastMessageTimestamps(timestampKeys);
 
 		// 3. DTO 변환 (PG 백업 데이터 + Redis 실시간 데이터 병합)
-		List<MyChatRoomResponse> dtoPage = pageList.stream()
+		List<ChatRoomResponse> dtoPage = pageList.stream()
 			.map(dto -> {
 				String roomId = dto.chatRoomId();
 
@@ -234,7 +234,7 @@ public class ChatRoomService {
 				}
 
 				// MyChatRoomResponse의 오버로딩된 fromDto 호출
-				return MyChatRoomResponse.fromDto(dto, finalContent, finalCount, finalTimestamp);
+				return ChatRoomResponse.fromDto(dto, finalContent, finalCount, finalTimestamp);
 			})
 			.collect(Collectors.toList());
 
@@ -253,36 +253,36 @@ public class ChatRoomService {
 
 	/**
 	 * 나의 채팅방 목록
+	 * 정렬 기본: 최신 대화 순(ACTIVE_DESC)
 	 */
 	@Transactional
-	public Page<MyChatRoomResponse> getMyRoomChatRoomList(UserDetailsImpl userDetails,
+	public Page<ChatRoomResponse> getMyRoomChatRoomList(UserDetailsImpl userDetails,
 		ChatRoomSearchRequest req) {
 		String userId = userDetails.getUsername();
 
-		//정렬 순서
+		// 정렬 순서
 		if (req.getOrder() == null)
-			req.setOrder(OrderType.PART_DESC);
+			req.setOrder(OrderType.ACTIVE_DESC);
 
-		Sort.Order order = getSortOrder(req.getOrder());
-
+		Sort sort = getSort(req.getOrder());
 		Pageable pageable = PageRequest.of(req.getPage() - 1,
-			req.getPageSize(), Sort.by(order));
+			req.getPageSize(), sort);
 
-		//ListType 내용 가져오기
+		// ListType 내용 가져오기
 		Page<ChatRoomInfoDto> pageList = getMyRoomListTypeUser(userId, req, pageable);
 
-		//페이지 변환
-		List<MyChatRoomResponse> dtoPage = pageList.stream().map(MyChatRoomResponse::fromDto)
+		// 페이지 변환
+		List<ChatRoomResponse> dtoPage = pageList.stream().map(ChatRoomResponse::fromDto)
 			.collect(Collectors.toList());
 
 		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
 	}
 
-	//축제별 채팅방 검색조건별 목록 가져오기
+	// 축제별 채팅방 검색조건별 목록 가져오기
 	private Page<ChatRoomInfoDto> getMyRoomListTypeUser(String userId, ChatRoomSearchRequest req, Pageable pageable) {
 
 		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
-		System.out.println("===============>keyword===>" + keyword);
+		log.info("===============>keyword===>{}", keyword);
 		return chatRoomRepository.chatMyRoomList(userId, keyword, pageable);
 
 	}
@@ -315,7 +315,35 @@ public class ChatRoomService {
 		return contentMap;
 	}
 
-	//정렬 순서 가져오기
+	/**
+	 * 정렬 순서 가져오기 (복합 정렬 지원)
+	 * @return Sort 객체
+	 */
+	private Sort getSort(OrderType orderType) {
+		return switch (orderType) {
+			// 참여자 많은 순: 참여자 수 내림차순 -> (동점시) 생성일 최신순
+			case PART_DESC -> Sort.by(
+				Sort.Order.desc("participant_count"),
+				Sort.Order.desc("created_at")
+			);
+			// 참여자 적은 순: 참여자 수 오름차순 -> (동점시) 생성일 최신순
+			case PART_ASC -> Sort.by(
+				Sort.Order.asc("participant_count"),
+				Sort.Order.desc("created_at")
+			);
+			// 생성 최신순
+			case DATE_DESC -> Sort.by(Sort.Order.desc("created_at"));
+			// 생성 오래된순
+			case DATE_ASC -> Sort.by(Sort.Order.asc("created_at"));
+			// 활성화 최신순
+			case ACTIVE_DESC -> Sort.by(Sort.Order.desc("last_message_at"));
+			// 활성화 오래된순
+			case ACTIVE_ASC -> Sort.by(Sort.Order.asc("last_message_at"));
+		};
+	}
+
+	// 정렬 순서 가져오기
+	@Deprecated
 	private Sort.Order getSortOrder(OrderType orderType) {
 		return switch (orderType) {
 			case PART_ASC -> Sort.Order.asc("participant_count");

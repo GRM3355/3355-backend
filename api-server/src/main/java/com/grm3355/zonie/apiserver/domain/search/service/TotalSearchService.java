@@ -6,8 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
@@ -86,7 +86,7 @@ public class TotalSearchService {
 	 * @param request 검색dto
 	 * @return Page<MyChatRoomResponse>
 	 */
-	public Page<MyChatRoomResponse> getChatroomTotalSearch(ChatRoomSearchRequest request) {
+	public Page<ChatRoomResponse> getChatroomTotalSearch(ChatRoomSearchRequest request) {
 
 		//키워드 체크
 		checkKeyWord(request.getKeyword());

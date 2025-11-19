@@ -1,6 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.festival.service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +17,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,8 +58,10 @@ public class FestivalService {
 
 	/**
 	 * 축제목록
-	 * @param req 검색dto
-	 * @return page
+	 * 정렬:
+	 * 1: 상태 정렬 (진행중 vs 예정(Start > Today) vs 종료) - 종료한 상태(End < Today)는 없을 테지만 가장 마지막에 배치
+	 * 2: 날짜 정렬 - 진행중 기본: 시작일 빠른 순, 예정 기본: 시작일 가까운 순(임박순)
+	 * 3: 제목 정렬 (동일 날짜면 제목 가나다순)
 	 */
 	@Transactional
 	public Page<FestivalResponse> getFestivalList(FestivalSearchRequest req) {
@@ -69,32 +73,65 @@ public class FestivalService {
 			}
 		}
 
-		Sort.Order order;
-		if (req.getOrder() == FestivalOrderType.DATE_ASC) {
-			order = Sort.Order.asc("event_start_date");
-		} else if (req.getOrder() == FestivalOrderType.DATE_DESC) {
-			order = Sort.Order.desc("event_start_date");
-		} else if (req.getOrder() == FestivalOrderType.TITLE_ASC) {
-			order = Sort.Order.asc("title");
-		} else if (req.getOrder() == FestivalOrderType.TITLE_DESC) {
-			order = Sort.Order.desc("title");
-		} else {
-			order = Sort.Order.asc("event_start_date");
-		}
-		Pageable pageable = PageRequest.of(req.getPage() - 1,
-			req.getPageSize(), Sort.by(order));
+		List<Sort.Order> orders = new ArrayList<>();
+		Sort sort;
 
-		//ListType 내용 가져오기
+		if (req.getOrder() == FestivalOrderType.DATE_ASC || req.getOrder() == null) {
+			// DATE_ASC 또는 기본값일 때, (Ongoing -> Upcoming -> Ended)
+
+			// 1: 상태 그룹 정렬 (Ongoing: 0, Upcoming: 1, Ended: 2)
+			// Native Query에 사용되는 컬럼명(event_start_date, event_end_date)을 직접 사용
+			Sort statusGroupSort = JpaSort.unsafe(Sort.Direction.ASC,
+				"""
+					CASE
+						WHEN event_start_date <= CURRENT_DATE AND event_end_date >= CURRENT_DATE THEN 0
+						WHEN event_start_date > CURRENT_DATE THEN 1
+						ELSE 2
+					END
+					""");
+			Sort dateSort = Sort.by(Sort.Direction.ASC, "event_start_date");      // 2: 시작일 빠른 순
+			Sort titleSort = Sort.by(Sort.Direction.ASC, "title");                // 3: 제목 가나다 순
+
+			sort = statusGroupSort.and(dateSort).and(titleSort);
+
+		} else if (req.getOrder() == FestivalOrderType.DATE_DESC) {
+			sort = Sort.by(
+				Sort.Order.desc("event_start_date"),
+				Sort.Order.asc("title")
+			);
+		} else if (req.getOrder() == FestivalOrderType.TITLE_ASC) {
+			sort = Sort.by(Sort.Order.asc("title"));
+		} else if (req.getOrder() == FestivalOrderType.TITLE_DESC) {
+			sort = Sort.by(Sort.Order.desc("title"));
+		} else {
+			// 그 외의 경우
+			Sort statusGroupSort = JpaSort.unsafe(Sort.Direction.ASC,
+				"""
+					CASE
+						WHEN event_start_date <= CURRENT_DATE AND event_end_date >= CURRENT_DATE THEN 0
+						WHEN event_start_date > CURRENT_DATE THEN 1
+						ELSE 2
+					END
+					""");
+			Sort dateSort = Sort.by(Sort.Direction.ASC, "event_start_date");
+			Sort titleSort = Sort.by(Sort.Direction.ASC, "title");
+
+			sort = statusGroupSort.and(dateSort).and(titleSort);
+		}
+
+		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), sort);
+
+		// ListType 내용 가져오기
 		Page<Festival> pageList = getFestivalListType(req, pageable);
 
-		//페이지 변환
+		// 페이지 변환
 		List<FestivalResponse> dtoPage = pageList.stream().map(FestivalResponse::fromEntity)
 			.collect(Collectors.toList());
 
 		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
 	}
 
-	//축제별 채팅방 검색조건별 목록 가져오기
+	// 축제별 채팅방 검색조건별 목록 가져오기
 	public Page<Festival> getFestivalListType(FestivalSearchRequest req, Pageable pageable) {
 
 		Region region = req.getRegion();
@@ -103,7 +140,7 @@ public class FestivalService {
 		FestivalStatus status = req.getStatus();
 		String statusStr = status != null ? status.toString() : null;
 
-		//위치기반 검색이면
+		// 위치기반 검색이면
 		if (req.isPs()) {
 			return festivalRepository
 				.getFestivalLocationBased(req.getLat(), req.getLon(), req.getRadius() * 1000.0, preview_days, pageable);
@@ -150,7 +187,8 @@ public class FestivalService {
 	@Transactional(readOnly = true)
 	public long getFestivalCountByRegion(Region region) {
 		if (region == null) {
-			throw new BusinessException(ErrorCode.BAD_REQUEST, "지역 코드를 정확하게 입력하세요. 지역코드 정보는 다음과 같습니다.\n SEOUL(\"서울\"),\n"
+			throw new BusinessException(ErrorCode.BAD_REQUEST,
+				"지역 코드를 정확하게 입력하세요. 지역코드 정보는 다음과 같습니다.\n SEOUL(\"서울\"),\n"
 				+ "\tGYEONGGI(\"경기/인천\"),\n"
 				+ "\tCHUNGCHEONG(\"충청/대전/세종\"),\n"
 				+ "\tGANGWON(\"강원\"),\n"
@@ -182,7 +220,7 @@ public class FestivalService {
 			// WKTReader는 org.locationtech.jts.io.WKTReader를 사용합니다.
 			// PostgreSQL/PostGIS의 SRID 4326을 수동으로 설정합니다.
 			WKTReader reader = new WKTReader();
-			position = (Point) reader.read(wkt);
+			position = (Point)reader.read(wkt);
 			position.setSRID(4326); // SRID 4326 (WGS 84) 설정
 
 		} catch (ParseException e) {
@@ -193,7 +231,7 @@ public class FestivalService {
 		long currentTime = System.currentTimeMillis();
 
 		// 1. contentId: 임의의 고유값 (현재 시간의 밀리초 사용)
-		int contentId = (int) (currentTime % 10000000);
+		int contentId = (int)(currentTime % 10000000);
 
 		// 2. addr1: 임의의 주소
 		String addr1 = "자동 생성된 임시 주소 (테스트)";
