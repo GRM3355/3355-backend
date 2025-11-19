@@ -60,20 +60,20 @@ public class LocationService {
 		String userId = userDetails.getUsername();
 		String festivalIdStr = String.valueOf(festivalId);
 
-		// 1. 축제 DB 정보 조회 -> PostGIS 거리 계산
-		// Java가 아닌 DB(PostGIS)가 거리를 계산하도록 Native Query 호출
+		// 1. 축제 정보 조회해 Region 정보 획득 (먼저 조회하여 엔티티 존재 확인)
+		Festival festival = festivalRepository.findByFestivalId(festivalId)
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 축제정보가 없습니다."));
+
+		// 2. 축제 DB 정보 조회 -> PostGIS 거리 계산 (엔티티가 있으므로 거리 계산 요청)
 		double radius_km = festivalRepository.findDistanceToFestival(
 				festivalId,
 				userLocationDto.getLon(), // :lon
 				userLocationDto.getLat()  // :lat
 			)
-			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 축제정보가 없습니다."));
+			// 거리 계산은 실패할 가능성이 낮지만 Optional 처리
+			.orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "축제 위치 정보를 찾을 수 없습니다."));
 
-		// 2-1. 축제 정보 조회해 Region 정보 획득
-		Festival festival = festivalRepository.findByFestivalId(festivalId)
-			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 축제정보가 없습니다."));
-
-		// 2-2. 지역별 반경 제한값 동적 결정
+		// 3. 지역별 반경 제한값 동적 결정 (조회된 festival 객체 사용)
 		final double dynamicRadiusLimit;
 		if ("SEOUL".equals(festival.getRegion())) {
 			dynamicRadiusLimit = locationRadiusLimit; // 서울: 1km

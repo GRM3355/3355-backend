@@ -15,6 +15,11 @@ spring:
           scope:
             - profile_nickname
 
+  datasource:
+    hikari:
+      max-lifetime: 15000 # 15초로 설정 (PostgreSQL 서버가 내려갔을 때 빠르게 정리)
+      connection-timeout: 3000
+
   #카카오 로그인후 쿠키값 저장
   set-cookie:
     httpOnly: true

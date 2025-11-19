@@ -84,7 +84,7 @@ public class RedisTokenService {
 
 		log.info("====================>generateLocationToken=" + redisKey);
 		try {
-			String infoJson = buildLocationJson(info.getUserId(), "", "", info.getLat(), info.getLon());
+			String infoJson = buildLocationJson(info.getUserId(), info.getLat(), info.getLon());
 			redisTemplate.opsForValue().set(redisKey, infoJson, this.tokenTtl); // 15분 TTL
 
 			// getLocationInfo 호출 시에도 contextId가 필요
