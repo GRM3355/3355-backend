@@ -46,7 +46,7 @@ public class ChatRoomService {
 	 */
 	@Transactional
 	public String joinRoom(String userId, String roomId) {
-		// 1. (REQ-CHATLIST-14) 정원 검증
+		// 1. 정원 검증
 		Long currentCount = redisTemplate.opsForSet().size(KEY_PARTICIPANTS + roomId);
 		if (currentCount != null && currentCount >= MAX_PARTICIPANTS) {
 			throw new BusinessException(ErrorCode.CONFLICT, "채팅방 최대 정원(" + MAX_PARTICIPANTS + "명)을 초과했습니다.");
@@ -60,7 +60,7 @@ public class ChatRoomService {
 		log.info("USER FETCHED: {}", user.getUserId());
 		log.info("ROOM FETCHED: {}", room.getChatRoomId());
 
-		// 3. (REQ-CHAT-08) 재방문자 처리: DB에 ChatRoomUser 데이터가 있는지 확인
+		// 3. 재방문자 처리: DB에 ChatRoomUser 데이터가 있는지 확인
 		Optional<ChatRoomUser> existingParticipant = chatRoomUserRepository.findByUserAndChatRoom(user, room);
 
 		if (existingParticipant.isPresent()) {

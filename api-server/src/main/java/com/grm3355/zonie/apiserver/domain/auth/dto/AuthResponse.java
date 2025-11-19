@@ -11,6 +11,5 @@ public record AuthResponse(
 	String accessToken,
 	@Schema(description = "Refresh Token", example = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ...")
 	String refreshToken
-
 ) {
 }
