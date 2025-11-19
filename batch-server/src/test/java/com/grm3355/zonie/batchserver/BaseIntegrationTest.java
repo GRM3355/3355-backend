@@ -28,8 +28,6 @@ public abstract class BaseIntegrationTest {
 			.withEnv("POSTGRES_DB", "testdb")
 			.withEnv("POSTGRES_USER", "testuser")
 			.withEnv("POSTGRES_PASSWORD", "testpass");
-	//.withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64"))
-	// .waitingFor(Wait.forLogMessage(".*database system is ready to accept connections.*\\n", 1).withStartupTimeout(Duration.ofSeconds(60)));
 
 	// === 2. Redis 컨테이너 ===
 	@Container

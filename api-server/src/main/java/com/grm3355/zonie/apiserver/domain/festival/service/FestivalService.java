@@ -81,13 +81,14 @@ public class FestivalService {
 
 			// 1: 상태 그룹 정렬 (Ongoing: 0, Upcoming: 1, Ended: 2)
 			// Native Query에 사용되는 컬럼명(event_start_date, event_end_date)을 직접 사용
+			// f. 별칭을 사용하여 PostGIS Native 쿼리 환경에서 커스텀 정렬이 무시되지 않도록 함
 			Sort statusGroupSort = JpaSort.unsafe(Sort.Direction.ASC,
 				"""
-					CASE
-						WHEN event_start_date <= CURRENT_DATE AND event_end_date >= CURRENT_DATE THEN 0
-						WHEN event_start_date > CURRENT_DATE THEN 1
+					(CASE
+						WHEN f.event_start_date <= CURRENT_DATE AND f.event_end_date >= CURRENT_DATE THEN 0
+						WHEN f.event_start_date > CURRENT_DATE THEN 1
 						ELSE 2
-					END
+					END)
 					""");
 			Sort dateSort = Sort.by(Sort.Direction.ASC, "event_start_date");      // 2: 시작일 빠른 순
 			Sort titleSort = Sort.by(Sort.Direction.ASC, "title");                // 3: 제목 가나다 순
@@ -107,11 +108,11 @@ public class FestivalService {
 			// 그 외의 경우
 			Sort statusGroupSort = JpaSort.unsafe(Sort.Direction.ASC,
 				"""
-					CASE
-						WHEN event_start_date <= CURRENT_DATE AND event_end_date >= CURRENT_DATE THEN 0
-						WHEN event_start_date > CURRENT_DATE THEN 1
+					(CASE
+						WHEN f.event_start_date <= CURRENT_DATE AND f.event_end_date >= CURRENT_DATE THEN 0
+						WHEN f.event_start_date > CURRENT_DATE THEN 1
 						ELSE 2
-					END
+					END)
 					""");
 			Sort dateSort = Sort.by(Sort.Direction.ASC, "event_start_date");
 			Sort titleSort = Sort.by(Sort.Direction.ASC, "title");

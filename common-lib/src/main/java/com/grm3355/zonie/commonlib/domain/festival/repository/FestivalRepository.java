@@ -48,26 +48,36 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			      WHERE f.festival_id is not null
 			      AND (:region is null or f.region = :region)
 			      	AND (:keyword is null OR f.title ILIKE '%' || :keyword || '%')
-			    AND (CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum)) 
-					             AND CURRENT_TIMESTAMP <= f.event_end_date)
-				AND (
-					:status = 'ALL' or :status is null
-					OR (:status = 'ONGOING' AND f.event_start_date <= CURRENT_DATE AND f.event_end_date >= CURRENT_DATE)
-					OR (:status = 'UPCOMING' AND f.event_start_date > CURRENT_DATE)
-				  )
+			    AND (
+			        -- 기간 필터링 조건
+			        :dayNum = -1 OR (
+			            CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum)) 
+			            AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second')
+			        )
+			      )
+			    AND (
+			        :status = 'ALL' or :status is null
+			        OR (:status = 'ONGOING' AND f.event_start_date <= CURRENT_DATE AND f.event_end_date >= CURRENT_DATE)
+			        OR (:status = 'UPCOMING' AND f.event_start_date > CURRENT_DATE)
+			      )
 			""", countQuery = """
 		SELECT COUNT(*)
 		      FROM festivals f
 		      WHERE f.festival_id is not null
 		      AND (:region is null or f.region = :region)
 		      	AND (:keyword is null or f.title ILIKE '%' || :keyword || '%')
-		    AND (CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
-				             AND CURRENT_TIMESTAMP <= f.event_end_date)
-			AND (
-				:status = 'ALL' or :status is null
-				OR (:status = 'ONGOING' AND f.event_start_date <= CURRENT_DATE AND f.event_end_date >= CURRENT_DATE)
-				OR (:status = 'UPCOMING' AND f.event_start_date > CURRENT_DATE)
-			  )
+		    AND (
+		        -- 기간 필터링 조건
+		        :dayNum = -1 OR (
+		            CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum)) 
+		            AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second')
+		        )
+		      )
+		    AND (
+		        :status = 'ALL' or :status is null
+		        OR (:status = 'ONGOING' AND f.event_start_date <= CURRENT_DATE AND f.event_end_date >= CURRENT_DATE)
+		        OR (:status = 'UPCOMING' AND f.event_start_date > CURRENT_DATE)
+		      )
 		""",
 		nativeQuery = true)
 	Page<Festival> getFestivalList(String region, String status, String keyword,
@@ -83,14 +93,14 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	 */
 	@Query(value =
 		"SELECT ST_Distance(" +
-			// 1. DB에 저장된 축제 위치 (geography 타입으로 캐스팅)
-			"    f.position::geography, " +
-			"    ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography " +
-			// 2. 사용자의 현재 위치 (lon, lat)로 geography 생성
-			// 3. 결과를 미터(m)에서 킬로미터(km)로 변환
-			") / 1000.0 " +
-			"FROM festivals f " +
-			"WHERE f.festival_id = :festivalId",
+		// 1. DB에 저장된 축제 위치 (geography 타입으로 캐스팅)
+		"    f.position::geography, " +
+		"    ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography " +
+		// 2. 사용자의 현재 위치 (lon, lat)로 geography 생성
+		// 3. 결과를 미터(m)에서 킬로미터(km)로 변환
+		") / 1000.0 " +
+		"FROM festivals f " +
+		"WHERE f.festival_id = :festivalId",
 		nativeQuery = true)
 	Optional<Double> findDistanceToFestival(@Param("festivalId") long festivalId, @Param("lon") double lon,
 		@Param("lat") double lat);
@@ -104,7 +114,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			FROM festivals f
 			WHERE f.festival_id is not null
 			    AND (CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
-				AND CURRENT_TIMESTAMP <= f.event_end_date)
+				AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second'))
 				AND (ST_DWithin(f.position::geography, ST_MakePoint(:lon, :lat)::geography,:radius))
 			""",
 		countQuery = """
@@ -112,7 +122,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			FROM festivals f
 			WHERE f.festival_id is not null
 			    AND (CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
-				AND CURRENT_TIMESTAMP <= f.event_end_date)
+				AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second'))
 				AND (ST_DWithin(f.position::geography, ST_MakePoint(:lon, :lat)::geography,:radius))
 			""",
 		nativeQuery = true)
@@ -128,7 +138,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			FROM festivals f
 			WHERE f.region = :region
 			AND (CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
-			     AND CURRENT_TIMESTAMP <= f.event_end_date)
+			     AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second'))
 			""",
 		nativeQuery = true
 	)
@@ -156,5 +166,6 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	void syncTotalParticipantCounts();
 
 	Festival findByContentId(int contentId);
+
 	List<Festival> findByContentIdIn(List<Integer> contentIds);
 }
