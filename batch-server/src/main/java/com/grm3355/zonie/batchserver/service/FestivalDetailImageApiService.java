@@ -41,6 +41,7 @@ public class FestivalDetailImageApiService {
 		this.festivalDetailImageBatchMapper = festivalDetailImageBatchMapper;
 	}
 
+
 	//상세이미지 저장
 	public void saveFestivalDetailImages(List<Festival> festivals) {
 		log.info("축제 상세 이미지 동기화 시작");
@@ -54,15 +55,17 @@ public class FestivalDetailImageApiService {
 				}
 
 				// 상세 이미지 API 호출
-				List<ApiFestivalDetailImageDto> imageDtos = fetchFestivalDetailImages(contentId);
+				List<ApiFestivalDetailImageDto> imageDto = fetchFestivalDetailImages(contentId);
 
 				// DTO → Entity 변환
-				List<FestivalDetailImage> imageEntities = imageDtos.stream()
-					.map(festivalDetailImageBatchMapper::toDetailImageEntity)
+				List<FestivalDetailImage> imageEntities = imageDto.stream()
+					//.map(festivalDetailImageBatchMapper::toDetailImageEntity)
+					.map(imgDto ->
+						festivalDetailImageBatchMapper.toDetailImageEntity(imgDto, festival))
 					.collect(Collectors.toList());
 
 				// 기존 이미지 삭제 후 새로 저장 (Upsert 규칙)
-				festivalDetailImageRepository.deleteByContentId(festival.getContentId());
+				festivalDetailImageRepository.deleteByFestival_ContentId(festival.getContentId());
 				festivalDetailImageRepository.saveAll(imageEntities);
 
 				log.info("상세 이미지 저장 완료 - festivalId: {}, {}건",
