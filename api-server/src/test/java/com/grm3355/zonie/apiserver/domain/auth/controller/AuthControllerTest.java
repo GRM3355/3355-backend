@@ -1,7 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
-import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -72,7 +71,7 @@ class AuthControllerTest {
 
 	@Test
 	@DisplayName("카카오 로그인후 callback")
-	void loginWithKakao_shouldReturnHtmlAndSetCookie() throws Exception {
+	void loginWithKakaoShouldReturnHtmlAndSetCookie() throws Exception {
 		// given: 카카오 로그인 코드
 		String code = "testCode";
 

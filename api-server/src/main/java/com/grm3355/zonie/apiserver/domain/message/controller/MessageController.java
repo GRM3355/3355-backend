@@ -56,11 +56,7 @@ public class MessageController {
 						value = "{\"success\":true,\"data\":{\"liked\":false,\"likeCount\":5},\"error\":null,\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}")
 				}
 			)),
-		// 400, 401, 403, 404 ( -> 고유한 설명 사용)
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 유효성 검증 실패 (e.g., messageId 형식 오류)", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-			examples = @ExampleObject(name = "BAD_REQUEST",
-				value = "{\"success\":false,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}")
-		)),
+		// 401, 403, 404 (-> 고유한 설명 사용)
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 			examples = @ExampleObject(name = "UNAUTHORIZED",
 				value = "{\"success\":false,\"error\":{\"code\":\"UNAUTHORIZED\",\"message\":\"인증에 실패했습니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}")
@@ -74,6 +70,7 @@ public class MessageController {
 				value = "{\"success\":false,\"error\":{\"code\":\"NOT_FOUND\",\"message\":\"메시지를 찾을 수 없습니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}")
 		))
 	})
+	@ApiError400
 	@ApiError405
 	@ApiError415
 	@ApiError429

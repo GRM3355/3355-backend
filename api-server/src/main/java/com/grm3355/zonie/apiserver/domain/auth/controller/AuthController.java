@@ -5,7 +5,6 @@ import java.io.IOException;
 import jakarta.servlet.http.HttpServletResponse;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,7 +39,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -89,7 +87,7 @@ public class AuthController {
 	@ApiError415
 	@ApiError429
 	@GetMapping("/kakao/callback")
-	public void  loginWithKakao(@RequestParam("code") String code,
+	public void loginWithKakao(@RequestParam("code") String code,
 		HttpServletResponse response, @RequestParam("state") String returnUrl) throws IOException {
 
 		LoginResponse loginResponse = authService.login(new LoginRequest(ProviderType.KAKAO, code));
@@ -130,8 +128,8 @@ public class AuthController {
 		*/
 
 		//현재창 방식
-		log.info("사용자 토큰 내보내기 ====> {}", accessToken.substring(0,10));
-		String redirectUrl = returnUrl+"?accessToken=" + accessToken;
+		log.info("사용자 토큰 내보내기 ====> {}", accessToken.substring(0, 10));
+		String redirectUrl = returnUrl + "?accessToken=" + accessToken;
 		response.sendRedirect(redirectUrl);  // 제거해서 프론트로 돌려보냄
 	}
 

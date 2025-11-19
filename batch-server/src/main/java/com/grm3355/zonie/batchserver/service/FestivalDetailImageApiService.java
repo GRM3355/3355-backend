@@ -25,22 +25,22 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class FestivalDetailImageApiService {
 
-	private final WebClient webClient;
 	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
-	@Value("${openapi.serviceKey}")
-	private String serviceKey;
-	private final String OPENAPI_BASE_URL = "https://apis.data.go.kr/B551011/KorService2/detailImage2";
-
+	private final WebClient webClient;
+	private final String openapiBaseUrl = "https://apis.data.go.kr/B551011/KorService2/detailImage2";
 	private final FestivalDetailImageRepository festivalDetailImageRepository;
 	private final FestivalDetailImageBatchMapper festivalDetailImageBatchMapper;
+	@Value("${openapi.serviceKey}")
+	private String serviceKey;
 
 	public FestivalDetailImageApiService(WebClient.Builder webClientBuilder,
 		FestivalDetailImageRepository festivalDetailImageRepository,
 		FestivalDetailImageBatchMapper festivalDetailImageBatchMapper) { // WebClient는 Non-Blocking I/O 통신에 사용
-		this.webClient = webClientBuilder.baseUrl(OPENAPI_BASE_URL).build();
+		this.webClient = webClientBuilder.baseUrl(openapiBaseUrl).build();
 		this.festivalDetailImageRepository = festivalDetailImageRepository;
 		this.festivalDetailImageBatchMapper = festivalDetailImageBatchMapper;
 	}
+
 
 	//상세이미지 저장
 	public void saveFestivalDetailImages(List<Festival> festivals) {
@@ -49,10 +49,6 @@ public class FestivalDetailImageApiService {
 		for (Festival festival : festivals) {
 			try {
 				int contentId = festival.getContentId(); // 축제 contentId
-
-				log.info("상세 이미지 정보 - contentId: {}, festivalId:{}, 제목:{}",
-					festival.getContentId(), festival.getFestivalId(), festival.getTitle());
-
 				if (contentId == 0) {
 					log.warn("contentId 없음 → 상세 이미지 스킵 (festivalId: {})", festival.getFestivalId());
 					continue;
@@ -89,7 +85,10 @@ public class FestivalDetailImageApiService {
 	 */
 	public List<ApiFestivalDetailImageDto> fetchFestivalDetailImages(int contentId) {
 		try {
-			URI uri = UriComponentsBuilder.fromUriString(OPENAPI_BASE_URL)
+			//String url = buildDetailImageApiUrl(contentId);
+			//String response = restTemplate.getForObject(url, String.class);
+
+			URI uri = UriComponentsBuilder.fromUriString(openapiBaseUrl)
 				.queryParam("serviceKey", serviceKey)
 				.queryParam("MobileOS", "ETC")
 				.queryParam("MobileApp", "Zonie")
@@ -100,7 +99,7 @@ public class FestivalDetailImageApiService {
 				.build(true) // true -> URL 인코딩
 				.toUri();
 
-			log.info("====> 공공데이터 상세이미지 목록 Calling URL: {}",uri);
+			log.info("====> 공공데이터 상세이미지 목록 Calling URL: {}", uri);
 
 			// WebClient를 사용한 동기 호출
 			String response = webClient.get()

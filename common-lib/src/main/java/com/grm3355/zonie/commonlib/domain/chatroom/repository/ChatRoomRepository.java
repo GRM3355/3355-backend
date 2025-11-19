@@ -1,5 +1,6 @@
 package com.grm3355.zonie.commonlib.domain.chatroom.repository;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +12,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
@@ -29,7 +31,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     f.festival_id as festivalId,
 		     c.title,
 		     c.participant_count as participantCount,
-		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt, 
+		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt,
 		     f.title AS festivalTitle
 		,ST_Y(c.position::geometry) AS lat
 		,ST_X(c.position::geometry) AS lon
@@ -50,10 +52,10 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	String MY_ROOM_QUERY_BASE = """
 		     SELECT
 		     c.chat_room_id as chatRoomId,
-		     f.festival_id as festivalId, 
-		     c.title, 
-		     c.participant_count as participantCount, 
-		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt, 
+		     f.festival_id as festivalId,
+		     c.title,
+		     c.participant_count as participantCount,
+		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt,
 		     f.title AS festivalTitle
 		,ST_Y(c.position::geometry) AS lat
 		,ST_X(c.position::geometry) AS lon
@@ -115,4 +117,37 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	@Modifying
 	@Query("DELETE FROM ChatRoom c WHERE c.chatRoomId IN :chatRoomIds")
 	long deleteByChatRoomIdIn(@Param("chatRoomIds") List<String> chatRoomIds);
+
+	/**
+	 * 1. 마지막 대화가 24시간 지난 채팅방 삭제
+	 * 조건: lastMessageAt이 기준 시간보다 이전인 경우
+	 * 상세: 마지막 대화가 24시간 지났거나 (대화가 있었다면), 대화가 한 번도 없는데 생성된 지 24시간이 지난 방 (대화가 없었다면) 삭제
+	 */
+	@Modifying
+	@Transactional
+	@Query("DELETE FROM ChatRoom c "
+		   + "WHERE (c.lastMessageAt IS NOT NULL AND c.lastMessageAt < :cutoffTime) "
+		   + "OR (c.lastMessageAt IS NULL AND c.createdAt < :cutoffTime)")
+	int deleteByLastMessageAtBefore(@Param("cutoffTime") LocalDateTime cutoffTime);
+
+	/**
+	 * 2. 참여자가 0명인 채팅방 삭제
+	 * 조건: 참여자가 0명 이하이고, createdAt이 유예 시간(graceTime)보다 이전인 경우
+	 * 안전 장치: 생성 직후(n시간 이내)에는 0명일 수도 있으므로(방장이 입장 전),
+	 * created_at이 충분히 지난 방만 삭제 대상으로 삼아야 함.
+	 */
+	@Modifying
+	@Transactional
+	@Query("DELETE FROM ChatRoom c WHERE c.participantCount <= 0 AND c.createdAt < :graceTime")
+	int deleteEmptyRooms(@Param("graceTime") LocalDateTime graceTime);
+
+	/**
+	 * 3. 축제가 종료된 채팅방 삭제
+	 * 조건: ChatRoom과 연결된 Festival의 eventEndDate가 오늘 이전인 경우
+	 * JPQL은 연관 관계를 타고 삭제할 수 없으므로, 서브쿼리나 ID 리스트를 사용해야 함.
+	 */
+	@Modifying
+	@Transactional
+	@Query("DELETE FROM ChatRoom c WHERE c.festival.festivalId IN (SELECT f.festivalId FROM Festival f WHERE f.eventEndDate < :today)")
+	int deleteByFestivalEnded(@Param("today") java.time.LocalDate today);
 }

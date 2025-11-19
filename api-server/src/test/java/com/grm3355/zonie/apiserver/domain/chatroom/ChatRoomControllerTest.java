@@ -22,9 +22,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grm3355.zonie.apiserver.BaseIntegrationTest;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomCreateResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
 import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
@@ -57,7 +57,7 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 			.lon(126.9780)
 			.build();
 
-		ChatRoomResponse response = ChatRoomResponse.builder()
+		ChatRoomCreateResponse response = ChatRoomCreateResponse.builder()
 			.chatRoomId(String.valueOf(1L))
 			.title(request.getTitle())
 			.lat(request.getLat())
@@ -80,12 +80,12 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 	@Test
 	@DisplayName("축제별 채팅방 목록 조회")
 	void getChatRoomListByFestivalTest() throws Exception {
-		MyChatRoomResponse chatRoom = MyChatRoomResponse.builder()
+		ChatRoomResponse chatRoom = ChatRoomResponse.builder()
 			.chatRoomId(String.valueOf(1L))
 			.title("테스트 채팅방")
 			.build();
 
-		Page<MyChatRoomResponse> mockPage = new PageImpl<>(
+		Page<ChatRoomResponse> mockPage = new PageImpl<>(
 			List.of(chatRoom),
 			PageRequest.of(0, 10),
 			1
@@ -107,7 +107,7 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 	@WithMockUser(roles = "GUEST", username = "user")
 	void getMyChatRoomListTest() throws Exception {
 
-		MyChatRoomResponse chatRoomDto = MyChatRoomResponse.builder()
+		ChatRoomResponse chatRoomDto = ChatRoomResponse.builder()
 			.chatRoomId(String.valueOf(1L))
 			.title("내 채팅방")
 			.participantCount(5L)
@@ -115,7 +115,7 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 			.build();
 
 		// Page 객체로 반환값 세팅
-		Page<MyChatRoomResponse> page = new PageImpl<>(
+		Page<ChatRoomResponse> page = new PageImpl<>(
 			List.of(chatRoomDto),
 			PageRequest.of(0, 10),
 			1L

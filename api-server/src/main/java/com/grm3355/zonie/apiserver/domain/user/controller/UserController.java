@@ -3,14 +3,6 @@ package com.grm3355.zonie.apiserver.domain.user.controller;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
-import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
-import com.grm3355.zonie.apiserver.domain.auth.dto.UserQuitResponse;
-import com.grm3355.zonie.apiserver.domain.auth.util.CookieProperties;
-import com.grm3355.zonie.apiserver.domain.user.dto.EmailUpdateRequest;
-import com.grm3355.zonie.apiserver.domain.user.service.UserService;
-import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
-import com.grm3355.zonie.commonlib.global.response.ApiResponse;
-
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,6 +13,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
+import com.grm3355.zonie.apiserver.domain.auth.dto.UserQuitResponse;
+import com.grm3355.zonie.apiserver.domain.auth.util.CookieProperties;
+import com.grm3355.zonie.apiserver.domain.user.dto.EmailUpdateRequest;
+import com.grm3355.zonie.apiserver.domain.user.service.UserService;
+import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
+import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,11 +34,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "User", description = "사용자 프로필 페이지")
 @RequestMapping("/api/v1/user")
 public class UserController {
-    private final UserService userService;
+	private final UserService userService;
 	private final CookieProperties cookieProperties;
 
 	public UserController(UserService userService, CookieProperties cookieProperties) {
-        this.userService = userService;
+		this.userService = userService;
 		this.cookieProperties = cookieProperties;
 	}
 
@@ -47,10 +47,10 @@ public class UserController {
 	@Hidden
 	@Operation(summary = "내 프로필 이메일 패치", description = "현재 로그인된 사용자의 이메일 정보를 수정합니다.")
 	@PatchMapping("/update/email")
-    public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
-                            @RequestBody EmailUpdateRequest request) {
-        userService.updateEmail(userDetails.getUserId(), request);
-    }
+	public void updateEmail(@AuthenticationPrincipal UserDetailsImpl userDetails,
+		@RequestBody EmailUpdateRequest request) {
+		userService.updateEmail(userDetails.getUserId(), request);
+	}
 
 	@Operation(summary = "내 프로필 조회", description = "현재 아이디, 닉네임, Email, profileImage를 조회합니다.")
 	@ApiResponses({

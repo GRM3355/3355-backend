@@ -48,11 +48,10 @@ class FestivalDataSyncJobTest {
 	private FestivalDetailImageRepository festivalDetailImageRepository;
 
 	@Mock
-	private FestivalDetailImage	festivalDetailImage;
+	private FestivalDetailImage festivalDetailImage;
 
 	@Mock
 	private FestivalDetailImageApiService festivalDetailImageService;
-
 
 	@InjectMocks // @Mock 객체들을 주입받을 대상
 	private FestivalDataSyncJob festivalDataSyncJob;
@@ -60,7 +59,7 @@ class FestivalDataSyncJobTest {
 	@BeforeEach
 	void setUp() {
 		// @Value 필드 수동 주입
-		ReflectionTestUtils.setField(festivalDataSyncJob, "FESTIVAL_BATCH_DATE", TEST_BATCH_DATE);
+		ReflectionTestUtils.setField(festivalDataSyncJob, "festivalBatchDate", TEST_BATCH_DATE);
 		when(redisTemplate.opsForValue()).thenReturn(valueOperations); // mock ValueOperations
 	}
 
