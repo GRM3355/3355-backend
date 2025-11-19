@@ -120,11 +120,16 @@ public class FestivalService {
 	 */
 	@Transactional
 	public FestivalDetailResponse getFestivalContent(long festivalId) {
-		Festival festival = festivalRepository.findById(festivalId)
-			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 내용을 찾을 수 없습니다."));
+		//Festival festival = festivalRepository.findById(festivalId)
+		//	.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 내용을 찾을 수 없습니다."));
+		Festival festival = festivalRepository
+			.findByIsValidFestival(festivalId, preview_days)
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "축제 관련정보가 없습니다."));
+
+		log.info("festival.content_id :{}", festival.getContentId());
 
 		List<FestivalDetailImage> images =
-			detailImageRepository.findByContentId(festival.getContentId());
+			detailImageRepository.findByFestival_ContentId(festival.getContentId());
 
 		return FestivalDetailResponse.fromEntity(festival, images);
 	}

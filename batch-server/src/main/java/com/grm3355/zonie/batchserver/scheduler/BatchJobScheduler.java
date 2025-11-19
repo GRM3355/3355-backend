@@ -30,7 +30,7 @@ public class BatchJobScheduler {                // 시간 맞춰 Job을 실행�
 	// - 좋아요수
 
 	// 1. 축제 데이터 동기화
-	@Scheduled(cron = "0 0 4 * * *")
+	@Scheduled(cron = "0 42 21 * * *")
 	public void runFestivalSyncJob() throws Exception {
 		Job job = context.getBean("festivalSyncJob",
 			Job.class);        // FestivalSyncBatchConfig에 정의한 Bean 이름: "festivalSyncJob" 이름으로 등록된 Job Bean을 찾아서 실행

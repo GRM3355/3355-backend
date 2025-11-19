@@ -56,7 +56,7 @@ public class FestivalDataSyncJob {
 			List<ApiFestivalDto> newFestivals = festivalApiService.fetchAndParseFestivals(syncDate, endDate);
 
 			// 0. DTO를 Entity로 변환 및 Upsert를 위한 준비
-			// 1. PostgreSQL에 벌크 저장/업데이트 실행
+			// 1. PostgresSQL에 벌크 저장/업데이트 실행
 
 			//getContentId 추출
 			List<Integer> contentIds = newFestivals.stream()

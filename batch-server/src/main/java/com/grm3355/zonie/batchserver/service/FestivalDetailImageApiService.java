@@ -42,7 +42,6 @@ public class FestivalDetailImageApiService {
 		this.festivalDetailImageBatchMapper = festivalDetailImageBatchMapper;
 	}
 
-
 	//상세이미지 저장
 	public void saveFestivalDetailImages(List<Festival> festivals) {
 		log.info("축제 상세 이미지 동기화 시작");
@@ -50,21 +49,27 @@ public class FestivalDetailImageApiService {
 		for (Festival festival : festivals) {
 			try {
 				int contentId = festival.getContentId(); // 축제 contentId
+
+				log.info("상세 이미지 정보 - contentId: {}, festivalId:{}, 제목:{}",
+					festival.getContentId(), festival.getFestivalId(), festival.getTitle());
+
 				if (contentId == 0) {
 					log.warn("contentId 없음 → 상세 이미지 스킵 (festivalId: {})", festival.getFestivalId());
 					continue;
 				}
 
 				// 상세 이미지 API 호출
-				List<ApiFestivalDetailImageDto> imageDtos = fetchFestivalDetailImages(contentId);
+				List<ApiFestivalDetailImageDto> imageDto = fetchFestivalDetailImages(contentId);
 
 				// DTO → Entity 변환
-				List<FestivalDetailImage> imageEntities = imageDtos.stream()
-					.map(festivalDetailImageBatchMapper::toDetailImageEntity)
+				List<FestivalDetailImage> imageEntities = imageDto.stream()
+					//.map(festivalDetailImageBatchMapper::toDetailImageEntity)
+					.map(imgDto ->
+						festivalDetailImageBatchMapper.toDetailImageEntity(imgDto, festival))
 					.collect(Collectors.toList());
 
 				// 기존 이미지 삭제 후 새로 저장 (Upsert 규칙)
-				festivalDetailImageRepository.deleteByContentId(festival.getContentId());
+				festivalDetailImageRepository.deleteByFestival_ContentId(festival.getContentId());
 				festivalDetailImageRepository.saveAll(imageEntities);
 
 				log.info("상세 이미지 저장 완료 - festivalId: {}, {}건",
@@ -84,9 +89,6 @@ public class FestivalDetailImageApiService {
 	 */
 	public List<ApiFestivalDetailImageDto> fetchFestivalDetailImages(int contentId) {
 		try {
-			//String url = buildDetailImageApiUrl(contentId);
-			//String response = restTemplate.getForObject(url, String.class);
-
 			URI uri = UriComponentsBuilder.fromUriString(OPENAPI_BASE_URL)
 				.queryParam("serviceKey", serviceKey)
 				.queryParam("MobileOS", "ETC")
