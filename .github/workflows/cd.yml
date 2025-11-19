@@ -111,12 +111,12 @@ jobs:
 
       - name: Deploy API Server to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        timeout-minutes: 60
+        timeout-minutes: 30
         with:
           task-definition: ${{ steps.render-api-task.outputs.task-definition }}
           cluster: ${{ env.ECS_CLUSTER }}
           service: ${{ env.ECS_SERVICE_API }}
-          wait-for-service-stability: false # 속도 개선을 위해서 true -> false 변경
+          wait-for-service-stability: true
 
   deploy-chat-server:
     name: Deploy Chat Server
@@ -149,7 +149,7 @@ jobs:
 
       - name: Deploy Chat Server to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        timeout-minutes: 60
+        timeout-minutes: 30
         with:
           task-definition: ${{ steps.render-chat-task.outputs.task-definition }}
           cluster: ${{ env.ECS_CLUSTER }}
@@ -187,7 +187,7 @@ jobs:
 
       - name: Deploy Batch Server to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        timeout-minutes: 60
+        timeout-minutes: 30
         with:
           task-definition: ${{ steps.render-batch-task.outputs.task-definition }}
           cluster: ${{ env.ECS_CLUSTER }}
