@@ -112,6 +112,8 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 			.title("내 채팅방")
 			.participantCount(5L)
 			.festivalTitle("테스트 축제")
+			.lastMessageAt(1636886400000L)
+			.lastContent("안녕하세요")
 			.build();
 
 		// Page 객체로 반환값 세팅
@@ -133,6 +135,8 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 			.andExpect(jsonPath("$.data.content[0].chatRoomId").value(1L))
 			.andExpect(jsonPath("$.data.content[0].title").value("내 채팅방"))
 			.andExpect(jsonPath("$.data.content[0].participantCount").value(5))
-			.andExpect(jsonPath("$.data.content[0].festivalTitle").value("테스트 축제"));
+			.andExpect(jsonPath("$.data.content[0].festivalTitle").value("테스트 축제"))
+			.andExpect(jsonPath("$.data.content[0].lastMessageAt").value(1636886400000L))
+			.andExpect(jsonPath("$.data.content[0].lastContent").value("안녕하세요"));
 	}
 }

@@ -172,7 +172,7 @@ public class ChatRoomService {
 	@Transactional
 	public Page<ChatRoomResponse> getFestivalChatRoomList(long festivalId, ChatRoomSearchRequest req) {
 
-		//정렬 순서
+		// 정렬
 		if (req.getOrder() == null)
 			req.setOrder(OrderType.PART_DESC);
 
@@ -182,13 +182,60 @@ public class ChatRoomService {
 		// 1. PG에서 기본 정보 조회: ListType 내용 가져오기
 		Page<ChatRoomInfoDto> pageList = getFestivalListTypeUser(festivalId, req, pageable);
 
-		// 2. Redis에서 실시간 데이터 일괄 조회
+		// 2. Redis 실시간 데이터 일괄 조회 및 병합
+		return mergeChatRoomDataWithRedis(pageList, pageable);
+	}
+
+	// 축제별 채팅방 검색조건별 목록 가져오기
+	public Page<ChatRoomInfoDto> getFestivalListTypeUser(
+		long festivalId, ChatRoomSearchRequest req, Pageable pageable) {
+		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
+		log.info("===============>ChatRoom.keyword===>{}", keyword);
+		return chatRoomRepository.chatFestivalRoomList(festivalId, keyword, pageable);
+	}
+
+	/**
+	 * 나의 채팅방 목록
+	 * 정렬 기본: 최신 대화 순(ACTIVE_DESC)
+	 */
+	@Transactional
+	public Page<ChatRoomResponse> getMyRoomChatRoomList(UserDetailsImpl userDetails,
+		ChatRoomSearchRequest req) {
+		String userId = userDetails.getUsername();
+
+		// 정렬
+		if (req.getOrder() == null)
+			req.setOrder(OrderType.ACTIVE_DESC);
+
+		Sort sort = getSort(req.getOrder());
+		Pageable pageable = PageRequest.of(req.getPage() - 1,
+			req.getPageSize(), sort);
+
+		// 1. PG에서 기본 정보 조회
+		Page<ChatRoomInfoDto> pageList = getMyRoomListTypeUser(userId, req, pageable);
+
+		// 2. Redis 실시간 데이터 조회 및 병합
+		return mergeChatRoomDataWithRedis(pageList, pageable);
+	}
+
+	// 축제별 채팅방 검색조건별 목록 가져오기
+	private Page<ChatRoomInfoDto> getMyRoomListTypeUser(String userId, ChatRoomSearchRequest req, Pageable pageable) {
+		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
+		log.info("===============>MyChatRoom.keyword===>{}", keyword);
+		return chatRoomRepository.chatMyRoomList(userId, keyword, pageable);
+	}
+
+	/**
+	 * 실시간 데이터를 조회하고 병합
+	 * getFestivalChatRoomList와 getMyRoomChatRoomList에서 사용할 공통 메서드
+	 */
+	private Page<ChatRoomResponse> mergeChatRoomDataWithRedis(Page<ChatRoomInfoDto> pageList, Pageable pageable) {
 		List<String> roomIds = pageList.getContent().stream().map(ChatRoomInfoDto::chatRoomId).toList();
 		if (roomIds.isEmpty()) {
 			return new PageImpl<>(Collections.emptyList(), pageable, pageList.getTotalElements());
 		}
 
-		// 2-1. Redis 조회를 위한 Key Set 3개 생성: roomIds 리스트 기반 실제 Redis 키 Set
+		// 1. Redis 조회를 위한 Key Set 3개 생성
 		Set<String> participantKeys = roomIds.stream()
 			.map(id -> "chatroom:participants:" + id)
 			.collect(Collectors.toSet());
@@ -201,39 +248,35 @@ public class ChatRoomService {
 			.map(id -> "chatroom:last_msg_at:" + id)
 			.collect(Collectors.toSet());
 
-		// 2-2. RedisScanService 메소드 호출
-		// (1) 참여자 수 조회 (SCARD)
-		Map<String, Long> participantCountsMap = redisScanService.getParticipantCounts(participantKeys);
-
-		// (2) 마지막 대화 내용 조회 (MGET)
-		// (MGET 범용 메서드인 multiGetLastMessageTimestamps를 재사용)
-		Map<String, String> lastContentsMap = redisScanService.multiGetLastMessageTimestamps(contentKeys);
-
-		// (3) 마지막 대화 시각 조회 (MGET)
-		Map<String, String> lastTimestampsMap = redisScanService.multiGetLastMessageTimestamps(timestampKeys);
+		// 2. RedisScanService 메소드 호출
+		Map<String, Long> participantCountsMap = redisScanService.getParticipantCounts(
+			participantKeys);        // (1) 참여자 수 조회 (SCARD)
+		Map<String, String> lastContentsMap = redisScanService.multiGetLastMessageTimestamps(
+			contentKeys);        // (2) 마지막 대화 내용 조회 (MGET)
+		Map<String, String> lastTimestampsMap = redisScanService.multiGetLastMessageTimestamps(
+			timestampKeys);    // (3) 마지막 대화 시각 조회 (MGET)
 
 		// 3. DTO 변환 (PG 백업 데이터 + Redis 실시간 데이터 병합)
 		List<ChatRoomResponse> dtoPage = pageList.stream()
 			.map(dto -> {
 				String roomId = dto.chatRoomId();
 
-				// 3-1. Key를 사용하여 Map에서 조회: roomIds가 아닌 완성된 키 이름으로 조회
+				// 참여자 수 병합
 				Long realTimeCount = participantCountsMap.get("chatroom:participants:" + roomId);
 				Long finalCount = (realTimeCount != null) ? realTimeCount : dto.participantCount();
 
+				// 마지막 내용 병합
 				String realTimeContent = lastContentsMap.get("chatroom:last_msg_content:" + roomId);
-				String finalContent = realTimeContent; // 백업본은 사용 안 함
+				String finalContent = realTimeContent;
 
+				// 마지막 시각 병합
 				String timestampStr = lastTimestampsMap.get("chatroom:last_msg_at:" + roomId);
 				Long realTimeTimestamp = (timestampStr != null) ? Long.parseLong(timestampStr) : null;
-
-				// 둘 중 더 최신 시간(max)을 클라이언트에 반환
 				Long finalTimestamp = dto.lastMessageAt();
 				if (realTimeTimestamp != null && (finalTimestamp == null || realTimeTimestamp > finalTimestamp)) {
 					finalTimestamp = realTimeTimestamp;
 				}
 
-				// MyChatRoomResponse의 오버로딩된 fromDto 호출
 				return ChatRoomResponse.fromDto(dto, finalContent, finalCount, finalTimestamp);
 			})
 			.collect(Collectors.toList());
@@ -241,55 +284,10 @@ public class ChatRoomService {
 		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
 	}
 
-	// 축제별 채팅방 검색조건별 목록 가져오기
-	public Page<ChatRoomInfoDto> getFestivalListTypeUser(
-		long festivalId, ChatRoomSearchRequest req, Pageable pageable) {
-
-		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
-
-		return chatRoomRepository.chatFestivalRoomList(festivalId, keyword, pageable);
-
-	}
-
-	/**
-	 * 나의 채팅방 목록
-	 * 정렬 기본: 최신 대화 순(ACTIVE_DESC)
-	 */
-	@Transactional
-	public Page<ChatRoomResponse> getMyRoomChatRoomList(UserDetailsImpl userDetails,
-		ChatRoomSearchRequest req) {
-		String userId = userDetails.getUsername();
-
-		// 정렬 순서
-		if (req.getOrder() == null)
-			req.setOrder(OrderType.ACTIVE_DESC);
-
-		Sort sort = getSort(req.getOrder());
-		Pageable pageable = PageRequest.of(req.getPage() - 1,
-			req.getPageSize(), sort);
-
-		// ListType 내용 가져오기
-		Page<ChatRoomInfoDto> pageList = getMyRoomListTypeUser(userId, req, pageable);
-
-		// 페이지 변환
-		List<ChatRoomResponse> dtoPage = pageList.stream().map(ChatRoomResponse::fromDto)
-			.collect(Collectors.toList());
-
-		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
-	}
-
-	// 축제별 채팅방 검색조건별 목록 가져오기
-	private Page<ChatRoomInfoDto> getMyRoomListTypeUser(String userId, ChatRoomSearchRequest req, Pageable pageable) {
-
-		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
-		log.info("===============>keyword===>{}", keyword);
-		return chatRoomRepository.chatMyRoomList(userId, keyword, pageable);
-
-	}
-
 	/**
 	 * DTO 리스트를 받아 Redis에서 마지막 대화 내용을 일괄 조회합니다. (MGET)
 	 */
+	@Deprecated
 	private Map<String, String> getLastContents(List<ChatRoomInfoDto> dtoList) {
 		if (dtoList.isEmpty()) {
 			return Collections.emptyMap();
