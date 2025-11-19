@@ -24,12 +24,13 @@ public interface ChatRoomUserRepository extends JpaRepository<ChatRoomUser, Long
 
 	@Modifying
 	@Query("UPDATE ChatRoomUser cru SET cru.lastReadAt = :now WHERE cru.user.userId = :userId")
-	void updateLastReadAtByUserId(@Param("userId") String userId, @Param("now") LocalDateTime now); // (안 읽은 N 기능 지원) 연결 끊김 시 마지막 읽은 시각 갱신용
+	void updateLastReadAtByUserId(@Param("userId") String userId,
+		@Param("now") LocalDateTime now); // (안 읽은 N 기능 지원) 연결 끊김 시 마지막 읽은 시각 갱신용
 
 	/**
 	 * [TestManagement]
 	 */
 	@Modifying
 	@Query("DELETE FROM ChatRoomUser cru WHERE cru.chatRoom.chatRoomId IN :chatRoomIds")
-	long deleteByChatRoom_ChatRoomIdIn(@Param("chatRoomIds") List<String> chatRoomIds);
+	long deleteByChatRoomChatRoomIdIn(@Param("chatRoomIds") List<String> chatRoomIds);
 }

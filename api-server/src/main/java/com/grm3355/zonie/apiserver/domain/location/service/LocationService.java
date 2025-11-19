@@ -8,6 +8,7 @@ import com.grm3355.zonie.apiserver.domain.auth.dto.LocationTokenResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
+import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
 import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
@@ -43,8 +44,8 @@ public class LocationService {
 		double dLon = Math.toRadians(lon2 - lon1);
 
 		double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
-			+ Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-			* Math.sin(dLon / 2) * Math.sin(dLon / 2);
+				   + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+					 * Math.sin(dLon / 2) * Math.sin(dLon / 2);
 
 		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 		double distance = radius * c; // 단위: km
@@ -59,17 +60,29 @@ public class LocationService {
 		String userId = userDetails.getUsername();
 		String festivalIdStr = String.valueOf(festivalId);
 
-		// 1. 축제 DB 정보 조회 -> PostGIS 거리 계산
-		// Java가 아닌 DB(PostGIS)가 거리를 계산하도록 Native Query 호출
+		// 1. 축제 정보 조회해 Region 정보 획득 (먼저 조회하여 엔티티 존재 확인)
+		Festival festival = festivalRepository.findByFestivalId(festivalId)
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 축제정보가 없습니다."));
+
+		// 2. 축제 DB 정보 조회 -> PostGIS 거리 계산 (엔티티가 있으므로 거리 계산 요청)
 		double radius_km = festivalRepository.findDistanceToFestival(
 				festivalId,
 				userLocationDto.getLon(), // :lon
 				userLocationDto.getLat()  // :lat
 			)
-			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 축제정보가 없습니다."));
+			// 거리 계산은 실패할 가능성이 낮지만 Optional 처리
+			.orElseThrow(() -> new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "축제 위치 정보를 찾을 수 없습니다."));
 
-		// 2. 반경 비교 (yml 설정값)
-		boolean isInside = radius_km <= locationRadiusLimit;
+		// 3. 지역별 반경 제한값 동적 결정 (조회된 festival 객체 사용)
+		final double dynamicRadiusLimit;
+		if ("SEOUL".equals(festival.getRegion())) {
+			dynamicRadiusLimit = locationRadiusLimit; // 서울: 1km
+		} else {
+			dynamicRadiusLimit = locationRadiusLimit * 2; // 그 외 지역: 2km
+		}
+
+		// 3. 반경 비교 (동적 결정값 사용)
+		boolean isInside = radius_km <= dynamicRadiusLimit;
 
 		// 3. 토큰 발급 (반경 내)
 		if (isInside) {
@@ -80,11 +93,11 @@ public class LocationService {
 				.build();
 			redisTokenService.generateLocationToken(tokenInfo, festivalIdStr);
 			return new LocationTokenResponse(
-				String.format("인증 성공. (%.2fkm / 반경 %.2fkm)", radius_km, locationRadiusLimit));
+				String.format("인증 성공. (%.2fkm / 반경 %.2fkm)", radius_km, dynamicRadiusLimit));
 		} else {
 			// 에러 반환 (반경 외)
 			throw new BusinessException(ErrorCode.FORBIDDEN,
-				String.format("축제 반경(%.2fkm) 외부에 있습니다. (현재 거리: %.2fkm)", locationRadiusLimit, radius_km));
+				String.format("축제 반경(%.2fkm) 외부에 있습니다. (현재 거리: %.2fkm)", dynamicRadiusLimit, radius_km));
 		}
 	}
 

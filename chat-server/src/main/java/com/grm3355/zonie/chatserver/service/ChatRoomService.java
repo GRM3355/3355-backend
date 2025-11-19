@@ -32,14 +32,13 @@ public class ChatRoomService {
 	private static final String KEY_USER_ROOMS = "user:rooms:"; // 유저별 참여방 (Set)
 	private static final String NICKNAME_PREFIX = "#";
 
-	private final ChatRoomRepository chatRoomRepository; // ChatRoom 엔티티용 레포지토리 (가정)
+	private final ChatRoomRepository chatRoomRepository;
 	private final ChatRoomUserRepository chatRoomUserRepository;
-	private final UserRepository userRepository; // User 엔티티용 레포지토리 (가정)
+	private final UserRepository userRepository;
 	private final RedisTemplate<String, Object> redisTemplate;
 
-	@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 	@Value("${chat.max-chat-person}")
-	private long MAX_PARTICIPANTS = 300;
+	private long maxParticipants = 300;
 
 	/**
 	 * 사용자가 채팅방에 입장할 때 호출되는 메소드
@@ -48,8 +47,8 @@ public class ChatRoomService {
 	public String joinRoom(String userId, String roomId) {
 		// 1. 정원 검증
 		Long currentCount = redisTemplate.opsForSet().size(KEY_PARTICIPANTS + roomId);
-		if (currentCount != null && currentCount >= MAX_PARTICIPANTS) {
-			throw new BusinessException(ErrorCode.CONFLICT, "채팅방 최대 정원(" + MAX_PARTICIPANTS + "명)을 초과했습니다.");
+		if (currentCount != null && currentCount >= maxParticipants) {
+			throw new BusinessException(ErrorCode.CONFLICT, "채팅방 최대 정원(" + maxParticipants + "명)을 초과했습니다.");
 		}
 
 		// 2. 엔티티 조회 (DB)

@@ -135,7 +135,7 @@ public class TestManagementService {
 		log.warn("[TEST-MGMT] MongoDB(messages) deleted {} documents.", deletedMsgs);
 
 		// 5. (JPA) ChatRoomUser 엔티티 삭제
-		long deletedUsers = chatRoomUserRepository.deleteByChatRoom_ChatRoomIdIn(chatRoomIds);
+		long deletedUsers = chatRoomUserRepository.deleteByChatRoomChatRoomIdIn(chatRoomIds);
 		log.warn("[TEST-MGMT] JPA(chat_room_user) deleted {} participants.", deletedUsers);
 
 		// 6. JPA ChatRoom 엔티티 삭제

@@ -70,7 +70,7 @@ public class RedisTokenService {
 			redisTemplate.opsForValue().set(redisKey, infoJson, Duration.ofMillis(refreshTokenExpirationTime));
 			redisTemplate.opsForSet().add(userTokensKey, token);
 			redisTemplate.expire(userTokensKey, Duration.ofMillis(refreshTokenExpirationTime));
-			log.info("사용자 {}를 위해 Redis에 리프레시 토큰을 생성하고 저장했습니다 : {}", userId, redisKey.substring(0,30));
+			log.info("사용자 {}를 위해 Redis에 리프레시 토큰을 생성하고 저장했습니다 : {}", userId, redisKey.substring(0, 30));
 		} catch (JsonProcessingException e) {
 			log.error("Redis를 위한 RefreshTokenInfo 직렬화에 실패했습니다: {}", e.getMessage());
 			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "리프레시 토큰 저장 중 오류가 발생했습니다.");
@@ -84,14 +84,14 @@ public class RedisTokenService {
 
 		log.info("====================>generateLocationToken=" + redisKey);
 		try {
-			String infoJson = buildLocationJson(info.getUserId(), "", "", info.getLat(), info.getLon());
+			String infoJson = buildLocationJson(info.getUserId(), info.getLat(), info.getLon());
 			redisTemplate.opsForValue().set(redisKey, infoJson, this.tokenTtl); // 15분 TTL
 
 			// getLocationInfo 호출 시에도 contextId가 필요
 			UserTokenDto userTokenDto = getLocationInfo(info.getUserId(), contextId);
 
 			log.info("====================>generateLocationToken true" + userTokenDto.getLat() + "___"
-				+ userTokenDto.getLon());
+					 + userTokenDto.getLon());
 		} catch (Exception e) {
 			throw new RuntimeException("Redis 저장 중 오류 발생", e);
 		}
@@ -113,11 +113,12 @@ public class RedisTokenService {
 			return null;
 		}
 	}
+
 	//리프레시 토큰 값 체크
-	public boolean validateRefreshToken(String userId) {
-		String redisKey = getRefreshTokenKey(userId);
-		String token = redisTemplate.opsForValue().get(redisKey);
-		return token != null && !token.isBlank();
+	public boolean validateRefreshToken(String token) {
+		String redisKey = getRefreshTokenKey(token);
+		String savedValue = redisTemplate.opsForValue().get(redisKey);
+		return savedValue != null && !savedValue.isBlank();
 	}
 
 	//토큰 값 체크

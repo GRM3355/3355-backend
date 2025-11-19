@@ -24,7 +24,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	@Query(
 		value = """
 			SELECT * FROM festivals f
-			WHERE f.festival_id = :festivalId 
+			WHERE f.festival_id = :festivalId
 			AND CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
 			AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second')
 			""", nativeQuery = true)
@@ -51,7 +51,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			    AND (
 			        -- 기간 필터링 조건
 			        :dayNum = -1 OR (
-			            CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum)) 
+			            CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
 			            AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second')
 			        )
 			      )
@@ -69,7 +69,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 		    AND (
 		        -- 기간 필터링 조건
 		        :dayNum = -1 OR (
-		            CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum)) 
+		            CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
 		            AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second')
 		        )
 		      )
@@ -91,16 +91,16 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	 * @param lat 사용자 위도 (Latitude)
 	 * @return 거리(km). 일치하는 축제가 없으면 Optional.empty()
 	 */
+	// 1. DB에 저장된 축제 위치 (geography 타입으로 캐스팅)
+	// 2. 사용자의 현재 위치 (lon, lat)로 geography 생성
+	// 3. 결과를 미터(m)에서 킬로미터(km)로 변환
 	@Query(value =
-		"SELECT ST_Distance(" +
-		// 1. DB에 저장된 축제 위치 (geography 타입으로 캐스팅)
-		"    f.position::geography, " +
-		"    ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography " +
-		// 2. 사용자의 현재 위치 (lon, lat)로 geography 생성
-		// 3. 결과를 미터(m)에서 킬로미터(km)로 변환
-		") / 1000.0 " +
-		"FROM festivals f " +
-		"WHERE f.festival_id = :festivalId",
+		"SELECT ST_Distance("
+		+ "    f.position::geography, "
+		+ "    ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography "
+		+ ") / 1000.0 "
+		+ "FROM festivals f "
+		+ "WHERE f.festival_id = :festivalId",
 		nativeQuery = true)
 	Optional<Double> findDistanceToFestival(@Param("festivalId") long festivalId, @Param("lon") double lon,
 		@Param("lat") double lat);
@@ -154,8 +154,8 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 		UPDATE festivals f
 		SET total_participant_count = COALESCE(sub.total_count, 0)
 		FROM (
-		    SELECT 
-		        cr.festival_id, 
+		    SELECT
+		        cr.festival_id,
 		        SUM(cr.participant_count) AS total_count
 		    FROM chat_rooms cr
 		    WHERE cr.festival_id IS NOT NULL
