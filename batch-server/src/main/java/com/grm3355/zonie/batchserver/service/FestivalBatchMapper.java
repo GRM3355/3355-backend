@@ -25,7 +25,7 @@ public class FestivalBatchMapper {
 		Point geometry = createPoint(dto.getMapx(), dto.getMapy());
 
 		// 2. 지역 코드 -> 지역명 변환
-		String regionName = areaCodeChange(RegionCode.getNameByCode(dto.getAreacode()));
+		String regionName = RegionCode.getRegionNameByCode(dto.getAreacode());
 
 		return Festival.builder()
 			.addr1(dto.getAddr1())
@@ -45,8 +45,9 @@ public class FestivalBatchMapper {
 			// url, targetType, status 등 필요시 추가 매핑
 			.build();
 	}
+
 	//지역명 이름을 다시 코드로 변환
-	private String areaCodeChange(String areaCode){
+	private String areaCodeChange(String areaCode) {
 		return Region.fromKorean(areaCode);
 	}
 
@@ -79,7 +80,6 @@ public class FestivalBatchMapper {
 		}
 	}
 
-
 	public Festival updateFromDto(Festival existing, ApiFestivalDto dto) {
 
 		// 1. PostGIS Point 객체 생성
@@ -102,6 +102,5 @@ public class FestivalBatchMapper {
 		existing.setTel(dto.getTel());
 		return existing;
 	}
-
 
 }
