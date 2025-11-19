@@ -1,6 +1,5 @@
 package com.grm3355.zonie.apiserver.domain.auth.controller;
 
-import static org.hamcrest.Matchers.*;
 import static org.mockito.BDDMockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -70,7 +69,7 @@ class AuthControllerLogoutTest {
 
 	@Test
 	@DisplayName("로그아웃 테스트 성공")
-	void logout_test_success() throws Exception {
+	void logoutTestSuccess() throws Exception {
 		// given: UserDetailsImpl 생성
 		UserDetailsImpl userDetails = new UserDetailsImpl(
 			"test-user", "password", "test@example.com",

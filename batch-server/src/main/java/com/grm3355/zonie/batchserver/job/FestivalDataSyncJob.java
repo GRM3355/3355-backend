@@ -33,9 +33,8 @@ public class FestivalDataSyncJob {
 	private final RedisTemplate<String, String> redisTemplate; // 캐싱용 Redis
 	private final ObjectMapper objectMapper;
 	private final FestivalDetailImageApiService festivalDetailImageService;
-	@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
 	@Value("${festival.batch.date}")
-	private int FESTIVAL_BATCH_DATE;
+	private int festivalBatchDate;
 
 	// @Scheduled가 제거: 순수 비즈니스 로직: -> Batch Step에서 관리
 	// - @Scheduled에 의해 호출되는 메서드
@@ -50,7 +49,7 @@ public class FestivalDataSyncJob {
 	// - 동기화 로직
 	public void syncFestivalData(LocalDate syncDate) {
 		log.info("--- [Batch] 공공데이터 축제 동기화 시작: {} ---", syncDate);
-		LocalDate endDate = syncDate.plusDays(FESTIVAL_BATCH_DATE);
+		LocalDate endDate = syncDate.plusDays(festivalBatchDate);
 
 		try {
 			List<ApiFestivalDto> newFestivals = festivalApiService.fetchAndParseFestivals(syncDate, endDate);

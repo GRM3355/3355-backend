@@ -16,7 +16,7 @@ import com.grm3355.zonie.commonlib.global.enums.RegionCode;
 public class FestivalBatchMapper {
 
 	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
-	String TargetType = "OPENAPI";
+	String targetType = "OPENAPI";
 
 	// DTO를 Entity로 변환하는 public 메서드
 	public Festival toEntity(ApiFestivalDto dto) {
@@ -41,7 +41,7 @@ public class FestivalBatchMapper {
 			.region(regionName) // 지역명 설정
 			.mapx(dto.getMapx()) // String 타입 그대로 저장
 			.mapy(dto.getMapy()) // String 타입 그대로 저장
-			.targetType(TargetType)
+			.targetType(targetType)
 			// url, targetType, status 등 필요시 추가 매핑
 			.build();
 	}
