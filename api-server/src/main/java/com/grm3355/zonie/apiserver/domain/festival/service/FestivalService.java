@@ -120,11 +120,9 @@ public class FestivalService {
 	 */
 	@Transactional
 	public FestivalDetailResponse getFestivalContent(long festivalId) {
-		//Festival festival = festivalRepository.findById(festivalId)
-		//	.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 내용을 찾을 수 없습니다."));
 		Festival festival = festivalRepository
 			.findByIsValidFestival(festivalId, preview_days)
-			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "축제 관련정보가 없습니다."));
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "관련 내용을 찾을 수 없습니다."));
 
 		log.info("festival.content_id :{}", festival.getContentId());
 
@@ -155,14 +153,15 @@ public class FestivalService {
 	@Transactional(readOnly = true)
 	public long getFestivalCountByRegion(Region region) {
 		if (region == null) {
-			throw new BusinessException(ErrorCode.BAD_REQUEST, "지역 코드를 정확하게 입력하세요. 지역코드 정보는 다음과 같습니다.\n SEOUL(\"서울\"),\n"
-				+ "\tGYEONGGI(\"경기/인천\"),\n"
-				+ "\tCHUNGCHEONG(\"충청/대전/세종\"),\n"
-				+ "\tGANGWON(\"강원\"),\n"
-				+ "\tGYEONGBUK(\"경북/대구/울산\"),\n"
-				+ "\tGYEONGNAM(\"경남/부산\"),\n"
-				+ "\tJEOLLA(\"전라/광주\"),\n"
-				+ "\tJEJU(\"제주\")}");
+			throw new BusinessException(ErrorCode.BAD_REQUEST,
+				"지역 코드를 정확하게 입력하세요. 지역코드 정보는 다음과 같습니다.\n SEOUL(\"서울\"),\n"
+					+ "\tGYEONGGI(\"경기/인천\"),\n"
+					+ "\tCHUNGCHEONG(\"충청/대전/세종\"),\n"
+					+ "\tGANGWON(\"강원\"),\n"
+					+ "\tGYEONGBUK(\"경북/대구/울산\"),\n"
+					+ "\tGYEONGNAM(\"경남/부산\"),\n"
+					+ "\tJEOLLA(\"전라/광주\"),\n"
+					+ "\tJEJU(\"제주\")}");
 		}
 
 		// 3. Repository에 count용 메서드 호출: getFestivalList와 동일하게 preview_days를 적용하여 노출될 축제만 카운트
@@ -187,7 +186,7 @@ public class FestivalService {
 			// WKTReader는 org.locationtech.jts.io.WKTReader를 사용합니다.
 			// PostgreSQL/PostGIS의 SRID 4326을 수동으로 설정합니다.
 			WKTReader reader = new WKTReader();
-			position = (Point) reader.read(wkt);
+			position = (Point)reader.read(wkt);
 			position.setSRID(4326); // SRID 4326 (WGS 84) 설정
 
 		} catch (ParseException e) {
@@ -198,7 +197,7 @@ public class FestivalService {
 		long currentTime = System.currentTimeMillis();
 
 		// 1. contentId: 임의의 고유값 (현재 시간의 밀리초 사용)
-		int contentId = (int) (currentTime % 10000000);
+		int contentId = (int)(currentTime % 10000000);
 
 		// 2. addr1: 임의의 주소
 		String addr1 = "자동 생성된 임시 주소 (테스트)";
