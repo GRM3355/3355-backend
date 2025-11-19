@@ -1,5 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.festival.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -9,5 +10,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class FestivalCountResponse {
+	@Schema(description = "축제 수", example = "1")
 	private long count;
 }

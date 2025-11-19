@@ -5,7 +5,6 @@ import java.time.LocalDate;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
@@ -48,9 +47,8 @@ public class FestivalResponse {
 	@Schema(description = "채팅방 갯수", example = "23")
 	private int chatRoomCount;
 
-	@Schema(description = "축제 총 참여자 수", example = "300")
+	@Schema(description = "축제 총 참여자 수", example = "700")
 	private Long totalParticipantCount;
-
 
 	public static FestivalResponse fromEntity(Festival festival) {
 
@@ -66,8 +64,8 @@ public class FestivalResponse {
 			.eventEndDate(festival.getEventEndDate())
 			.firstImage(festival.getFirstImage())
 			.firstImage2(festival.getFirstImage2())
-			.lat(lat)	// null 또는 실제 위도값
-			.lon(lon)	// null 또는 실제 경도값
+			.lat(lat)    // null 또는 실제 위도값
+			.lon(lon)    // null 또는 실제 경도값
 			.region(festival.getRegion())
 			.chatRoomCount(festival.getChatRoomCount())
 			.totalParticipantCount(festival.getTotalParticipantCount())
