@@ -31,7 +31,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     f.festival_id as festivalId,
 		     c.title,
 		     c.participant_count as participantCount,
-		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt, 
+		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt,
 		     f.title AS festivalTitle
 		,ST_Y(c.position::geometry) AS lat
 		,ST_X(c.position::geometry) AS lon
@@ -52,10 +52,10 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	String MY_ROOM_QUERY_BASE = """
 		     SELECT
 		     c.chat_room_id as chatRoomId,
-		     f.festival_id as festivalId, 
-		     c.title, 
-		     c.participant_count as participantCount, 
-		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt, 
+		     f.festival_id as festivalId,
+		     c.title,
+		     c.participant_count as participantCount,
+		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt,
 		     f.title AS festivalTitle
 		,ST_Y(c.position::geometry) AS lat
 		,ST_X(c.position::geometry) AS lon

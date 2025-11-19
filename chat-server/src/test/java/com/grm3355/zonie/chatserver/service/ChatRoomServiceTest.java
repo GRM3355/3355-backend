@@ -53,7 +53,7 @@ class ChatRoomServiceTest {
 
 		// @Value로 주입되는 MAX_PARTICIPANTS 필드 값을 Mocking
 		// 인스턴스 필드로 동작해야 함. Reflection 사용해 테스트용 값 설정.
-		ReflectionTestUtils.setField(chatRoomService, "MAX_PARTICIPANTS", MOCK_MAX_PARTICIPANTS);
+		ReflectionTestUtils.setField(chatRoomService, "maxParticipants", MOCK_MAX_PARTICIPANTS);
 	}
 
 	@Test

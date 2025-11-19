@@ -23,3 +23,9 @@ location:
     ttl-minutes: 15
   radius:
     limit: 1.0
+
+spring:
+  datasource:
+    hikari:
+      max-lifetime: 15000 # 15초로 설정 (PostgreSQL 서버가 내려갔을 때 빠르게 정리)
+      connection-timeout: 3000

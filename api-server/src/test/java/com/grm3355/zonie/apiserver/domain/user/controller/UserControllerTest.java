@@ -1,6 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.user.controller;
 
 import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.eq;
@@ -89,7 +90,7 @@ class UserControllerTest {
 	@Test
 	@WithMockUser(username = "test-user", roles = "USER") // SecurityContext 자동 설정
 	@DisplayName("회원 탈퇴")
-	void quit_shouldDeleteUserAndClearCookie() throws Exception {
+	void quitShouldDeleteUserAndClearCookie() throws Exception {
 
 		// given: UserDetailsImpl 생성
 		UserDetailsImpl userDetails = new UserDetailsImpl(

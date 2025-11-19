@@ -25,10 +25,10 @@ spring:
 
   datasource:
     hikari:
-      connection-timeout: 60000 # 연결 타임아웃 60초
       maximum-pool-size: 10
       minimum-idle: 2
-
+      max-lifetime: 15000 # 15초로 설정 (PostgreSQL 서버가 내려갔을 때 빠르게 정리)
+      connection-timeout: 20000 # 연결 타임아웃 20초
 chat:
   max-chat-person: 300
   max-chat-room: 30

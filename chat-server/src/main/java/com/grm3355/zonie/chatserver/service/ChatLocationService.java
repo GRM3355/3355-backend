@@ -76,6 +76,13 @@ public class ChatLocationService {
 		);
 	}
 
+	private String buildLocationJson(String userId, double lat, double lon) { // clientIp, device를 제거한 오버로딩
+		return String.format(
+			"{\"userId\":\"%s\",\"lat\":%.6f,\"lon\":%.6f,\"timestamp\":%d}",
+			userId, lat, lon, System.currentTimeMillis()
+		);
+	}
+
 	private String extractValue(String json, String field) {
 		String search = "\"" + field + "\":\"";
 		int start = json.indexOf(search);
@@ -109,7 +116,7 @@ public class ChatLocationService {
 
 		try {
 			// clientIp와 device는 빈 문자열로 저장하여 JSON 구조 유지
-			String infoJson = buildLocationJson(userId, "", "", lat, lon);
+			String infoJson = buildLocationJson(userId, lat, lon);
 			redisTemplate.opsForValue().set(redisKey, infoJson, this.tokenTtl); // TTL 적용
 
 			log.debug("Generated location token for user {} in context {}.", userId, contextId);
@@ -148,23 +155,37 @@ public class ChatLocationService {
 		Long festivalId = getFestivalIdForRoom(roomId);
 		String contextId = String.valueOf(festivalId);
 
-		// PostGIS를 사용하여 거리를 계산합니다.
+		// 1. 축제 정보 조회해 Region 정보 획득
+		ChatRoom chatRoom = chatRoomRepository.findByChatRoomId(roomId)
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방 정보를 찾을 수 없습니다."));
+
+		String region = chatRoom.getFestival().getRegion();
+
+		// 2. 지역별 반경 제한값 동적 결정
+		final double dynamicRadiusLimit;
+		if ("SEOUL".equals(region)) {
+			dynamicRadiusLimit = max_radius; // 서울: 1km
+		} else {
+			dynamicRadiusLimit = max_radius * 2; // 그 외 지역: 2km
+		}
+
+		// 3. PostGIS를 사용하여 거리를 계산합니다.
 		double distanceKm = festivalRepository.findDistanceToFestival(festivalId, lon, lat)
 			.orElse(Double.MAX_VALUE); // 축제 정보 없으면 MAX_VALUE로 처리하여 반경 밖으로 간주
 
-		if (distanceKm > max_radius) {
-			// 1. 반경을 벗어난 경우: 토큰 발급/갱신을 하지 않고, 예외 없이 함수를 종료합니다.
+		if (distanceKm > dynamicRadiusLimit) {
+			// 4-1. 반경을 벗어난 경우: 토큰 발급/갱신을 하지 않고, 예외 없이 함수를 종료합니다.
 			log.warn(
 				"User {} is outside the radius ({}km) for room {}. Location token is NOT issued/updated. (Joining allowed)",
 				userId, distanceKm, roomId);
 			return; // 토큰 발급 로직만 건너뛰고 정상 종료
 		}
 
-		// 2. 반경 내에 있을 경우: 토큰 갱신 또는 발급을 진행합니다.
-		// 2-1. 토큰이 유효하게 존재하는지 확인하고, 존재하면 위치 갱신 (TTL 갱신)
+		// 4-2. 반경 내에 있을 경우: 토큰 갱신 또는 발급을 진행합니다.
+		// 4-2-1. 토큰이 유효하게 존재하는지 확인하고, 존재하면 위치 갱신 (TTL 갱신)
 		boolean updated = updateLocationInfo(userId, contextId, lat, lon);
 		if (!updated) {
-			// 2-2. 토큰이 존재하지 않으면 새로 생성
+			// 4-2-2. 토큰이 존재하지 않으면 새로 생성
 			generateLocationToken(userId, contextId, lat, lon);
 		}
 
