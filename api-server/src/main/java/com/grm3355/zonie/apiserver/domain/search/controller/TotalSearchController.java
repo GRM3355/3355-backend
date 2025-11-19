@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomPageResponse;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomPageResponse;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchDto;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchResponse;
 import com.grm3355.zonie.apiserver.domain.search.service.TotalSearchService;
@@ -66,17 +66,17 @@ public class TotalSearchController {
 				examples = @ExampleObject(
 					name = "OK",
 					value = "{\"success\": true,"
-						+ "\"data\":{"
-						+ "\"content\":["
-						+ "{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
-						+ " ],"
-						+ "\"currentPage\": 1,"
-						+ "\"totalPages\": 5,"
-						+ "\"totalElements\": 41,"
-						+ "\"blockSize\": 10 "
-						+ "},"
-						+ "\"error\": null,"
-						+ "\"timestamp\": \"2025-11-14T10:39:51.431745\"}"
+							+ "\"data\":{"
+							+ "\"content\":["
+							+ "{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
+							+ " ],"
+							+ "\"currentPage\": 1,"
+							+ "\"totalPages\": 5,"
+							+ "\"totalElements\": 41,"
+							+ "\"blockSize\": 10 "
+							+ "},"
+							+ "\"error\": null,"
+							+ "\"timestamp\": \"2025-11-14T10:39:51.431745\"}"
 				)
 			)
 		)
@@ -88,8 +88,8 @@ public class TotalSearchController {
 	@GetMapping("/search/chat-rooms")
 	public ResponseEntity<?> getChatroomTotalSearch(@Valid @ModelAttribute ChatRoomSearchRequest request
 	) {
-		Page<MyChatRoomResponse> pageList = totalSearchService.getChatroomTotalSearch(request);
-		MyChatRoomPageResponse response = new MyChatRoomPageResponse(pageList, request.getPageSize());
+		Page<ChatRoomResponse> pageList = totalSearchService.getChatroomTotalSearch(request);
+		ChatRoomPageResponse response = new ChatRoomPageResponse(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 }

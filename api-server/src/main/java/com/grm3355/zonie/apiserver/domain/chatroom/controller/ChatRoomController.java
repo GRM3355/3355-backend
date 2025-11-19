@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomCreateResponse;
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomPageResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomPageResponse;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.global.swagger.ApiError400;
@@ -53,7 +53,7 @@ public class ChatRoomController {
 			description = "채팅방 생성 성공",
 			content = @Content(
 				mediaType = "application/json",
-				schema = @Schema(implementation = ChatRoomResponse.class)
+				schema = @Schema(implementation = ChatRoomCreateResponse.class)
 			)
 		)
 	})
@@ -68,7 +68,7 @@ public class ChatRoomController {
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
 		// 현재 URL
 		URI location = URI.create(servlet.getRequestURL().toString());
-		ChatRoomResponse response = chatRoomService.setCreateChatRoom(festivalId, chatRoomRequest, userDetails);
+		ChatRoomCreateResponse response = chatRoomService.setCreateChatRoom(festivalId, chatRoomRequest, userDetails);
 		return ResponseEntity.created(location).body(ApiResponse.success(response));
 	}
 
@@ -79,17 +79,17 @@ public class ChatRoomController {
 				examples = @ExampleObject(
 					name = "OK",
 					value = "{\"success\": true,"
-						+ "\"data\":{"
-						+ "\"content\":["
-						+ "{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
-						+ " ],"
-						+ "\"currentPage\": 1,"
-						+ "\"totalPages\": 5,"
-						+ "\"totalElements\": 41,"
-						+ "\"blockSize\": 10 "
-						+ "},"
-						+ "\"error\": null,"
-						+ "\"timestamp\": \"2025-11-14T10:39:51.431745\"}"
+							+ "\"data\":{"
+							+ "\"content\":["
+							+ "{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
+							+ " ],"
+							+ "\"currentPage\": 1,"
+							+ "\"totalPages\": 5,"
+							+ "\"totalElements\": 41,"
+							+ "\"blockSize\": 10 "
+							+ "},"
+							+ "\"error\": null,"
+							+ "\"timestamp\": \"2025-11-14T10:39:51.431745\"}"
 				)
 			)
 		)
@@ -102,8 +102,8 @@ public class ChatRoomController {
 	public ResponseEntity<?> getChatRoomList(@PathVariable long festivalId,
 		@Valid @ModelAttribute ChatRoomSearchRequest request
 	) {
-		Page<MyChatRoomResponse> pageList = chatRoomService.getFestivalChatRoomList(festivalId, request);
-		MyChatRoomPageResponse response = new MyChatRoomPageResponse(pageList, request.getPageSize());
+		Page<ChatRoomResponse> pageList = chatRoomService.getFestivalChatRoomList(festivalId, request);
+		ChatRoomPageResponse response = new ChatRoomPageResponse(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 
@@ -114,17 +114,17 @@ public class ChatRoomController {
 				examples = @ExampleObject(
 					name = "OK",
 					value = "{\"success\": true,"
-						+ "\"data\":{"
-						+ "\"content\":["
-						+ "{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
-						+ " ],"
-						+ "\"currentPage\": 1,"
-						+ "\"totalPages\": 5,"
-						+ "\"totalElements\": 41,"
-						+ "\"blockSize\": 10 "
-						+ "},"
-						+ "\"error\": null,"
-						+ "\"timestamp\": \"2025-11-14T10:39:51.431745\"}"
+							+ "\"data\":{"
+							+ "\"content\":["
+							+ "{\"chatRoomId\": \"bf8cf7ed-f01e-4eb9-8bf9-5f201cbf8122\",\"festivalId\": 112,\"title\": \"채팅방\",\"lat\": 33.247109,\"lon\": 126.56447,\"festivalTitle\": \"2025 서귀포 원도심 문화페스티벌\",\"participantCount\": 0,\"lastMessageAt\": null,\"lastContent\": null}"
+							+ " ],"
+							+ "\"currentPage\": 1,"
+							+ "\"totalPages\": 5,"
+							+ "\"totalElements\": 41,"
+							+ "\"blockSize\": 10 "
+							+ "},"
+							+ "\"error\": null,"
+							+ "\"timestamp\": \"2025-11-14T10:39:51.431745\"}"
 				)
 			)
 		)
@@ -136,12 +136,12 @@ public class ChatRoomController {
 	@PreAuthorize("isAuthenticated()")
 	@SecurityRequirement(name = "Authorization")
 	@GetMapping("/chat-rooms/my-rooms")
-	public ResponseEntity<ApiResponse<MyChatRoomPageResponse>> getChatRoomList(
+	public ResponseEntity<ApiResponse<ChatRoomPageResponse>> getChatRoomList(
 		@Valid @ModelAttribute ChatRoomSearchRequest request,
 		@AuthenticationPrincipal UserDetailsImpl userDetails
 	) {
-		Page<MyChatRoomResponse> pageList = chatRoomService.getMyRoomChatRoomList(userDetails, request);
-		MyChatRoomPageResponse response = new MyChatRoomPageResponse(pageList, request.getPageSize());
+		Page<ChatRoomResponse> pageList = chatRoomService.getMyRoomChatRoomList(userDetails, request);
+		ChatRoomPageResponse response = new ChatRoomPageResponse(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 }
