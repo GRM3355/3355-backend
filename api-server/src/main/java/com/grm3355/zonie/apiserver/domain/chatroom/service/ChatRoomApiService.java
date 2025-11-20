@@ -242,9 +242,8 @@ public class ChatRoomApiService {
 		User user = userRepository.findByUserId(userId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자 정보가 유효하지 않습니다."));
 
-		// 2. ChatRoom 조회
-		// TODO: PESSIMISTIC_WRITE 락이 적용된 findByChatRoomIdWithLock 메서드로 변경해야 동시성 문제 해결 가능
-		ChatRoom room = chatRoomRepository.findByChatRoomId(roomId)
+		// 2. ChatRoom 조회 및 PESSIMISTIC_WRITE 락 획득
+		ChatRoom room = chatRoomRepository.findByChatRoomIdWithLock(roomId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
 
 		// 3. 재입장 방지 검증
@@ -374,7 +373,8 @@ public class ChatRoomApiService {
 
 				// 참여자 수 병합
 				Long realTimeCount = participantCountsMap.get("chatroom:participants:" + roomId);
-				Long finalCount = (realTimeCount != null) ? realTimeCount : dto.participantCount();
+				// Long finalCount = (realTimeCount != null) ? realTimeCount : dto.participantCount();	// 실시간 참여자 수는 로깅 목적으로만 남김
+				Long finalCount = dto.participantCount();
 
 				// 마지막 내용 병합
 				String realTimeContent = lastContentsMap.get("chatroom:last_msg_content:" + roomId);

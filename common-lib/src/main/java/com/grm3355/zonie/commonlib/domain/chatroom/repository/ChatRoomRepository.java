@@ -5,9 +5,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.persistence.LockModeType;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -78,6 +81,14 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		""";
 
 	Optional<ChatRoom> findByChatRoomId(String chatRoomId);
+
+	/**
+	 * 채팅방 ID로 조회, 비관적 락(PESSIMISTIC_WRITE)
+	 * 트랜잭션 완료 시까지 다른 트랜잭션의 접근(RW)을 막아 동시성 문제 해결
+	 */
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("SELECT c FROM ChatRoom c WHERE c.chatRoomId = :chatRoomId")
+	Optional<ChatRoom> findByChatRoomIdWithLock(@Param("chatRoomId") String chatRoomId);
 
 	/**
 	 * 축제별 채팅 관련 Native Query (festivalId로 조회)
