@@ -25,6 +25,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Table(name = "chat_rooms")
@@ -32,6 +33,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Getter
+@Setter
 public class ChatRoom extends BaseTimeEntity {
 
 	@Id
@@ -69,12 +71,14 @@ public class ChatRoom extends BaseTimeEntity {
 	private Point position;
 
 	/**
-	 * 실시간 참여자 수 (RedisToDbSyncJob이 1분마다 갱신)
-	 * DB에서 직접 COUNT()하는 부하를 막기 위한 비정규화 컬럼
+	 * 채팅방 인원 수 (ChatRoomUser 레코드 개수)
+	 * API 조회 성능 최적화를 위한 비정규화 컬럼
+	 * ChatRoomUser 생성/삭제 시점에 업데이트.
 	 */
+	@Builder.Default
 	@ColumnDefault("0")
-	@Column(name = "participant_count", nullable = false)
-	private Long participantCount;
+	@Column(name = "member_count", nullable = false)
+	private Long memberCount = 0L;
 
 	/**
 	 * 마지막 대화 시각 (RedisToDbSyncJob이 1분마다 갱신)

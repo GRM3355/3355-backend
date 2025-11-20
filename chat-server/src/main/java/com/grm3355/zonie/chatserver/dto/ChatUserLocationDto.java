@@ -16,5 +16,4 @@ public class ChatUserLocationDto {
 	private double lat;
 	private double lon;
 	private long timestamp;
-	// clientIp, device 등: 검증에 필요 없음 - 생략
 }

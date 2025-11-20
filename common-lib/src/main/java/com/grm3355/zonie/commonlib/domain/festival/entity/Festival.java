@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -96,7 +97,7 @@ public class Festival extends BaseTimeEntity {
 	private Long totalParticipantCount = 0L;
 
 	@Builder.Default
-	@OneToMany(fetch = FetchType.LAZY)
-	@JoinColumn(name = "content_id", referencedColumnName = "content_id")
+	@OneToMany(mappedBy = "festival", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<FestivalDetailImage> detailImages = new ArrayList<>();
+
 }

@@ -29,11 +29,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ChatRoomHandler {
 
+	private static final String USER_ID_ATTR = "userId";
 	private final ChatRoomService chatRoomService;
 	private final MessageService messageService;
 	private final ChatLocationService chatLocationService;
 	private final SimpMessagingTemplate messagingTemplate;
-	private static final String USER_ID_ATTR = "userId";
 
 	/**
 	 * 세션 속성에서 userId를 가져오는 헬퍼 메소드
@@ -45,10 +45,11 @@ public class ChatRoomHandler {
 			throw new RuntimeException("Session attributes are null.");
 		}
 
-		String userId = (String) sessionAttributes.get(USER_ID_ATTR);
+		String userId = (String)sessionAttributes.get(USER_ID_ATTR);
 		if (userId == null) {
 			log.warn("Cannot find userId in session attributes for session: {}", accessor.getSessionId());
-			throw new RuntimeException("User not authenticated for this operation."); // WebSocketAnnotationMethodMessageHandler
+			throw new RuntimeException(
+				"User not authenticated for this operation."); // WebSocketAnnotationMethodMessageHandler
 		}
 
 		return userId;
@@ -74,9 +75,8 @@ public class ChatRoomHandler {
 			locationPayload.getLat(),
 			locationPayload.getLon()
 		);
-		// 참여 로직 실행 (닉네임 생성, Redis Set 추가, DB 저장) (위치 인증 성공 여부와 관계x; 항상 실행)
-		String nickname = chatRoomService.joinRoom(userId, roomId);
-
+		// 참여 로직 (닉네임 생성, Redis Set 추가, DB 저장) (위치 인증 성공 여부와 관계x; 항상 실행) -> API Server 대체
+		// 클라이언트는 API Server의 POST /join을 먼저 호출하고 STOMP 연결을 시도해야 함.
 	}
 
 	/**
@@ -85,14 +85,13 @@ public class ChatRoomHandler {
 	@MessageMapping("/chat-rooms/{roomId}/leave")
 	public void leaveRoom(
 		@DestinationVariable String roomId,
-		// @AuthenticationPrincipal Principal principal,
 		StompHeaderAccessor accessor
 	) {
 		String userId = getUserIdFromSession(accessor);
 		log.info(">>> STOMP RECV /app/chat-rooms/{}/leave [User: {}]", roomId, userId);
 
-		// 퇴장 로직 실행 (Redis Set 제거, DB 삭제)
-		chatRoomService.leaveRoom(userId, roomId);
+		// 퇴장 로직 (Redis Set 제거, DB 삭제) -> API Server 대체
+		// 클라이언트는 API Server의 POST /join을 먼저 호출하고 STOMP 연결을 시도해야 함.
 	}
 
 	/**

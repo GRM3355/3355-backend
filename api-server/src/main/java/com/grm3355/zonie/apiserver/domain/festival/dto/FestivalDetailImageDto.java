@@ -20,7 +20,7 @@ public class FestivalDetailImageDto {
 	public static FestivalDetailImageDto fromEntity(FestivalDetailImage entity) {
 		return FestivalDetailImageDto.builder()
 			.festivalImageId(entity.getFestivalImageId())
-			.contentId(entity.getContentId())
+			.contentId(entity.getFestival().getContentId())  // ★ 바뀐 부분
 			.originImgUrl(entity.getOriginImgUrl())
 			.smallImageUrl(entity.getSmallImageUrl())
 			.imgName(entity.getImgName())

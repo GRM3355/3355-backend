@@ -12,6 +12,14 @@ configurations {
     }
 }
 
+tasks.named('test') {
+    // 테스트 실행 시 동시 실행되는 프로세스 수를 1개로 제한
+    maxParallelForks = 1
+
+    // 테스트 실패 시 즉시 중지 (디버깅)
+    failFast = true
+}
+
 dependencies {
     // 모듈별 의존성
     implementation project(':common-lib')

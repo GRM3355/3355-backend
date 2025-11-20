@@ -60,3 +60,7 @@ location:
     ttl-minutes: 15
   radius:
     limit: 1.0
+
+# encrypt
+aes:
+  key: dGhpcy1pcy1hLWxvY2FsLXRlc3Qtc2VjcmV0LWtleS1mb3ItYWxsLW1vZHVsZXMtMzItYnl0ZXMK

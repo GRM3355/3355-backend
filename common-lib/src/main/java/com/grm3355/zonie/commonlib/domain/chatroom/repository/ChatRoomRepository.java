@@ -5,9 +5,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import jakarta.persistence.LockModeType;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,7 +33,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     c.chat_room_id as chatRoomId,
 		     f.festival_id as festivalId,
 		     c.title,
-		     c.participant_count as participantCount,
+		     c.member_count as participantCount,
 		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt,
 		     f.title AS festivalTitle
 		,ST_Y(c.position::geometry) AS lat
@@ -54,7 +57,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     c.chat_room_id as chatRoomId,
 		     f.festival_id as festivalId,
 		     c.title,
-		     c.participant_count as participantCount,
+		     c.member_count as participantCount,
 		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt,
 		     f.title AS festivalTitle
 		,ST_Y(c.position::geometry) AS lat
@@ -65,8 +68,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     WHERE c.chat_room_id IS NOT NULL
 		       AND (cru.user_id = :userId)
 		       AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%') )
-		     GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.participant_count, c.last_message_at, f.title, c.created_at
-		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시
+		     GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.member_count, c.last_message_at, f.title, c.created_at // <--- GROUP BY에 c.member_count 추가
+		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시 (participant_count 제거)
 	String MY_ROOM_QUERY_BASE_COUNT = """
 		   SELECT COUNT(DISTINCT c.chat_room_id)
 		   FROM chat_rooms c
@@ -78,6 +81,14 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		""";
 
 	Optional<ChatRoom> findByChatRoomId(String chatRoomId);
+
+	/**
+	 * 채팅방 ID로 조회, 비관적 락(PESSIMISTIC_WRITE)
+	 * 트랜잭션 완료 시까지 다른 트랜잭션의 접근(RW)을 막아 동시성 문제 해결
+	 */
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
+	@Query("SELECT c FROM ChatRoom c WHERE c.chatRoomId = :chatRoomId")
+	Optional<ChatRoom> findByChatRoomIdWithLock(@Param("chatRoomId") String chatRoomId);
 
 	/**
 	 * 축제별 채팅 관련 Native Query (festivalId로 조회)
@@ -138,7 +149,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	 */
 	@Modifying
 	@Transactional
-	@Query("DELETE FROM ChatRoom c WHERE c.participantCount <= 0 AND c.createdAt < :graceTime")
+	@Query(value = "DELETE FROM chat_rooms c WHERE c.member_count <= 0 AND c.created_at < :graceTime", nativeQuery = true)
 	int deleteEmptyRooms(@Param("graceTime") LocalDateTime graceTime);
 
 	/**

@@ -30,6 +30,9 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			""", nativeQuery = true)
 	Optional<Festival> findByIsValidFestival(long festivalId, int dayNum);
 
+	// 이벤트 종료일이 현재 날짜보다 이전인 축제를 목록 가져오기
+	List<Festival> findByEventEndDateBefore(LocalDate date);
+
 	// 이벤트 종료일이 현재 날짜보다 이전인 축제를 삭제
 	long deleteByEventEndDateBefore(LocalDate date); // long으로 지정: JPA는 삭제된 레코드 수를 반환
 
@@ -152,18 +155,20 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	@Transactional
 	@Query(value = """
 		UPDATE festivals f
-		SET total_participant_count = COALESCE(sub.total_count, 0)
-		FROM (
+		SET total_participant_count = (
 		    SELECT
-		        cr.festival_id,
-		        SUM(cr.participant_count) AS total_count
+		        COALESCE(COUNT(DISTINCT cru.user_id), 0)
+		    FROM chat_rooms cr
+		    JOIN chat_room_user cru ON cr.chat_room_id = cru.chat_room_id
+		    WHERE cr.festival_id = f.festival_id
+		)
+		WHERE f.festival_id IN (
+		    SELECT cr.festival_id
 		    FROM chat_rooms cr
 		    WHERE cr.festival_id IS NOT NULL
-		    GROUP BY cr.festival_id
-		) AS sub
-		WHERE f.festival_id = sub.festival_id
+		)
 		""", nativeQuery = true)
-	void syncTotalParticipantCounts();
+	int syncTotalParticipantCounts();
 
 	Festival findByContentId(int contentId);
 
