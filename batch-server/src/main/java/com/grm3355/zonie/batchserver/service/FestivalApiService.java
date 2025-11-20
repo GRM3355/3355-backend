@@ -24,12 +24,12 @@ public class FestivalApiService {
 	private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd");
 	private final WebClient webClient;
 	@SuppressWarnings("checkstyle:AbbreviationAsWordInName")
-	private final String OPENAPI_BASE_URL = "https://apis.data.go.kr/B551011/KorService2";
+	private final String openapiBaseUrl = "https://apis.data.go.kr/B551011/KorService2";
 	@Value("${openapi.serviceKey}")
 	private String serviceKey;
 
 	public FestivalApiService(WebClient.Builder webClientBuilder) { // WebClient는 Non-Blocking I/O 통신에 사용
-		this.webClient = webClientBuilder.baseUrl(OPENAPI_BASE_URL).build();
+		this.webClient = webClientBuilder.baseUrl(openapiBaseUrl).build();
 	}
 
 	// 오늘 날짜
@@ -50,7 +50,7 @@ public class FestivalApiService {
 		String eventEndDate = endDate.format(DATE_FORMATTER);
 		log.info("공공데이터 API 호출: eventStartDate={}, eventEndDate={}", eventStartDate, eventEndDate);
 
-		URI uri = UriComponentsBuilder.fromUriString(OPENAPI_BASE_URL+apiUrl)
+		URI uri = UriComponentsBuilder.fromUriString(openapiBaseUrl + apiUrl)
 			.queryParam("ServiceKey", serviceKey)
 			.queryParam("MobileOS", "WEB")
 			.queryParam("MobileApp", "zonie")
@@ -62,7 +62,7 @@ public class FestivalApiService {
 			.build(true) // true -> URL 인코딩
 			.toUri();
 
-		log.info("====> 공공데이터 축제 목록 Calling URL: {}",uri);
+		log.info("====> 공공데이터 축제 목록 Calling URL: {}", uri);
 
 		// WebClient를 사용한 동기 호출
 		String response = webClient.get()
