@@ -7,3 +7,19 @@ spring:
   profiles:
     # 기본 프로파일을 local로 설정하여 로컬 개발 환경에서 별도 옵션 없이 실행 가능하게 함
     active: ${SPRING_PROFILES_ACTIVE:local}
+
+# --- Service ---
+chat:
+  max-chat-person: 100
+  max-chat-room: 30
+  radius: 1.0 #km
+  pre-create-day: 7 #7일전부터 생성 가능
+  pre-view-day: 7 #7일전부터 축제보기 가능
+location:
+  token:
+    ttl-minutes: 15
+  radius:
+    limit: 1.0
+festival:
+  batch:
+    date: 7 # 오늘 ~ +7일치 데이터만 조회

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
-import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
+import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomApiService;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
@@ -25,11 +25,11 @@ import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 public class TotalSearchService {
 
 	private final FestivalService festivalService;
-	private final ChatRoomService chatRoomService;
+	private final ChatRoomApiService chatRoomApiService;
 
-	public TotalSearchService(FestivalService festivalService, ChatRoomService chatRoomService) {
+	public TotalSearchService(FestivalService festivalService, ChatRoomApiService chatRoomApiService) {
 		this.festivalService = festivalService;
-		this.chatRoomService = chatRoomService;
+		this.chatRoomApiService = chatRoomApiService;
 	}
 
 	/**
@@ -55,7 +55,7 @@ public class TotalSearchService {
 			.build();
 		Pageable pageable2 = PageRequest.of(0, 10,
 			Sort.by(Sort.Order.desc("participant_count")));
-		Page<ChatRoomInfoDto> chatroomPageList = chatRoomService.getFestivalListTypeUser(0,
+		Page<ChatRoomInfoDto> chatroomPageList = chatRoomApiService.getFestivalListTypeUser(0,
 			searchRequest, pageable2);
 
 		//데이터 합치기
@@ -93,7 +93,7 @@ public class TotalSearchService {
 
 		//채팅방 목록
 		//축제가 없으면 0으로 처리해서 전체 데이터를 가져온다.
-		return chatRoomService.getFestivalChatRoomList(0, request);
+		return chatRoomApiService.getFestivalChatRoomList(0, request);
 	}
 
 	//키워드 체크

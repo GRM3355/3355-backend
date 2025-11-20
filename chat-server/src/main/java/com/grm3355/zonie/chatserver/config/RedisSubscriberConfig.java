@@ -44,7 +44,7 @@ public class RedisSubscriberConfig {
 		return new MessageListenerAdapter(new RedisSubscriber(), "handleEcho");
 	}
 
-	// (2-C) 자동 참여 이벤트 리스너 어댑터
+	// (2-C) 참여 이벤트 리스너 어댑터
 	@Bean
 	MessageListenerAdapter joinEventListenerAdapter() {
 		// RedisSubscriber의 "handleJoinEvent" 메소드가 메시지를 처리하도록 설정
@@ -58,13 +58,21 @@ public class RedisSubscriberConfig {
 		return new MessageListenerAdapter(new RedisSubscriber(), "handleLikeEvent");
 	}
 
+	// (2-E) 퇴장 이벤트 리스너 어댑터
+	@Bean
+	MessageListenerAdapter leaveEventListenerAdapter() {
+		// RedisSubscriber의 "handleLeaveEvent" 메소드가 메시지를 처리하도록 설정
+		return new MessageListenerAdapter(new RedisSubscriber(), "handleLeaveEvent");
+	}
+
 	// (3) Redis 메시지 리스너 컨테이너: 어떤 채널을 구독할지 설정
 	@Bean
 	RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory,
 		MessageListenerAdapter chatListenerAdapter,
 		MessageListenerAdapter echoListenerAdapter,
 		MessageListenerAdapter joinEventListenerAdapter,
-		MessageListenerAdapter likeEventListenerAdapter) {
+		MessageListenerAdapter likeEventListenerAdapter,
+		MessageListenerAdapter leaveEventListenerAdapter) {
 
 		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
@@ -80,6 +88,9 @@ public class RedisSubscriberConfig {
 
 		// "chat-events:like" 토픽을 구독 (likeEventListenerAdapter 사용)
 		container.addMessageListener(likeEventListenerAdapter, new ChannelTopic("chat-events:like"));
+
+		// "chat-events:leave" 토픽을 구독 (leaveEventListenerAdapter 사용)
+		container.addMessageListener(leaveEventListenerAdapter, new ChannelTopic("chat-events:leave"));
 
 		return container;
 	}
@@ -129,16 +140,18 @@ public class RedisSubscriberConfig {
 				Map<String, String> event = objectMapper.readValue(messageJson, Map.class);
 				String userId = event.get("userId");
 				String roomId = event.get("roomId");
+				String nickName = event.get("nickName");
 
-				if (userId == null || roomId == null) {
+				if (userId == null || roomId == null || nickName == null) {
 					log.error("Invalid join event message: {}", messageJson);
 					return;
 				}
 
-				log.info(">>> REDIS SUB RECV [Channel: chat-events:join] -> User: {}, Room: {}", userId, roomId);
+				log.info(">>> REDIS SUB RECV [Channel: chat-events:join] -> User: {}, Room: {}, Nickname: {}", userId,
+					roomId, nickName);
 
 				// 2. ChatRoomService의 joinRoom 로직 호출
-				chatRoomService.joinRoom(userId, roomId);
+				chatRoomService.joinRoom(userId, roomId, nickName);
 
 			} catch (Exception e) {
 				log.error("RedisSubscriber handleJoinEvent Error", e);
@@ -171,5 +184,30 @@ public class RedisSubscriberConfig {
 			}
 		}
 
+		/**
+		 * 'chat-events:leave' 채널을 처리하는 핸들러 (명시적 퇴장 이벤트)
+		 */
+		// 이 메서드는 MessageListenerAdapter를 통해 RedisSubscriber 클래스에서 호출될 것입니다.
+		public void handleLeaveEvent(String messageJson) {
+			try {
+				// 1. JSON 파싱: join 이벤트와 동일하게 userId와 roomId를 추출한다고 가정
+				Map<String, String> event = objectMapper.readValue(messageJson, Map.class);
+				String userId = event.get("userId");
+				String roomId = event.get("roomId");
+
+				if (userId == null || roomId == null) {
+					log.error("Invalid leave event message: {}", messageJson);
+					return;
+				}
+
+				log.info(">>> REDIS SUB RECV [Channel: chat-events:leave] -> User: {}, Room: {}", userId, roomId);
+
+				// 2. ChatRoomService의 leaveRoom 로직 호출
+				chatRoomService.leaveRoom(userId, roomId);
+
+			} catch (Exception e) {
+				log.error("RedisSubscriber handleLeaveEvent Error", e);
+			}
+		}
 	}
 }

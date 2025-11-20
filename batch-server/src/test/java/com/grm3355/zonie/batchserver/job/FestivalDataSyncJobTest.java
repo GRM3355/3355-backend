@@ -30,7 +30,7 @@ import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository
 @ExtendWith(MockitoExtension.class)
 class FestivalDataSyncJobTest {
 
-	private final int TEST_BATCH_DATE = 7;
+	private final int testBatchDate = 7;
 	@Mock
 	private FestivalApiService festivalApiService;
 	@Mock
@@ -59,7 +59,7 @@ class FestivalDataSyncJobTest {
 	@BeforeEach
 	void setUp() {
 		// @Value 필드 수동 주입
-		ReflectionTestUtils.setField(festivalDataSyncJob, "festivalBatchDate", TEST_BATCH_DATE);
+		ReflectionTestUtils.setField(festivalDataSyncJob, "festivalBatchDate", testBatchDate);
 		when(redisTemplate.opsForValue()).thenReturn(valueOperations); // mock ValueOperations
 	}
 
@@ -68,7 +68,7 @@ class FestivalDataSyncJobTest {
 	void syncFestivalDataSuccess() throws Exception {
 		// given: 테스트용 데이터 준비
 		LocalDate syncDate = LocalDate.now();
-		LocalDate expectedEndDate = syncDate.plusDays(TEST_BATCH_DATE);
+		LocalDate expectedEndDate = syncDate.plusDays(testBatchDate);
 
 		ApiFestivalDto dto = new ApiFestivalDto(); // 테스트용 DTO
 		dto.setContentid("1"); // contentId 존재

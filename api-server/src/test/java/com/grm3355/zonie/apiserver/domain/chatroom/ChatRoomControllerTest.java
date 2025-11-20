@@ -25,7 +25,7 @@ import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomCreateResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
-import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
+import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomApiService;
 import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 @DisplayName("채팅방 생성 통합테스트")
@@ -39,7 +39,7 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 	private ObjectMapper objectMapper;
 
 	@MockitoBean
-	private ChatRoomService chatRoomService;
+	private ChatRoomApiService chatRoomApiService;
 
 	@MockitoBean
 	private JwtTokenProvider jwtTokenProvider;
@@ -64,7 +64,7 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 			.lon(request.getLon())
 			.build();
 
-		when(chatRoomService.setCreateChatRoom(anyLong(), any(ChatRoomRequest.class), any()))
+		when(chatRoomApiService.setCreateChatRoom(anyLong(), any(ChatRoomRequest.class), any()))
 			.thenReturn(response);
 
 		mockMvc.perform(post("/api/v1/festivals/1/chat-rooms")
@@ -91,7 +91,7 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 			1
 		);
 
-		when(chatRoomService.getFestivalChatRoomList(anyLong(), any()))
+		when(chatRoomApiService.getFestivalChatRoomList(anyLong(), any()))
 			.thenReturn(mockPage);
 
 		mockMvc.perform(get("/api/v1/festivals/1/chat-rooms")
@@ -124,7 +124,7 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 		);
 
 		// 서비스 메서드 모킹
-		when(chatRoomService.getMyRoomChatRoomList(any(), any())).thenReturn(page);
+		when(chatRoomApiService.getMyRoomChatRoomList(any(), any())).thenReturn(page);
 
 		// 요청
 		mockMvc.perform(get("/api/v1/chat-rooms/my-rooms")

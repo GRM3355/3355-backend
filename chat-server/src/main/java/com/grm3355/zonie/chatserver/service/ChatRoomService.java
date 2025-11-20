@@ -1,23 +1,16 @@
 package com.grm3355.zonie.chatserver.service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
-import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoomUser;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomUserRepository;
-import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;
-import com.grm3355.zonie.commonlib.global.exception.BusinessException;
-import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,68 +35,24 @@ public class ChatRoomService {
 
 	/**
 	 * 사용자가 채팅방에 입장할 때 호출되는 메소드
+	 * : API Server에서 DB 가입 완료 후 호출됨 (Redis 실시간 상태 관리만 수행)
+	 * @param nickName API Server에서 부여된 닉네임 (Redis Pub/Sub을 통해 전달됨)
 	 */
 	@Transactional
-	public String joinRoom(String userId, String roomId) {
-		// 1. 정원 검증
-		Long currentCount = redisTemplate.opsForSet().size(KEY_PARTICIPANTS + roomId);
-		if (currentCount != null && currentCount >= maxParticipants) {
-			throw new BusinessException(ErrorCode.CONFLICT, "채팅방 최대 정원(" + maxParticipants + "명)을 초과했습니다.");
-		}
+	public void joinRoom(String userId, String roomId, String nickName) {
+		/**
+		 * api-server 에서 이미 완료
+		 * // 1. 정원 검증
+		 * // 2. 엔티티 조회 (DB)
+		 * // 3. 재방문자 처리: DB에 ChatRoomUser 데이터가 있는지 확인
+		 * 		// 3-A. 재방문자 (이미 DB에 닉네임이 저장되어 있음)
+		 * 		// 3-B. 신규 입장자 처리 (Redis INCR 기반 닉네임 순번 획득, ChatRoomUser 엔티티 생성 및 DB 저장)
+		 */
 
-		// 2. 엔티티 조회 (DB)
-		User user = userRepository.findByUserId(userId)
-			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
-		ChatRoom room = chatRoomRepository.findByChatRoomId(roomId)
-			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
-		log.info("USER FETCHED: {}", user.getUserId());
-		log.info("ROOM FETCHED: {}", room.getChatRoomId());
-
-		// 3. 재방문자 처리: DB에 ChatRoomUser 데이터가 있는지 확인
-		Optional<ChatRoomUser> existingParticipant = chatRoomUserRepository.findByUserAndChatRoom(user, room);
-
-		if (existingParticipant.isPresent()) {
-			// 3-A. 재방문자 (이미 DB에 닉네임이 저장되어 있음)
-			log.info("User {} is a returning member of room {}.", userId, roomId);
-
-			// Redis에만 추가/갱신 (실시간 참여자 목록 및 역방향 매핑)
-			redisTemplate.opsForSet().add(KEY_PARTICIPANTS + roomId, userId);
-			redisTemplate.opsForSet().add(KEY_USER_ROOMS + userId, roomId);
-
-			// existingParticipant에서 닉네임 반환
-			return existingParticipant.get().getNickName();
-		}
-
-		// 3-B. 신규 입장자 처리 (Redis INCR 기반)
-
-		// 1. Redis에서 닉네임 순번 획득 (원자성 보장)
-		// KEY: chatroom:nickname_seq:{roomId}
-		String redisKey = "chatroom:nickname_seq:" + roomId;
-		redisTemplate.opsForValue().setIfAbsent(redisKey, 3354L);    // 3355번부터 부여
-		Long nicknameSeq = redisTemplate.opsForValue().increment(redisKey, 1);
-		String newNickname = NICKNAME_PREFIX + nicknameSeq;
-
-		// 2. ChatRoomUser 엔티티 생성 및 DB 저장
-		ChatRoomUser newParticipant = ChatRoomUser.builder()
-			.user(user)
-			.chatRoom(room)
-			.nickName(newNickname)
-			.lastReadAt(LocalDateTime.now()) // 최초 입장 시점
-			.build();
-
-		try {
-			chatRoomUserRepository.save(newParticipant);
-		} catch (DataIntegrityViolationException e) {
-			// Redis 카운터 리셋 등 매우 희귀한 경우에 대비한 방어 코드
-			log.error("Critical: Nickname collision occurred despite using Redis counter.", e);
-			throw new BusinessException(ErrorCode.CONFLICT, "닉네임 생성에 실패했습니다. 시스템 오류.");
-		}
-
-		// 3. Redis 저장 (실시간 참여자 목록 및 역방향 매핑)
+		// 4. Redis 저장 (실시간 참여자 목록만, 역방향 매핑)
 		redisTemplate.opsForSet().add(KEY_PARTICIPANTS + roomId, userId);
 		redisTemplate.opsForSet().add(KEY_USER_ROOMS + userId, roomId);
-
-		return newParticipant.getNickName();
+		log.info("Redis state updated: User {} joined Room {} with Nickname {}", userId, roomId, nickName);
 	}
 
 	/**
@@ -145,26 +94,20 @@ public class ChatRoomService {
 
 	/**
 	 * 사용자가 "나가기" 버튼을 눌러 명시적으로 퇴장할 때 처리
-	 * - Redis 참여자 수 감소 (o)
-	 * - DB 삭제 (o)
+	 * : API Server에서 DB 퇴장 완료 후 호출됨 (Redis 실시간 상태 관리만 수행)
 	 */
 	@Transactional
 	public void leaveRoom(String userId, String roomId) {
 		log.info("Leave room event received for User: {}, Room: {}", userId, roomId);
 
-		// 1. 엔티티 조회 (DB)
-		User user = userRepository.findByUserId(userId)
-			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
-		ChatRoom room = chatRoomRepository.findByChatRoomId(roomId)
-			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
+		// 1. 엔티티 조회 (DB): API Server에서 이미 완료
 
 		// 2. Redis에서 실시간 참여자 수 감소 및 역방향 매핑 제거
 		redisTemplate.opsForSet().remove(KEY_PARTICIPANTS + roomId, userId);
 		redisTemplate.opsForSet().remove(KEY_USER_ROOMS + userId, roomId);
 
-		// 3. DB 삭제: user_chat_rooms 테이블에서 해당 데이터 DELETE
-		// (재입장 시 신규 입장자로 간주되어 새 닉네임을 받게 됨)
-		chatRoomUserRepository.deleteByUserAndChatRoom(user, room);
+		// 3. DB 삭제: user_chat_rooms 테이블에서 해당 데이터 DELETE (재입장 시 신규 입장자로 간주되어 새 닉네임을 받게 됨): API Server에서 이미 완료
+
 		log.info("Successfully removed user {} from room {} permanently.", userId, roomId);
 	}
 }

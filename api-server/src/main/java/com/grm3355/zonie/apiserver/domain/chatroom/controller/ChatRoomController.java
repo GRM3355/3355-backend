@@ -22,7 +22,7 @@ import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomPageResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
-import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
+import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomApiService;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.global.swagger.ApiError400;
 import com.grm3355.zonie.apiserver.global.swagger.ApiError405;
@@ -44,7 +44,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class ChatRoomController {
-	private final ChatRoomService chatRoomService;
+	private final ChatRoomApiService chatRoomApiService;
 
 	@Operation(summary = "채팅방 생성", description = "위치 기반으로 채팅방을 생성합니다.")
 	@ApiResponses({
@@ -68,7 +68,8 @@ public class ChatRoomController {
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
 		// 현재 URL
 		URI location = URI.create(servlet.getRequestURL().toString());
-		ChatRoomCreateResponse response = chatRoomService.setCreateChatRoom(festivalId, chatRoomRequest, userDetails);
+		ChatRoomCreateResponse response = chatRoomApiService.setCreateChatRoom(festivalId, chatRoomRequest,
+			userDetails);
 		return ResponseEntity.created(location).body(ApiResponse.success(response));
 	}
 
@@ -102,7 +103,7 @@ public class ChatRoomController {
 	public ResponseEntity<?> getChatRoomList(@PathVariable long festivalId,
 		@Valid @ModelAttribute ChatRoomSearchRequest request
 	) {
-		Page<ChatRoomResponse> pageList = chatRoomService.getFestivalChatRoomList(festivalId, request);
+		Page<ChatRoomResponse> pageList = chatRoomApiService.getFestivalChatRoomList(festivalId, request);
 		ChatRoomPageResponse response = new ChatRoomPageResponse(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
@@ -140,8 +141,42 @@ public class ChatRoomController {
 		@Valid @ModelAttribute ChatRoomSearchRequest request,
 		@AuthenticationPrincipal UserDetailsImpl userDetails
 	) {
-		Page<ChatRoomResponse> pageList = chatRoomService.getMyRoomChatRoomList(userDetails, request);
+		Page<ChatRoomResponse> pageList = chatRoomApiService.getMyRoomChatRoomList(userDetails, request);
 		ChatRoomPageResponse response = new ChatRoomPageResponse(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
+	}
+
+	@Operation(summary = "채팅방 입장", description = "DB 트랜잭션을 통해 채팅방에 입장하고 memberCount를 증가시킵니다.")
+	@ApiResponses({
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "가입 성공"),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "정원 초과 또는 이미 가입됨", content = @Content(examples = @ExampleObject(name = "Conflict", value = "{\"success\": false, \"error\": {\"code\": \"CONFLICT\", \"message\": \"정원이 초과되었습니다.\"}}")))
+	})
+	@ApiError400
+	@ApiError429
+	@PreAuthorize("isAuthenticated()")
+	@SecurityRequirement(name = "Authorization")
+	@PostMapping("/chat-rooms/{roomId}/join")
+	public ResponseEntity<ApiResponse<String>> joinChatRoom(@PathVariable String roomId,
+		@AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+		String nickName = chatRoomApiService.joinRoom(roomId, userDetails);
+		return ResponseEntity.ok().body(ApiResponse.success(nickName)); // 닉네임을 응답으로 반환
+	}
+
+	@Operation(summary = "채팅방 퇴장", description = "DB 트랜잭션을 통해 채팅방에서 퇴장하고 ChatRoomUser를 삭제합니다.")
+	@ApiResponses({
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", description = "탈퇴 성공 (No Content)"),
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "채팅방을 찾을 수 없음 또는 가입되어 있지 않음")
+	})
+	@ApiError400
+	@ApiError429
+	@PreAuthorize("isAuthenticated()")
+	@SecurityRequirement(name = "Authorization")
+	@PostMapping("/chat-rooms/{roomId}/leave")
+	public ResponseEntity<?> leaveChatRoom(@PathVariable String roomId,
+		@AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+		chatRoomApiService.leaveRoom(roomId, userDetails);
+		return ResponseEntity.noContent().build();
 	}
 }

@@ -28,7 +28,7 @@ public class ChatRoomResponse {
 	@Schema(description = "축제명", example = "사과축제")
 	private String festivalTitle;
 
-	@Schema(description = "참석자수", example = "234")
+	@Schema(description = "참석자수 (채팅방 인원 수: ChatRoomUser 레코드의 개수)", example = "234")
 	private Long participantCount;
 
 	@Schema(description = "마지막 메시지 날짜", example = "2025-11-02 00:00:00")
@@ -46,7 +46,7 @@ public class ChatRoomResponse {
 			.lat(dto.lat())
 			.lon(dto.lon())
 			.festivalTitle(dto.festivalTitle())
-			.participantCount(participantCount) // PG값이 아닌 실시간 값
+			.participantCount(participantCount) // PG값: ChatRoomUser의 개수(Member Count)
 			.lastMessageAt(lastMessageAt)       // PG값이 아닌 실시간 값
 			.lastContent(lastContent)           // PG값이 아닌 실시간 값
 			.build();

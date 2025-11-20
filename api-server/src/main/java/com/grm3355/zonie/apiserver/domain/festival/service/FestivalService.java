@@ -21,7 +21,7 @@ import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
+import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomApiService;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalCreateRequest;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalDetailResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
@@ -45,15 +45,15 @@ public class FestivalService {
 
 	private final FestivalDetailImageRepository detailImageRepository;
 	private final FestivalRepository festivalRepository;
-	private final ChatRoomService chatRoomService;
+	private final ChatRoomApiService chatRoomApiService;
 	@Value("${chat.pre-view-day}")
 	private int preview_days; //시작하기전 몇일전부터 보여주기
 
 	public FestivalService(FestivalDetailImageRepository detailImageRepository, FestivalRepository festivalRepository,
-		ChatRoomService chatRoomService) {
+		ChatRoomApiService chatRoomApiService) {
 		this.detailImageRepository = detailImageRepository;
 		this.festivalRepository = festivalRepository;
-		this.chatRoomService = chatRoomService;
+		this.chatRoomApiService = chatRoomApiService;
 	}
 
 	/**
