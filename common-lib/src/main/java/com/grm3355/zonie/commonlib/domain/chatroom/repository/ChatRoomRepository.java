@@ -30,7 +30,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     c.chat_room_id as chatRoomId,
 		     f.festival_id as festivalId,
 		     c.title,
-		     c.participant_count as participantCount,
+		     c.member_count as participantCount,
 		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt,
 		     f.title AS festivalTitle
 		,ST_Y(c.position::geometry) AS lat
@@ -54,7 +54,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     c.chat_room_id as chatRoomId,
 		     f.festival_id as festivalId,
 		     c.title,
-		     c.participant_count as participantCount,
+		     c.member_count as participantCount,
 		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt,
 		     f.title AS festivalTitle
 		,ST_Y(c.position::geometry) AS lat
@@ -65,8 +65,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     WHERE c.chat_room_id IS NOT NULL
 		       AND (cru.user_id = :userId)
 		       AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%') )
-		     GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.participant_count, c.last_message_at, f.title, c.created_at
-		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시
+		     GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.member_count, c.last_message_at, f.title, c.created_at // <--- GROUP BY에 c.member_count 추가
+		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시 (participant_count 제거)
 	String MY_ROOM_QUERY_BASE_COUNT = """
 		   SELECT COUNT(DISTINCT c.chat_room_id)
 		   FROM chat_rooms c
@@ -138,7 +138,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	 */
 	@Modifying
 	@Transactional
-	@Query("DELETE FROM ChatRoom c WHERE c.participantCount <= 0 AND c.createdAt < :graceTime")
+	@Query(value = "DELETE FROM chat_rooms c WHERE c.member_count <= 0 AND c.created_at < :graceTime", nativeQuery = true)
 	int deleteEmptyRooms(@Param("graceTime") LocalDateTime graceTime);
 
 	/**

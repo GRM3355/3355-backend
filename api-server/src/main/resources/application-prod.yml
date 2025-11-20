@@ -75,9 +75,9 @@ logging:
 
 # --- Service ---
 chat:
-  max-chat-person: 300
+  max-chat-person: 100
   max-chat-room: 30
-  radius: 1.0 #km
+  radius: 1.0 #km (서울1)
   pre-create-day: 7 #7일전부터 생성 가능
   pre-view-day: 7 #7일전부터 축제보기 가능
 location:
