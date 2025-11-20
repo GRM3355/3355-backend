@@ -190,11 +190,6 @@ public class AuthService {
 	private User signUp(UserInfo userInfo) throws Exception {
 		//암호화
 		String socialIdHash = HashUtil.sha256(userInfo.getSocialId());
-		System.out.println("================>userInfo.getSocialId())=" + userInfo.getSocialId());
-		System.out.println("================>userInfo.getEmail())=" + userInfo.getEmail());
-		System.out.println("================>userInfo.getEmail())=" + userInfo.getSocialId());
-		System.out.println("================>socialIdHash=" + socialIdHash);
-
 		userInfo.setEmail(aesUtil.encrypt(userInfo.getEmail()));
 		userInfo.setSocialId(aesUtil.encrypt(userInfo.getSocialId()));
 
