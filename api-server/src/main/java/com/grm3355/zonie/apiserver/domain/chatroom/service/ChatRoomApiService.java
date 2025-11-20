@@ -33,7 +33,9 @@ import com.grm3355.zonie.apiserver.domain.chatroom.enums.OrderType;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
+import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoomUser;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository;
+import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomUserRepository;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
 import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;
@@ -48,7 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Transactional
 @RequiredArgsConstructor
-public class ChatRoomService {
+public class ChatRoomApiService {
 
 	private static final String PRE_FIX = "";
 	private static final String JOIN_EVENT_CHANNEL = "chat-events:join";
@@ -57,6 +59,7 @@ public class ChatRoomService {
 	private final RedisScanService redisScanService;
 	private final ChatRoomRepository chatRoomRepository;
 	private final UserRepository userRepository;
+	private final ChatRoomUserRepository chatRoomUserRepository;
 	private final StringRedisTemplate stringRedisTemplate;
 	private final RedisTemplate<String, Object> redisTemplate;
 	GeometryFactory geometryFactory = new GeometryFactory(); // GeometryFactory 생성 (보통 한 번만 만들어 재사용)
@@ -131,7 +134,7 @@ public class ChatRoomService {
 			.maxParticipants(max_participants)
 			.radius(max_radius)
 			.position(point)
-			.participantCount(0L)
+			.memberCount(1L)
 			.build();
 
 		ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
@@ -223,6 +226,114 @@ public class ChatRoomService {
 		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
 		log.info("===============>MyChatRoom.keyword===>{}", keyword);
 		return chatRoomRepository.chatMyRoomList(userId, keyword, pageable);
+	}
+
+	/**
+	 * 채팅방 가입 (DB 트랜잭션 기반 정원 검증 및 memberCount++)
+	 * @param roomId 가입할 채팅방 ID
+	 * @param userDetails 사용자 정보
+	 * @return 가입 성공 시 ChatRoomUser 정보
+	 */
+	@Transactional
+	public String joinRoom(String roomId, UserDetailsImpl userDetails) {
+		String userId = userDetails.getUsername();
+
+		// 1. User 조회
+		User user = userRepository.findByUserId(userId)
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자 정보가 유효하지 않습니다."));
+
+		// 2. ChatRoom 조회
+		// TODO: PESSIMISTIC_WRITE 락이 적용된 findByChatRoomIdWithLock 메서드로 변경해야 동시성 문제 해결 가능
+		ChatRoom room = chatRoomRepository.findByChatRoomId(roomId)
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
+
+		// 3. 재입장 방지 검증
+		if (chatRoomUserRepository.findByUserAndChatRoom(user, room).isPresent()) {
+			throw new BusinessException(ErrorCode.CONFLICT, "이미 채팅방에 입장되어 있습니다.");
+		}
+
+		// 4. 정원 검증 (memberCount는 이미 DB에 있는 값, PESSIMISTIC_WRITE 락으로 동시성 안전)
+		if (room.getMemberCount() >= room.getMaxParticipants()) {
+			throw new BusinessException(ErrorCode.CONFLICT, "채팅방 최대 정원(" + room.getMaxParticipants() + "명)을 초과했습니다.");
+		}
+
+		// 5. 닉네임 순번 획득 및 ChatRoomUser 엔티티 생성 및 DB 저장 (가입)
+		// Redis INCR을 사용하여 해당 방의 닉네임 순번을 획득
+		Long sequence = stringRedisTemplate.opsForValue().increment("chatroom:nickname_seq:" + roomId, 3355);
+		String nickName = "#" + sequence;
+
+		ChatRoomUser newParticipant = ChatRoomUser.builder()
+			.user(user)
+			.chatRoom(room)
+			.nickName(nickName) // 순번 기반 닉네임 사용
+			.lastReadAt(java.time.LocalDateTime.now())
+			.build();
+		chatRoomUserRepository.save(newParticipant);
+
+		// 6. ChatRoom.memberCount++
+		room.setMemberCount(room.getMemberCount() + 1);
+		chatRoomRepository.save(room);  // Dirty Checking | 명시적 save
+
+		// 7. Redis Pub/Sub 이벤트 발행 (Chat Server로 실시간 연결 알림)
+		try {
+			Map<String, String> joinEvent = Map.of(
+				"userId", userId,
+				"roomId", roomId,
+				"nickName", nickName
+			);
+			redisTemplate.convertAndSend(JOIN_EVENT_CHANNEL, joinEvent);
+			log.info("Published join event for User {} to Room {} with Nickname {}", userId, roomId, nickName);
+		} catch (Exception e) {
+			log.error("Failed to publish join event after successful DB join. User {}, Room {}",
+				userId, roomId, e);
+			// 이벤트 발행 실패는 롤백하지 않고 로그만 남김.
+		}
+
+		return nickName;
+	}
+
+	/**
+	 * 채팅방 퇴장 (DB 트랜잭션 기반 memberCount-- 및 ChatRoomUser 삭제)
+	 * @param roomId 퇴장할 채팅방 ID
+	 * @param userDetails 사용자 정보
+	 */
+	@Transactional
+	public void leaveRoom(String roomId, UserDetailsImpl userDetails) {
+		String userId = userDetails.getUsername();
+
+		// 1. User 조회
+		User user = userRepository.findByUserId(userId)
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자 정보가 유효하지 않습니다."));
+
+		// 2. ChatRoom 조회
+		ChatRoom room = chatRoomRepository.findByChatRoomId(roomId)
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
+
+		// 3. ChatRoomUser 찾기 (퇴장 대상)
+		ChatRoomUser participant = chatRoomUserRepository.findByUserAndChatRoom(user, room)
+			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "해당 채팅방에 입장되어 있지 않습니다."));
+
+		// 4. ChatRoomUser 삭제 (퇴장)
+		chatRoomUserRepository.delete(participant);
+
+		// 5. ChatRoom.memberCount--
+		if (room.getMemberCount() > 0) {
+			room.setMemberCount(room.getMemberCount() - 1);
+			chatRoomRepository.save(room); // Dirty Checking | 명시적 save
+		}
+
+		// 6. Redis Pub/Sub 이벤트 발행 (Chat Server로 실시간 연결 알림)
+		try {
+			Map<String, String> leaveEvent = Map.of(
+				"userId", userId,
+				"roomId", roomId
+			);
+			// chat-events:leave 채널 사용
+			redisTemplate.convertAndSend("chat-events:leave", leaveEvent);
+			log.info("Published leave event for User {} from Room {}", userId, roomId);
+		} catch (Exception e) {
+			log.error("Failed to publish leave event after successful DB leave.", e);
+		}
 	}
 
 	/**
