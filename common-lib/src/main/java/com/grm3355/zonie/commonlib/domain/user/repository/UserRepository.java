@@ -13,13 +13,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 	Optional<User> findByUserId(String id);
 
-	Optional<User> findByUserIdAndProviderTypeAndDeletedAtIsNull(String userId, ProviderType providerType);
-
 	Optional<User> findByUserIdAndDeletedAtIsNull(String userId);
 
-	Optional<User> findBySocialIdAndProviderTypeAndDeletedAtIsNull(String socialId, ProviderType providerType);
-
-	Optional<User> findBySocialIdAndDeletedAtIsNull(String socialId);
+	Optional<User> findBySocialIdHashAndProviderTypeAndDeletedAtIsNull(String socialIdHash, ProviderType providerType);
 
 	default User getOrThrow(String id) {
 		return findByUserId(id)

@@ -75,6 +75,10 @@
         {
           "name": "KAKAO_CLIENT_SECRET",
           "valueFrom": "KAKAO_CLIENT_SECRET"
+        },
+        {
+          "name": "AES_KEY",
+          "valueFrom": "AES_KEY"
         }
       ],
       "logConfiguration": {

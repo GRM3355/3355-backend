@@ -62,10 +62,10 @@ class KakaoOAuth2UserInfoClientTest {
 		UserInfo actual = kakaoOAuth2UserInfoClient.getUserInfo("accessToken");
 
 		assertSoftly(softly -> {
-			softly.assertThat(actual.providerType()).isEqualTo(ProviderType.KAKAO);
-			softly.assertThat(actual.socialId()).isEqualTo(expected.id());
-			softly.assertThat(actual.nickname()).isEqualTo(expected.kakaoAccount().profile().nickname());
-			softly.assertThat(actual.profileImage())
+			softly.assertThat(actual.getProviderType()).isEqualTo(ProviderType.KAKAO);
+			softly.assertThat(actual.getSocialId()).isEqualTo(expected.id());
+			softly.assertThat(actual.getNickname()).isEqualTo(expected.kakaoAccount().profile().nickname());
+			softly.assertThat(actual.getProfileImage())
 				.isEqualTo(expected.kakaoAccount().profile().thumbnailImageUrl());
 		});
 	}

@@ -17,21 +17,21 @@ public record KakaoUserInfo(
 			? profile.nickname()
 			: "익명"; // 기본값
 
-		String profileImage = (profile != null && profile.thumbnailImageUrl() != null && !profile.thumbnailImageUrl().isBlank())
-			? profile.thumbnailImageUrl()
-			: null; // 필요하면 기본 이미지 URL 사용 가능
+		String profileImage =
+			(profile != null && profile.thumbnailImageUrl() != null && !profile.thumbnailImageUrl().isBlank())
+				? profile.thumbnailImageUrl()
+				: null; // 필요하면 기본 이미지 URL 사용 가능
 
 		String email = (kakaoAccount.email() != null && !kakaoAccount.email().isBlank())
 			? kakaoAccount.email()
 			: null; // 이메일도 선택적 필드
-
-		return new UserInfo(
-			id,
-			ProviderType.KAKAO,
-			email,
-			nickname,
-			profileImage
-		);
+		
+		return UserInfo.builder()
+			.socialId(id)
+			.providerType(ProviderType.KAKAO)
+			.email(email)
+			.nickname(nickname)
+			.profileImage(profileImage).build();
 	}
 
 	public record KakaoAccount(
