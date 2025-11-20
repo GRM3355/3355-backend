@@ -40,8 +40,9 @@ public class FestivalDetailImage extends BaseTimeEntity {
 	@Column(name = "festival_image_id", nullable = false, unique = true, updatable = false)
 	private Long festivalImageId;
 
-	@Column(name = "content_id", nullable = false, updatable = false)
-	private Integer contentId; // FK, 반드시 필요
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "content_id", referencedColumnName = "content_id", nullable = false)
+	private Festival festival;
 
 	@Column(name = "origin_img_url", nullable = false, length = 1024)
 	private String originImgUrl;
