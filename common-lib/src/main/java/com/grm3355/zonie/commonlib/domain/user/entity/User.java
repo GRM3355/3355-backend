@@ -1,7 +1,5 @@
 package com.grm3355.zonie.commonlib.domain.user.entity;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -69,16 +67,16 @@ public class User extends BaseTimeEntity {
 	@Column(name = "social_id")
 	private String socialId;
 
+	//SocialId 해시값 가입여부 비교할때 조회하는 칼럼
+	@Column(name = "social_id_hash")
+	private String socialIdHash; // 조회용 SHA256 해시, 인덱스 가능
+
 	public void updateEmail(String email) {
 		this.accountEmail = email;
 	}
 
-	//public void delete() {
-	//	this.deletedAt = LocalDateTime.now();
-	//}
-
 	//todo 휴대폰번호 컬럼 추가필요
-//	public void updatePhoneNumber(String phoneNumber) {
-//		this.phoneNumber = phoneNumber;
-//	}
+	//	public void updatePhoneNumber(String phoneNumber) {
+	//		this.phoneNumber = phoneNumber;
+	//	}
 }

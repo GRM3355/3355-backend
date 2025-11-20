@@ -1,7 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.user.controller;
 
 import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.eq;
@@ -70,7 +69,7 @@ class UserControllerTest {
 
 		// 서비스 Mocking: getUserProfile 반환값 지정
 		UserProfileResponse mockProfile = new UserProfileResponse(
-			"test-user", "TestNickname", "test@example.com", "profile.png", LocalDateTime.now()
+			"test-user", "test@example.com", LocalDateTime.now()
 		);
 		when(userService.getUserProfile("test-user")).thenReturn(mockProfile);
 
@@ -81,9 +80,7 @@ class UserControllerTest {
 			.andExpect(content().string(containsString("success")))
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.data.userId").value("test-user"))
-			.andExpect(jsonPath("$.data.profileNickName").value("TestNickname"))
-			.andExpect(jsonPath("$.data.accountEmail").value("test@example.com"))
-			.andExpect(jsonPath("$.data.profileImage").value("profile.png"));
+			.andExpect(jsonPath("$.data.accountEmail").value("test@example.com"));
 
 	}
 

@@ -20,6 +20,8 @@ import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginRequest;
 import com.grm3355.zonie.apiserver.domain.auth.dto.auth.LoginResponse;
+import com.grm3355.zonie.apiserver.domain.auth.util.AESUtil;
+import com.grm3355.zonie.apiserver.domain.auth.util.HashUtil;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsImpl;
 import com.grm3355.zonie.apiserver.global.jwt.UserDetailsServiceImpl;
 import com.grm3355.zonie.commonlib.domain.user.entity.User;
@@ -48,6 +50,7 @@ public class AuthService {
 	private final PasswordEncoder passwordEncoder;
 	private final OAuth2Clients oAuth2Clients;
 	private final UserDetailsServiceImpl userDetailsService;
+	private final AESUtil aesUtil;
 
 	/**
 	 * [TestManagement] 테스트용 유저 ID로 즉시 토큰을 발급합니다.
@@ -153,16 +156,23 @@ public class AuthService {
 	@Transactional
 	public LoginResponse login(LoginRequest request) {
 		UserInfo userInfo = getUserInfo(request);
-		User user = userRepository.findBySocialIdAndProviderTypeAndDeletedAtIsNull(userInfo.socialId(),
-				userInfo.providerType())
-			.orElseGet(() -> signUp(userInfo));
+		String socialIdHash = HashUtil.sha256(userInfo.getSocialId());
+		User user = userRepository.findBySocialIdHashAndProviderTypeAndDeletedAtIsNull(socialIdHash,
+				userInfo.getProviderType())
+			.orElseGet(() -> {
+				try {
+					return signUp(userInfo);
+				} catch (Exception e) {
+					throw new RuntimeException(e);
+				}
+			});
 
 		//return new LoginResponse(jwtTokenProvider.createAccessToken(user.getUserId(), user.getRole()),
 		//	userInfo.nickname());
 
 		//아이디 저장후 인증정보 authentication 정보 가져오기
 		String randomDateId = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-							  + (int)(Math.random() * 10000); // 0~9999
+			+ (int)(Math.random() * 10000); // 0~9999
 		System.out.println(randomDateId); // 예: 202511120384
 
 		//액세스 토큰 생성(JWT) - 클라이언트가 저장
@@ -177,7 +187,15 @@ public class AuthService {
 		return oAuth2Client.getUserInfo(accessToken);
 	}
 
-	private User signUp(UserInfo userInfo) {
+	private User signUp(UserInfo userInfo) throws Exception {
+		//암호화
+		String socialIdHash = HashUtil.sha256(userInfo.getSocialId());
+		userInfo.setEmail(aesUtil.encrypt(userInfo.getEmail()));
+		userInfo.setSocialId(aesUtil.encrypt(userInfo.getSocialId()));
+
+		userInfo.setSocialIdHash(socialIdHash);
+
+		//저장
 		return userRepository.save(userInfo.toUser());
 	}
 

@@ -67,7 +67,7 @@ public class UserController {
 	@PreAuthorize("isAuthenticated()")
 	@GetMapping("/me")
 	public ResponseEntity<ApiResponse<UserProfileResponse>> getProfile(
-		@AuthenticationPrincipal UserDetailsImpl userDetails) {
+		@AuthenticationPrincipal UserDetailsImpl userDetails) throws Exception {
 		UserProfileResponse userProfile = userService.getUserProfile(userDetails.getUserId());
 		return ResponseEntity.ok().body(ApiResponse.success(userProfile));
 	}

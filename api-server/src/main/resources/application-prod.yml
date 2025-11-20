@@ -96,3 +96,7 @@ management:
   endpoints:
     web:
       base-path: /
+
+# encrypt
+aes:
+  key: ${AES_KEY}

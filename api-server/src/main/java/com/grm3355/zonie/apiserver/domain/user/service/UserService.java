@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserProfileResponse;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserQuitResponse;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
+import com.grm3355.zonie.apiserver.domain.auth.util.AESUtil;
 import com.grm3355.zonie.apiserver.domain.user.dto.EmailUpdateRequest;
 import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;
@@ -20,10 +21,12 @@ import lombok.extern.slf4j.Slf4j;
 public class UserService {
 	private final UserRepository userRepository;
 	private final RedisTokenService redisTokenService;
+	private final AESUtil aesUtil;
 
-	public UserService(UserRepository userRepository, RedisTokenService redisTokenService) {
+	public UserService(UserRepository userRepository, RedisTokenService redisTokenService, AESUtil aesUtil) {
 		this.userRepository = userRepository;
 		this.redisTokenService = redisTokenService;
+		this.aesUtil = aesUtil;
 	}
 
 	@Transactional
@@ -32,15 +35,13 @@ public class UserService {
 		user.updateEmail(request.email());
 	}
 
-	public UserProfileResponse getUserProfile(String userId) {
+	public UserProfileResponse getUserProfile(String userId) throws Exception {
 		User user = userRepository.findByUserIdAndDeletedAtIsNull(userId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
 		return new UserProfileResponse(
 			user.getUserId(),
-			user.getProfileNickName(),
-			user.getAccountEmail(),
-			user.getProfileImage(),
+			aesUtil.decrypt(user.getAccountEmail()),
 			user.getCreatedAt()
 		);
 	}
