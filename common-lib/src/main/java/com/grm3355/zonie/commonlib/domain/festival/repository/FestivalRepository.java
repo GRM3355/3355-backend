@@ -175,10 +175,6 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	List<Festival> findByContentIdIn(List<Integer> contentIds);
 
 	//지역별 축제갯수
-	//@Query("SELECT c.region, COUNT(c) FROM Festival c GROUP BY c.region")
-	//List<Object[]> countByRegionGroup();
-
-	//지역별 축제갯수
 	@Query(
 		value = """
 			SELECT f.region, COUNT(f) FROM festivals f
