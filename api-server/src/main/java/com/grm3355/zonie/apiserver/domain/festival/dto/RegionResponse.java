@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegionResponse {
-	private String region;
-	private String code;
+	private String region;    //SEOUL
+	private String code;    //서울
+	private Long count;       // 23
 }

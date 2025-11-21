@@ -1,7 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.festival.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import jakarta.validation.Valid;
 
@@ -136,11 +135,15 @@ public class FestivalController {
 	@ApiError429
 	@GetMapping("/festivals/regions")
 	public ResponseEntity<?> getFestivalRegion() {
-		List<Map<String, String>> rawList = festivalService.getRegionList();
-		List<RegionResponse> response = rawList.stream()
-			.map(map -> new RegionResponse(map.get("region"), map.get("code")))
-			.toList();
+		//List<Map<String, String>> rawList = festivalService.getRegionList();
+		//List<RegionResponse> response = rawList.stream()
+		//	.map(map -> new RegionResponse(map.get("region"), map.get("code")))
+		//	.toList();
+		//return ResponseEntity.ok().body(ApiResponse.success(response));
+
+		List<RegionResponse> response = festivalService.getRegionCounts();
 		return ResponseEntity.ok().body(ApiResponse.success(response));
+
 	}
 
 	@Operation(summary = "지역별 축제 개수 조회", description = "특정 지역(region)의 축제 개수를 조회합니다.")

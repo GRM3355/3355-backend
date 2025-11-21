@@ -3,6 +3,7 @@ package com.grm3355.zonie.apiserver.domain.festival.service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
@@ -26,6 +27,7 @@ import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalCreateRequest;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalDetailResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
+import com.grm3355.zonie.apiserver.domain.festival.dto.RegionResponse;
 import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalOrderType;
 import com.grm3355.zonie.apiserver.domain.festival.enums.FestivalStatus;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
@@ -181,6 +183,33 @@ public class FestivalService {
 		)).toList();
 	}
 
+	public List<RegionResponse> getRegionCounts() {
+
+		// DB에서: { "서울", 23 }, { "경기/인천", 15 }
+		List<Object[]> rows = festivalRepository.countByRegionGroup(preview_days);
+
+		// String → count 매핑
+		Map<String, Long> dbCounts = new HashMap<>();
+		for (Object[] row : rows) {
+			dbCounts.put((String)row[0], (Long)row[1]);
+			log.info("===============>지역명:{},카운터:{}", row[0], row[1]);
+		}
+
+		List<RegionResponse> result = new ArrayList<>();
+
+		// Enum 순서대로 출력 (SEOUL → GYEONGGI → …)
+		for (Region region : Region.values()) {
+			String enumCode = region.name();      // SEOUL
+			String regionName = region.getName(); // "서울"
+			Long count = dbCounts.getOrDefault(enumCode, 0L);
+			log.info("===============>enumCode:{},regionName:{},count:{}",
+				enumCode, regionName, count);
+			result.add(new RegionResponse(enumCode, regionName, count));
+		}
+
+		return result;
+	}
+
 	/**
 	 * 지역별 축제 개수 조회
 	 * (getFestivalListType의 필터 조건 중 'preview_days'를 동일하게 적용)
@@ -193,13 +222,13 @@ public class FestivalService {
 		if (region == null) {
 			throw new BusinessException(ErrorCode.BAD_REQUEST,
 				"지역 코드를 정확하게 입력하세요. 지역코드 정보는 다음과 같습니다.\n SEOUL(\"서울\"),\n"
-				+ "\tGYEONGGI(\"경기/인천\"),\n"
-				+ "\tCHUNGCHEONG(\"충청/대전/세종\"),\n"
-				+ "\tGANGWON(\"강원\"),\n"
-				+ "\tGYEONGBUK(\"경북/대구/울산\"),\n"
-				+ "\tGYEONGNAM(\"경남/부산\"),\n"
-				+ "\tJEOLLA(\"전라/광주\"),\n"
-				+ "\tJEJU(\"제주\")}");
+					+ "\tGYEONGGI(\"경기/인천\"),\n"
+					+ "\tCHUNGCHEONG(\"충청/대전/세종\"),\n"
+					+ "\tGANGWON(\"강원\"),\n"
+					+ "\tGYEONGBUK(\"경북/대구/울산\"),\n"
+					+ "\tGYEONGNAM(\"경남/부산\"),\n"
+					+ "\tJEOLLA(\"전라/광주\"),\n"
+					+ "\tJEJU(\"제주\")}");
 		}
 
 		// 3. Repository에 count용 메서드 호출: getFestivalList와 동일하게 preview_days를 적용하여 노출될 축제만 카운트
