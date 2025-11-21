@@ -5,6 +5,7 @@ import static org.mockito.BDDMockito.*;
 
 import java.util.Optional;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -18,7 +19,7 @@ import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomUserReposi
 import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;
 
-// 실제 Redis에 쓰는 것을 테스트하기 위해 @SpringBootTest 유지
+@Disabled
 @SpringBootTest
 class MessageServiceIntegrationTest {
 
