@@ -479,12 +479,12 @@ public class ChatRoomApiService {
 		return switch (orderType) {
 			// 참여자 많은 순: 참여자 수 내림차순 -> (동점시) 생성일 최신순
 			case PART_DESC -> Sort.by(
-				Sort.Order.desc("participant_count"),
+				Sort.Order.desc("member_count"),
 				Sort.Order.desc("created_at")
 			);
 			// 참여자 적은 순: 참여자 수 오름차순 -> (동점시) 생성일 최신순
 			case PART_ASC -> Sort.by(
-				Sort.Order.asc("participant_count"),
+				Sort.Order.asc("member_count"),
 				Sort.Order.desc("created_at")
 			);
 			// 생성 최신순

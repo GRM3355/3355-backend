@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -75,7 +76,7 @@ public class LocationController {
 		),
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "404",
-			description = "축제 정보를 찾을 수 없음",	 // 404 Not Found (고유한 설명 사용)
+			description = "축제 정보를 찾을 수 없음",     // 404 Not Found (고유한 설명 사용)
 			content = @Content(
 				mediaType = "application/json",
 				schema = @Schema(implementation = ApiResponse.class),
@@ -89,6 +90,7 @@ public class LocationController {
 	@ApiError405 // (Method Not Allowed - POST에 GET 요청 등)
 	@ApiError415
 	@ApiError429
+	@SecurityRequirement(name = "Authorization")
 	@PostMapping("/verification/festivals/{festivalId}")
 	public ResponseEntity<?> verifyFestivalLocation(
 		@AuthenticationPrincipal UserDetailsImpl userDetails,

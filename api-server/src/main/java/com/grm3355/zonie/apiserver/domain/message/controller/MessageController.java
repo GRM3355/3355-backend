@@ -31,6 +31,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -74,6 +75,7 @@ public class MessageController {
 	@ApiError405
 	@ApiError415
 	@ApiError429
+	@SecurityRequirement(name = "Authorization")
 	@PostMapping("/messages/{messageId}/like")
 	@PreAuthorize("hasAnyRole('GUEST', 'USER')")
 	public ResponseEntity<ApiResponse<MessageLikeResponse>> toggleLike(
@@ -105,6 +107,7 @@ public class MessageController {
 	@ApiError404
 	@ApiError405
 	@ApiError429
+	@SecurityRequirement(name = "Authorization")
 	@GetMapping("/chat-rooms/{roomId}/messages")
 	@PreAuthorize("hasAnyRole('GUEST', 'USER')")
 	public ResponseEntity<ApiResponse<MessageSliceResponse>> getMessages(

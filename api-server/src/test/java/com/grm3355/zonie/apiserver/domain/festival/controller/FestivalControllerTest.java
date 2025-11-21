@@ -5,7 +5,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalDetailResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
+import com.grm3355.zonie.apiserver.domain.festival.dto.RegionResponse;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAccessDeniedHandler;
 import com.grm3355.zonie.apiserver.global.jwt.JwtAuthenticationEntryPoint;
@@ -71,7 +71,8 @@ class FestivalControllerTest {
 		FestivalResponse festival = FestivalResponse.builder().build();
 		Page<FestivalResponse> pageList = new PageImpl<>(List.of(festival), PageRequest.of(0, 10), 1);
 
-		Mockito.when(festivalService.getFestivalList(any(FestivalSearchRequest.class))) // 서비스에서 Page<T> 반환 (컨트롤러가 FestivalPageResponse로 변환)
+		Mockito.when(festivalService.getFestivalList(
+				any(FestivalSearchRequest.class))) // 서비스에서 Page<T> 반환 (컨트롤러가 FestivalPageResponse로 변환)
 			.thenReturn(pageList);
 
 		// when & then
@@ -110,12 +111,12 @@ class FestivalControllerTest {
 	@DisplayName("지역 목록 조회 테스트")
 	void testGetFestivalRegion() throws Exception {
 		// given
-		List<Map<String, String>> serviceResponse = List.of(
-			Map.of("region", "서울", "code", "SEOUL"),
-			Map.of("region", "전라", "code", "JEOLLA")
+		List<RegionResponse> serviceResponse = List.of(
+			new RegionResponse("SEOUL", "서울", 1L),
+			new RegionResponse("JEOLLA", "전라", 2L)
 		);
 
-		Mockito.when(festivalService.getRegionList())
+		Mockito.when(festivalService.getRegionCounts())
 			.thenReturn(serviceResponse);
 
 		// when & then
@@ -125,10 +126,12 @@ class FestivalControllerTest {
 			.andExpect(status().isOk())
 			.andExpect(jsonPath("$.success").value(true))
 			.andExpect(jsonPath("$.data").isArray())
-			.andExpect(jsonPath("$.data[0].region").value("서울"))
-			.andExpect(jsonPath("$.data[0].code").value("SEOUL"))
-			.andExpect(jsonPath("$.data[1].region").value("전라"))
-			.andExpect(jsonPath("$.data[1].code").value("JEOLLA"));
+			.andExpect(jsonPath("$.data[0].region").value("SEOUL"))
+			.andExpect(jsonPath("$.data[0].code").value("서울"))
+			.andExpect(jsonPath("$.data[0].count").value("1"))
+			.andExpect(jsonPath("$.data[1].region").value("JEOLLA"))
+			.andExpect(jsonPath("$.data[1].code").value("전라"))
+			.andExpect(jsonPath("$.data[1].count").value("2"));
 	}
 
 	@Test

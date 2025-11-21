@@ -137,8 +137,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	@Modifying
 	@Transactional
 	@Query("DELETE FROM ChatRoom c "
-		   + "WHERE (c.lastMessageAt IS NOT NULL AND c.lastMessageAt < :cutoffTime) "
-		   + "OR (c.lastMessageAt IS NULL AND c.createdAt < :cutoffTime)")
+		+ "WHERE (c.lastMessageAt IS NOT NULL AND c.lastMessageAt < :cutoffTime) "
+		+ "OR (c.lastMessageAt IS NULL AND c.createdAt < :cutoffTime)")
 	int deleteByLastMessageAtBefore(@Param("cutoffTime") LocalDateTime cutoffTime);
 
 	/**
