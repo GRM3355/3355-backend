@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.domain.chatroom;
+package com.grm3355.zonie.apiserver.domain.chatroom.controller;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
