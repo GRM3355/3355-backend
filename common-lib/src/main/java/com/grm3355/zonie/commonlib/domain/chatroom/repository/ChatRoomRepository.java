@@ -68,7 +68,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     WHERE c.chat_room_id IS NOT NULL
 		       AND (cru.user_id = :userId)
 		       AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%') )
-		     GROUP BY c.participant_count, c.chat_room_id, f.festival_id, c.title, c.position, c.member_count, c.last_message_at, f.title, c.created_at
+		     GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.member_count, c.last_message_at, f.title, c.created_at
 		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시 (participant_count 제거)
 	String MY_ROOM_QUERY_BASE_COUNT = """
 		   SELECT COUNT(DISTINCT c.chat_room_id)
