@@ -192,7 +192,6 @@ public class FestivalService {
 		Map<String, Long> dbCounts = new HashMap<>();
 		for (Object[] row : rows) {
 			dbCounts.put((String)row[0], (Long)row[1]);
-			log.info("===============>지역명:{},카운터:{}", row[0], row[1]);
 		}
 
 		List<RegionResponse> result = new ArrayList<>();
@@ -202,8 +201,6 @@ public class FestivalService {
 			String enumCode = region.name();      // SEOUL
 			String regionName = region.getName(); // "서울"
 			Long count = dbCounts.getOrDefault(enumCode, 0L);
-			log.info("===============>enumCode:{},regionName:{},count:{}",
-				enumCode, regionName, count);
 			result.add(new RegionResponse(enumCode, regionName, count));
 		}
 
