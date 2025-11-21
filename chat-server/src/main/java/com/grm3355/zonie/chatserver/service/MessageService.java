@@ -3,6 +3,7 @@ package com.grm3355.zonie.chatserver.service;
 import java.time.LocalDateTime;
 
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,7 +28,8 @@ import lombok.extern.slf4j.Slf4j;
 public class MessageService {
 
 	private final MessageRepository messageRepository;
-	private final RedisTemplate<String, Object> redisTemplate; // (Pub/Sub용)
+	private final RedisTemplate<String, Object> redisTemplate;    // (Pub/Sub용)
+	private final StringRedisTemplate stringRedisTemplate;        // 순수 문자열 저장용
 	private final ObjectMapper objectMapper;
 	private final ChatRoomUserRepository chatRoomUserRepository;
 	private final UserRepository userRepository;
@@ -67,11 +69,12 @@ public class MessageService {
 			log.error("Message Pub/Sub 발행 실패", e);
 		}
 
-		// 4. Redis에 마지막 대화 시각 갱신
-		redisTemplate.opsForValue().set("chatroom:last_msg_at:" + roomId, String.valueOf(System.currentTimeMillis()));
+		// 4. Redis에 마지막 대화 시각 갱신 - String Template
+		stringRedisTemplate.opsForValue()
+			.set("chatroom:last_msg_at:" + roomId, String.valueOf(System.currentTimeMillis()));
 
-		// 5. Redis에 마지막 메시지 내용 갱신
+		// 5. Redis에 마지막 메시지 내용 갱신 - String Template
 		String lastContent = nickname + ": " + content;
-		redisTemplate.opsForValue().set("chatroom:last_msg_content:" + roomId, lastContent);
+		stringRedisTemplate.opsForValue().set("chatroom:last_msg_content:" + roomId, lastContent);
 	}
 }
