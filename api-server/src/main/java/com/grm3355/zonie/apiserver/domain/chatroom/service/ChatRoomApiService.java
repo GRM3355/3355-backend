@@ -122,8 +122,14 @@ public class ChatRoomApiService {
 
 		// 6. 채팅방 저장
 		// 채팅방의 위치(Point)는 갱신된(혹은 새로 생성된) 토큰의 위치를 사용합니다.
+
+		// 사용자 위치 - 사용할수 있으므로 주석처리
+		//Point point = geometryFactory.createPoint(
+		//	new Coordinate(userTokenDto.getLon(), userTokenDto.getLat())); // lon=X, lat=Y
+
+		// 축제위치
 		Point point = geometryFactory.createPoint(
-			new Coordinate(userTokenDto.getLon(), userTokenDto.getLat())); // lon=X, lat=Y
+			new Coordinate(festival.getPosition().getX(), festival.getPosition().getY())); // lon=X, lat=Y
 
 		String roomId = createRoomId();
 		ChatRoom chatRoom = ChatRoom.builder()
