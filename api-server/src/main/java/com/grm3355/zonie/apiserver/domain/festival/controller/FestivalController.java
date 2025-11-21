@@ -135,12 +135,6 @@ public class FestivalController {
 	@ApiError429
 	@GetMapping("/festivals/regions")
 	public ResponseEntity<?> getFestivalRegion() {
-		//List<Map<String, String>> rawList = festivalService.getRegionList();
-		//List<RegionResponse> response = rawList.stream()
-		//	.map(map -> new RegionResponse(map.get("region"), map.get("code")))
-		//	.toList();
-		//return ResponseEntity.ok().body(ApiResponse.success(response));
-
 		List<RegionResponse> response = festivalService.getRegionCounts();
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 
