@@ -11,12 +11,12 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import org.locationtech.jts.geom.Point;
 
+import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 import com.grm3355.zonie.commonlib.global.entity.BaseTimeEntity;
 
 import lombok.AccessLevel;
@@ -100,4 +100,6 @@ public class Festival extends BaseTimeEntity {
 	@OneToMany(mappedBy = "festival", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
 	private List<FestivalDetailImage> detailImages = new ArrayList<>();
 
+	@OneToMany(mappedBy = "festival", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<ChatRoom> chatRooms;
 }

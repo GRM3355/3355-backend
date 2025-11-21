@@ -3,6 +3,7 @@ package com.grm3355.zonie.commonlib.domain.chatroom.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -85,4 +86,7 @@ public class ChatRoom extends BaseTimeEntity {
 	 */
 	@Column(name = "last_message_at")
 	private LocalDateTime lastMessageAt;
+
+	@OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE, orphanRemoval = true)
+	private List<ChatRoomUser> chatRoomUsers;
 }
