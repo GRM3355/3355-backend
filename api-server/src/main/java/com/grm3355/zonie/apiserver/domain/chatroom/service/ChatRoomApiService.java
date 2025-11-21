@@ -388,7 +388,19 @@ public class ChatRoomApiService {
 
 				// 마지막 시각 병합
 				String timestampStr = lastTimestampsMap.get("chatroom:last_msg_at:" + roomId);
-				Long realTimeTimestamp = (timestampStr != null) ? Long.parseLong(timestampStr) : null;
+				Long realTimeTimestamp = null;
+				if (timestampStr != null) {
+					// NumberFormatException 방지. 양 끝의 큰따옴표가 있다면 제거 (방어용)
+					String cleanTimestampStr = timestampStr.replaceAll("^\"|\"$", "");
+					try {
+						realTimeTimestamp = Long.parseLong(cleanTimestampStr);
+					} catch (NumberFormatException e) {
+						// 파싱 실패 시 로그를 남기고 해당 값은 무시 (null 처리)
+						log.error("Failed to parse timestamp for room {}. Input string: {}", roomId, timestampStr, e);
+						realTimeTimestamp = null;
+					}
+				}
+
 				Long finalTimestamp = dto.lastMessageAt();
 				if (realTimeTimestamp != null && (finalTimestamp == null || realTimeTimestamp > finalTimestamp)) {
 					finalTimestamp = realTimeTimestamp;
