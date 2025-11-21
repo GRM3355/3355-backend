@@ -157,6 +157,12 @@ public class RedisTokenService {
 	 * @return 생성/갱신된 위치 정보 (UserTokenDto)
 	 */
 	public UserTokenDto setToken(String userId, String contextId, LocationDto locationDto) {
+
+		if (locationDto == null) {
+			log.error("LocationDto cannot be null during token setting for user {}", userId);
+			throw new IllegalArgumentException("Location information is missing.");
+		}
+
 		// 1. 토큰이 이미 존재하는지 확인하고, 존재하면 갱신
 		boolean updated = updateLocationInfo(locationDto, userId, contextId);
 

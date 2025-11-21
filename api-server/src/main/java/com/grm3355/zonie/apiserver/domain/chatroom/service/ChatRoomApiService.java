@@ -64,13 +64,48 @@ public class ChatRoomApiService {
 	private final RedisTemplate<String, Object> redisTemplate;
 	GeometryFactory geometryFactory = new GeometryFactory(); // GeometryFactory 생성 (보통 한 번만 만들어 재사용)
 	@Value("${chat.pre-create-day}")
-	private int pre_create_days;    //시작하기전 몇일전부터 생성가능
+	private int preCreateDays;    //시작하기전 몇일전부터 생성가능
 	@Value("${chat.max-chat-person}")
-	private long max_participants;    //최대인원스
+	private long maxParticipants;    //최대인원스
 	@Value("${chat.max-chat-room}")
-	private int max_room;    //최개 채팅방 갯수
+	private int maxRoom;    //최개 채팅방 갯수
 	@Value("${chat.radius}")
-	private double max_radius;   //최대km
+	private double maxRadius;   //최대km
+	@Value("${chat.nickname-start}")
+	private int nicknameStartNumber;
+
+	/**
+	 * 닉네임 순번을 획득하고 ChatRoomUser 엔티티를 생성 및 저장합니다.
+	 * (문제 1: ChatRoomUser 생성, 문제 2: #3355 순번 부여 로직 중앙화)
+	 * @param user 참여자 User 엔티티
+	 * @param chatRoom 참여할 ChatRoom 엔티티
+	 * @return 부여된 닉네임
+	 */
+	private String createAndSaveChatRoomUser(User user, ChatRoom chatRoom) {
+		String roomId = chatRoom.getChatRoomId();
+
+		// 1. Redis INCR을 사용하여 해당 방의 닉네임 순번을 획득 (1부터 시작)
+		// 키: "chatroom:nickname_seq:[roomId]"
+		Long sequence = stringRedisTemplate.opsForValue().increment("chatroom:nickname_seq:" + roomId);
+		sequence = sequence == null ? nicknameStartNumber : sequence;
+
+		// 2. 닉네임 순번 계산: nicknameStartNumber (3355) 부터 오름차순
+		long newNumber = nicknameStartNumber + sequence - 1;
+
+		// 3. 닉네임 형식 생성: #[순번]
+		String nickName = "#" + newNumber;
+
+		// 4. ChatRoomUser 엔티티 생성 및 저장
+		ChatRoomUser participant = ChatRoomUser.builder()
+			.user(user)
+			.chatRoom(chatRoom)
+			.nickName(nickName)
+			.lastReadAt(java.time.LocalDateTime.now())
+			.build();
+		chatRoomUserRepository.save(participant);
+
+		return nickName;
+	}
 
 	/**
 	 * 채팅방 생성
@@ -86,7 +121,7 @@ public class ChatRoomApiService {
 
 		// 1. 축제 조회
 		String festivalIdStr = String.valueOf(festivalId);
-		Festival festival = festivalInfoService.getDataValid(festivalId, pre_create_days);
+		Festival festival = festivalInfoService.getDataValid(festivalId, preCreateDays);
 
 		// 2. 위치 정보 객체 생성
 		LocationDto currentLocation = LocationDto.builder()
@@ -99,11 +134,11 @@ public class ChatRoomApiService {
 			festivalId,
 			currentLocation.getLat(),
 			currentLocation.getLon(),
-			max_radius
+			maxRadius
 		);
 		if (!isWithinRadius) {
 			// 축제 반경(max_radius)을 벗어났다면 예외 발생
-			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설 반경(" + max_radius + "km)을 벗어났습니다.");
+			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설 반경(" + maxRadius + "km)을 벗어났습니다.");
 		}
 
 		// 4. 위치 인증 토큰 발급/갱신 (반경 검증 통과 후 토큰 처리)
@@ -116,8 +151,8 @@ public class ChatRoomApiService {
 		}
 
 		// 5. 채팅방 제한 개수 체크
-		if (festival.getChatRoomCount() >= max_room) {
-			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설은 " + max_room + "개까지 입니다.");
+		if (festival.getChatRoomCount() >= maxRoom) {
+			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설은 " + maxRoom + "개까지 입니다.");
 		}
 
 		// 6. 채팅방 저장
@@ -137,8 +172,8 @@ public class ChatRoomApiService {
 			.festival(festival)
 			.user(user)
 			.title(request.getTitle())
-			.maxParticipants(max_participants)
-			.radius(max_radius)
+			.maxParticipants(maxParticipants)
+			.radius(maxRadius)
 			.position(point)
 			.memberCount(1L)
 			.build();
@@ -146,11 +181,15 @@ public class ChatRoomApiService {
 		ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
 		festivalInfoService.increaseChatRoomCount(festivalId);
 
+		// 방장 닉네임 순번 획득 및 ChatRoomUser 엔티티 생성 및 DB 저장
+		String nickName = createAndSaveChatRoomUser(user, saveChatRoom);
+
 		try {
 			// 7. 이벤트 페이로드 생성
 			Map<String, String> joinEvent = Map.of(
 				"userId", user.getUserId(),
-				"roomId", saveChatRoom.getChatRoomId()
+				"roomId", saveChatRoom.getChatRoomId(),
+				"nickName", nickName // 생성자 닉네임 포함해 전달
 			);
 
 			// 8. Redis Pub/Sub으로 이벤트 발행
@@ -262,18 +301,8 @@ public class ChatRoomApiService {
 			throw new BusinessException(ErrorCode.CONFLICT, "채팅방 최대 정원(" + room.getMaxParticipants() + "명)을 초과했습니다.");
 		}
 
-		// 5. 닉네임 순번 획득 및 ChatRoomUser 엔티티 생성 및 DB 저장 (가입)
-		// Redis INCR을 사용하여 해당 방의 닉네임 순번을 획득
-		Long sequence = stringRedisTemplate.opsForValue().increment("chatroom:nickname_seq:" + roomId, 3355);
-		String nickName = "#" + sequence;
-
-		ChatRoomUser newParticipant = ChatRoomUser.builder()
-			.user(user)
-			.chatRoom(room)
-			.nickName(nickName) // 순번 기반 닉네임 사용
-			.lastReadAt(java.time.LocalDateTime.now())
-			.build();
-		chatRoomUserRepository.save(newParticipant);
+		// 5. 닉네임 순번 획득 및 ChatRoomUser 엔티티 생성 및 DB 저장
+		String nickName = createAndSaveChatRoomUser(user, room);
 
 		// 6. ChatRoom.memberCount++
 		room.setMemberCount(room.getMemberCount() + 1);
@@ -388,7 +417,19 @@ public class ChatRoomApiService {
 
 				// 마지막 시각 병합
 				String timestampStr = lastTimestampsMap.get("chatroom:last_msg_at:" + roomId);
-				Long realTimeTimestamp = (timestampStr != null) ? Long.parseLong(timestampStr) : null;
+				Long realTimeTimestamp = null;
+				if (timestampStr != null) {
+					// NumberFormatException 방지. 양 끝의 큰따옴표가 있다면 제거 (방어용)
+					String cleanTimestampStr = timestampStr.replaceAll("^\"|\"$", "");
+					try {
+						realTimeTimestamp = Long.parseLong(cleanTimestampStr);
+					} catch (NumberFormatException e) {
+						// 파싱 실패 시 로그를 남기고 해당 값은 무시 (null 처리)
+						log.error("Failed to parse timestamp for room {}. Input string: {}", roomId, timestampStr, e);
+						realTimeTimestamp = null;
+					}
+				}
+
 				Long finalTimestamp = dto.lastMessageAt();
 				if (realTimeTimestamp != null && (finalTimestamp == null || realTimeTimestamp > finalTimestamp)) {
 					finalTimestamp = realTimeTimestamp;
