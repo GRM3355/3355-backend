@@ -28,7 +28,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	// Native Query로 LIKE 파라미터 캐스팅 문제 해결 (keyword::TEXT 사용)
 	// 반환타입은 DTO Projection: 서비스 레이어에 처리
 	// =========================================================================
-	String FESTIVAL_QUERY_BASE = """
+	String CHAT_QUERY_BASE = """
 		     SELECT
 		     c.chat_room_id as chatRoomId,
 		     f.festival_id as festivalId,
@@ -39,18 +39,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		,ST_Y(c.position::geometry) AS lat
 		,ST_X(c.position::geometry) AS lon
 		     FROM chat_rooms c
-		     LEFT JOIN festivals f ON f.festival_id = c.festival_id
-		     WHERE c.festival_id IS NOT NULL
-		       AND (:festivalId = 0 OR c.festival_id = :festivalId)
-		       AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%')OR f.title LIKE ('%' || :keyword || '%') )
+		     WHERE (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
 		""";
-	String FESTIVAL_QUERY_BASE_COUNT = """
+	String CHAT_QUERY_BASE_COUNT = """
 		   SELECT count(*)
 		   FROM chat_rooms c
-		   LEFT JOIN festivals f ON f.festival_id = c.festival_id
-		   WHERE c.festival_id IS NOT NULL
-		     AND (:festivalId = 0 OR c.festival_id = :festivalId)
-		     AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%'))
+		   WHERE (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
 		""";
 	String MY_ROOM_QUERY_BASE = """
 		     SELECT
@@ -63,21 +57,17 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		,ST_Y(c.position::geometry) AS lat
 		,ST_X(c.position::geometry) AS lon
 		     FROM chat_rooms c
-		     LEFT JOIN festivals f ON f.festival_id = c.festival_id
 		     LEFT JOIN chat_room_user cru ON cru.chat_room_id = c.chat_room_id
 		     WHERE c.chat_room_id IS NOT NULL
 		       AND (cru.user_id = :userId)
-		       AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%') )
 		     GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.member_count, c.last_message_at, f.title, c.created_at
-		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시 (participant_count 제거)
+		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시
 	String MY_ROOM_QUERY_BASE_COUNT = """
 		   SELECT COUNT(DISTINCT c.chat_room_id)
 		   FROM chat_rooms c
-		   LEFT JOIN festivals f ON f.festival_id = c.festival_id
 		   LEFT JOIN chat_room_user cru ON cru.chat_room_id = c.chat_room_id
 		   WHERE c.chat_room_id IS NOT NULL
 		     AND (cru.user_id = :userId)
-		     AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%') OR f.title LIKE ('%' || :keyword || '%') )
 		""";
 
 	Optional<ChatRoom> findByChatRoomId(String chatRoomId);
@@ -93,8 +83,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	/**
 	 * 축제별 채팅 관련 Native Query (festivalId로 조회)
 	 */
-	//종합 쿼리문
-	@Query(value = FESTIVAL_QUERY_BASE, countQuery = FESTIVAL_QUERY_BASE_COUNT, nativeQuery = true)
+	// 종합 쿼리문
+	@Query(value = CHAT_QUERY_BASE, countQuery = CHAT_QUERY_BASE_COUNT, nativeQuery = true)
 	Page<ChatRoomInfoDto> chatFestivalRoomList(long festivalId, String keyword, Pageable pageable);
 
 	/**
@@ -137,8 +127,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	@Modifying
 	@Transactional
 	@Query("DELETE FROM ChatRoom c "
-		+ "WHERE (c.lastMessageAt IS NOT NULL AND c.lastMessageAt < :cutoffTime) "
-		+ "OR (c.lastMessageAt IS NULL AND c.createdAt < :cutoffTime)")
+		   + "WHERE (c.lastMessageAt IS NOT NULL AND c.lastMessageAt < :cutoffTime) "
+		   + "OR (c.lastMessageAt IS NULL AND c.createdAt < :cutoffTime)")
 	int deleteByLastMessageAtBefore(@Param("cutoffTime") LocalDateTime cutoffTime);
 
 	/**
