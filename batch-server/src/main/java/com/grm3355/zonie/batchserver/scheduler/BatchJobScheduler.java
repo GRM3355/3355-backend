@@ -25,9 +25,9 @@ public class BatchJobScheduler {                // 시간 맞춰 Job을 실행�
 	// - 채팅방 레디스 키 (참여자수) 클린
 	// - 좋아요 레디스 키 클린
 	// - 채팅방 DB 삭제
-	// * RedisToDbSyncJob, MessageLikeSyncJob은 스케줄러로 남김
+	// * ChatRoomLastMsgAtSyncJob, MessageLikeSyncJob은 스케줄러로 남김
 	// - 1분마다;
-	// - 참여자수, 마지막대화시각
+	// - 마지막대화시각
 	// - 좋아요수
 
 	// 1. festivalSyncJob: 축제 데이터 동기화

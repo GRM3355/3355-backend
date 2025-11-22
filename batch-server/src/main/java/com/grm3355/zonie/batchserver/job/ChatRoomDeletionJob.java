@@ -35,8 +35,10 @@ public class ChatRoomDeletionJob {
 		}
 
 		// 2. 참여자가 0명인 채팅방 삭제
-		// (방 생성 직후 0명인 찰나의 순간을 보호하기 위해, 생성 후 3시간이 지난 방만 대상으로 함)
-		LocalDateTime graceTime = now.minusHours(3);
+		// (방 생성 직후 0명인 찰나의 순간을 보호하기 위해, 생성 후 1분이 지난 방만 대상으로 함)
+		// 채팅방 생성 트랜잭션과 방장 Join 트랜잭션은 밀리초 단위로 발생하기 때문에 1분으로 설정함
+		// 근데 배치 작업 때문에 추후 삭제할 채팅방이 많아진다면 1분으로 부족할 수도 있어서 고려해볼 사항임
+		LocalDateTime graceTime = now.minusMinutes(1);
 		int deletedEmpty = chatRoomRepository.deleteEmptyRooms(graceTime);
 		if (deletedEmpty > 0) {
 			log.info("[삭제] 참여자가 0명인 채팅방 {}개 삭제됨", deletedEmpty);

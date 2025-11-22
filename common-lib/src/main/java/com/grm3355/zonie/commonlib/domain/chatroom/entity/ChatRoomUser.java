@@ -12,6 +12,9 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.global.entity.BaseTimeEntity;
 
@@ -43,6 +46,7 @@ public class ChatRoomUser extends BaseTimeEntity {
 
 	@JoinColumn(name = "chat_room_id", referencedColumnName = "chat_room_id", nullable = false)
 	@ManyToOne
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private ChatRoom chatRoom;
 
 	@JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
