@@ -1,9 +1,11 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.service;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -100,7 +102,7 @@ public class ChatRoomApiService {
 			.user(user)
 			.chatRoom(chatRoom)
 			.nickName(nickName)
-			.lastReadAt(java.time.LocalDateTime.now())
+			.lastReadAt(LocalDateTime.now())
 			.build();
 		chatRoomUserRepository.save(participant);
 
@@ -244,25 +246,31 @@ public class ChatRoomApiService {
 
 	/**
 	 * 나의 채팅방 목록
-	 * 정렬 기본: 최신 대화 순(ACTIVE_DESC)
+	 * 정렬: 최신 대화 순(ACTIVE_DESC) -> 동점 시 생성 최신순(DATE_DESC)
 	 */
 	@Transactional
 	public Page<ChatRoomResponse> getMyRoomChatRoomList(UserDetailsImpl userDetails,
 		ChatRoomSearchRequest req) {
 		String userId = userDetails.getUsername();
 
-		// 정렬
-		if (req.getOrder() == null)
-			req.setOrder(OrderType.ACTIVE_DESC);
+		// 1. 복합 정렬: ACTIVE_DESC 또는 정렬 요청이 없을 경우 (기본값)
+		Sort sort;
+		if (req.getOrder() == OrderType.ACTIVE_DESC || req.getOrder() == null) {
+			sort = Sort.by(
+				Sort.Order.desc("last_message_at"),  // 1: 활성화순 ACTIVE_DESC
+				Sort.Order.desc("created_at")        // 2: 생성일순 DATE_DESC
+			);
+		} else {
+			// 2. 다른 정렬 타입이 요청된 경우 (예: DATE_DESC, PART_DESC 등)
+			sort = getSort(req.getOrder());
+		}
 
-		Sort sort = getSort(req.getOrder());
-		Pageable pageable = PageRequest.of(req.getPage() - 1,
-			req.getPageSize(), sort);
+		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), Objects.requireNonNull(sort));
 
-		// 1. PG에서 기본 정보 조회
+		// 2. PG에서 기본 정보 조회
 		Page<ChatRoomInfoDto> pageList = getMyRoomListTypeUser(userId, req, pageable);
 
-		// 2. Redis 실시간 데이터 조회 및 병합
+		// 3. Redis 실시간 데이터 조회 및 병합
 		return mergeChatRoomDataWithRedis(pageList, pageable);
 	}
 

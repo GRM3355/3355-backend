@@ -100,6 +100,7 @@ public class ChatRoomController {
 	@ApiError415
 	@ApiError429
 	@GetMapping("/festivals/{festivalId}/chat-rooms")
+	@Deprecated
 	public ResponseEntity<?> getChatRoomList(@PathVariable long festivalId,
 		@Valid @ModelAttribute ChatRoomSearchRequest request
 	) {
