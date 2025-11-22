@@ -2,8 +2,10 @@
   "family": "zonie-chat-server-task-def",
   "executionRoleArn": "arn:aws:iam::548182874697:role/ecsTaskExecutionRole",
   "networkMode": "awsvpc",
-  "requiresCompatibilities": ["FARGATE"],
-  "cpu": "512",
+  "requiresCompatibilities": [
+    "FARGATE"
+  ],
+  "cpu": "256",
   "memory": "1024",
   "containerDefinitions": [
     {
@@ -28,16 +30,40 @@
         "startPeriod": 100
       },
       "environment": [
-        { "name": "SPRING_PROFILES_ACTIVE", "value": "prod" }
+        {
+          "name": "SPRING_PROFILES_ACTIVE",
+          "value": "prod"
+        }
       ],
       "secrets": [
-        { "name": "DB_PROD_URL", "valueFrom": "DB_PROD_URL" },
-        { "name": "DB_PROD_USERNAME", "valueFrom": "DB_PROD_USERNAME" },
-        { "name": "DB_PROD_PASSWORD", "valueFrom": "DB_PROD_PASSWORD" },
-        { "name": "MONGO_PROD_URI", "valueFrom": "MONGO_PROD_URI" },
-        { "name": "REDIS_PROD_HOST", "valueFrom": "REDIS_PROD_HOST" },
-        { "name": "REDIS_PROD_PASSWORD", "valueFrom": "REDIS_PROD_PASSWORD" },
-        { "name": "JWT_SECRET_KEY", "valueFrom": "JWT_SECRET_KEY" }
+        {
+          "name": "DB_PROD_URL",
+          "valueFrom": "DB_PROD_URL"
+        },
+        {
+          "name": "DB_PROD_USERNAME",
+          "valueFrom": "DB_PROD_USERNAME"
+        },
+        {
+          "name": "DB_PROD_PASSWORD",
+          "valueFrom": "DB_PROD_PASSWORD"
+        },
+        {
+          "name": "MONGO_PROD_URI",
+          "valueFrom": "MONGO_PROD_URI"
+        },
+        {
+          "name": "REDIS_PROD_HOST",
+          "valueFrom": "REDIS_PROD_HOST"
+        },
+        {
+          "name": "REDIS_PROD_PASSWORD",
+          "valueFrom": "REDIS_PROD_PASSWORD"
+        },
+        {
+          "name": "JWT_SECRET_KEY",
+          "valueFrom": "JWT_SECRET_KEY"
+        }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
