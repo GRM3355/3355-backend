@@ -28,6 +28,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	// Native Query로 LIKE 파라미터 캐스팅 문제 해결 (keyword::TEXT 사용)
 	// 반환타입은 DTO Projection: 서비스 레이어에 처리
 	// =========================================================================
+	// 채팅방 하나는 하나의 축제에 속함 -> 중복행이 발생하지 않음
 	String CHAT_QUERY_BASE = """
 		     SELECT
 		     c.chat_room_id as chatRoomId,
@@ -39,13 +40,21 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		,ST_Y(c.position::geometry) AS lat
 		,ST_X(c.position::geometry) AS lon
 		     FROM chat_rooms c
-		     WHERE (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
+		     LEFT JOIN festivals f ON f.festival_id = c.festival_id
+		     WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
 		""";
+	// 키워드가 포함된 채팅방의 개수를 세는 용도
+	// 축제 테이블(f)은 개수를 세는 조건에 영향을 주지 x -> 조인하지 않음
 	String CHAT_QUERY_BASE_COUNT = """
 		   SELECT count(*)
 		   FROM chat_rooms c
-		   WHERE (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
+		   WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
 		""";
+	// chat_rooms c와 chat_room_user cru을 LEFT JOIN -> 한 채팅방에 여러 사용자가 있을 수 있음 & 다른 조인까지 함께 사용함
+	// -> 중복 행 발생 또는 유효하지 않은 쿼리 가능성 -> GROUP BY로 중복 제거 보장
+	// c.chat_room_id: 기준 (채팅방 자체를 고유하게)
+	// c.title, c.position, c.member_count, c.last_message_at, c.created_at: 집계 함수를 사용하지 않는 모든 컬럼: 채팅방 테이블(c)에서 가져오는 속성 값
+	// f.festival_id, f.title: 집계 함수를 사용하지 않는 모든 컬럼: 축제 테이블(f)에서 가져오는 속성 값
 	String MY_ROOM_QUERY_BASE = """
 		     SELECT
 		     c.chat_room_id as chatRoomId,
@@ -57,17 +66,18 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		,ST_Y(c.position::geometry) AS lat
 		,ST_X(c.position::geometry) AS lon
 		     FROM chat_rooms c
+		  	 LEFT JOIN festivals f ON f.festival_id = c.festival_id
 		     LEFT JOIN chat_room_user cru ON cru.chat_room_id = c.chat_room_id
-		     WHERE c.chat_room_id IS NOT NULL
-		       AND (cru.user_id = :userId)
+		     WHERE c.chat_room_id IS NOT NULL AND (cru.user_id = :userId)
 		     GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.member_count, c.last_message_at, f.title, c.created_at
 		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시
+	// 사용자가 참여한 채팅방의 개수를 세는 용도
+	// 축제 테이블(f)은 개수를 세는 조건에 영향을 주지 x -> 조인하지 않음
 	String MY_ROOM_QUERY_BASE_COUNT = """
 		   SELECT COUNT(DISTINCT c.chat_room_id)
 		   FROM chat_rooms c
 		   LEFT JOIN chat_room_user cru ON cru.chat_room_id = c.chat_room_id
-		   WHERE c.chat_room_id IS NOT NULL
-		     AND (cru.user_id = :userId)
+		   WHERE c.chat_room_id IS NOT NULL AND (cru.user_id = :userId)
 		""";
 
 	Optional<ChatRoom> findByChatRoomId(String chatRoomId);
