@@ -41,7 +41,7 @@ public class TotalSearchService {
 
 		String keyword = req.getKeyword();
 
-		//축제목록
+		// 축제목록
 		FestivalSearchRequest festival = FestivalSearchRequest.builder()
 			.keyword(keyword)
 			.build();
@@ -49,12 +49,12 @@ public class TotalSearchService {
 			Sort.by(Sort.Order.asc("created_at")));
 		Page<Festival> festivalPageList = festivalService.getFestivalListType(festival, pageable);
 
-		//채팅방 목록
+		// 채팅방 목록
 		ChatRoomSearchRequest searchRequest = ChatRoomSearchRequest.builder()
 			.keyword(keyword)
 			.build();
 		Pageable pageable2 = PageRequest.of(0, 10,
-			Sort.by(Sort.Order.desc("participant_count")));
+			Sort.by(Sort.Order.desc("member_count")));
 		Page<ChatRoomInfoDto> chatroomPageList = chatRoomApiService.getFestivalListTypeUser(0,
 			searchRequest, pageable2);
 

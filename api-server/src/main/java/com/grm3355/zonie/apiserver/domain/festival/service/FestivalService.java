@@ -75,7 +75,6 @@ public class FestivalService {
 			}
 		}
 
-		List<Sort.Order> orders = new ArrayList<>();
 		Sort sort;
 
 		if (req.getOrder() == FestivalOrderType.DATE_ASC || req.getOrder() == null) {
@@ -219,13 +218,13 @@ public class FestivalService {
 		if (region == null) {
 			throw new BusinessException(ErrorCode.BAD_REQUEST,
 				"지역 코드를 정확하게 입력하세요. 지역코드 정보는 다음과 같습니다.\n SEOUL(\"서울\"),\n"
-					+ "\tGYEONGGI(\"경기/인천\"),\n"
-					+ "\tCHUNGCHEONG(\"충청/대전/세종\"),\n"
-					+ "\tGANGWON(\"강원\"),\n"
-					+ "\tGYEONGBUK(\"경북/대구/울산\"),\n"
-					+ "\tGYEONGNAM(\"경남/부산\"),\n"
-					+ "\tJEOLLA(\"전라/광주\"),\n"
-					+ "\tJEJU(\"제주\")}");
+				+ "\tGYEONGGI(\"경기/인천\"),\n"
+				+ "\tCHUNGCHEONG(\"충청/대전/세종\"),\n"
+				+ "\tGANGWON(\"강원\"),\n"
+				+ "\tGYEONGBUK(\"경북/대구/울산\"),\n"
+				+ "\tGYEONGNAM(\"경남/부산\"),\n"
+				+ "\tJEOLLA(\"전라/광주\"),\n"
+				+ "\tJEJU(\"제주\")}");
 		}
 
 		// 3. Repository에 count용 메서드 호출: getFestivalList와 동일하게 preview_days를 적용하여 노출될 축제만 카운트
