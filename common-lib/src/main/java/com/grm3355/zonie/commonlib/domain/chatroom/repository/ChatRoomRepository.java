@@ -1,5 +1,6 @@
 package com.grm3355.zonie.commonlib.domain.chatroom.repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -22,6 +23,7 @@ import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 
 @Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
+
 	// 종합검색 > 채팅방 검색, 종합검색에서는 festivalId가 없어야한다.
 	String TOTAL_CHAT_QUERY_BASE = """
 		     SELECT
@@ -30,19 +32,21 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     c.title,
 		     c.member_count as participantCount,
 		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt,
-		     f.title AS festivalTitle
-		,ST_Y(c.position::geometry) AS lat
-		,ST_X(c.position::geometry) AS lon
+		     f.title AS festivalTitle,
+		     ST_Y(c.position::geometry) AS lat,
+		     ST_X(c.position::geometry) AS lon,
+		     (EXTRACT(EPOCH FROM c.created_at) * 1000)::BIGINT AS createdAt
 		     FROM chat_rooms c
 		     LEFT JOIN festivals f ON f.festival_id = c.festival_id
-		     WHERE (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
+		     WHERE (:keyword IS NULL OR c.title ILIKE :keyword)
 		""";
+
 	// 키워드가 포함된 채팅방의 개수를 세는 용도
 	// 축제 테이블(f)은 개수를 세는 조건에 영향을 주지 x -> 조인하지 않음
 	String TOTAL_CHAT_QUERY_BASE_COUNT = """
 		   SELECT count(*)
 		   FROM chat_rooms c
-		   WHERE (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
+		   WHERE (:keyword IS NULL OR c.title ILIKE :keyword)
 		""";
 
 	// =========================================================================
@@ -63,14 +67,14 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		,ST_X(c.position::geometry) AS lon
 		     FROM chat_rooms c
 		     LEFT JOIN festivals f ON f.festival_id = c.festival_id
-		     WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
+		     WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title ILIKE :keyword)
 		""";
 	// 키워드가 포함된 채팅방의 개수를 세는 용도
 	// 축제 테이블(f)은 개수를 세는 조건에 영향을 주지 x -> 조인하지 않음
 	String CHAT_QUERY_BASE_COUNT = """
 		   SELECT count(*)
 		   FROM chat_rooms c
-		   WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
+		   WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title ILIKE :keyword)
 		""";
 	// chat_rooms c와 chat_room_user cru을 LEFT JOIN -> 한 채팅방에 여러 사용자가 있을 수 있음 & 다른 조인까지 함께 사용함
 	// -> 중복 행 발생 또는 유효하지 않은 쿼리 가능성 -> GROUP BY로 중복 제거 보장
@@ -81,17 +85,17 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     SELECT
 		     c.chat_room_id as chatRoomId,
 		     f.festival_id as festivalId,
-		     c.title,
+		     c.title as title,
 		     c.member_count as participantCount,
 		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt,
-		     f.title AS festivalTitle
-		,ST_Y(c.position::geometry) AS lat
-		,ST_X(c.position::geometry) AS lon
+		     f.title AS festivalTitle,
+		     ST_Y(c.position::geometry) AS lat,
+		     ST_X(c.position::geometry) AS lon,
+		     (EXTRACT(EPOCH FROM c.created_at) * 1000)::BIGINT AS createdAt
 		     FROM chat_rooms c
 		  	 LEFT JOIN festivals f ON f.festival_id = c.festival_id
 		     LEFT JOIN chat_room_user cru ON cru.chat_room_id = c.chat_room_id
 		     WHERE c.chat_room_id IS NOT NULL AND (cru.user_id = :userId)
-		     GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.member_count, c.last_message_at, f.title, c.created_at
 		"""; // Native Query에서는 GROUP BY에 DTO 필드 대신 컬럼을 명시
 	// 사용자가 참여한 채팅방의 개수를 세는 용도
 	// 축제 테이블(f)은 개수를 세는 조건에 영향을 주지 x -> 조인하지 않음
@@ -130,7 +134,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	 * 내 채팅 관련 Native Query(userId로 조회)
 	 */
 	// 채팅방 종합쿼리문
-	@Query(value = MY_ROOM_QUERY_BASE, countQuery = MY_ROOM_QUERY_BASE_COUNT, nativeQuery = true)
+	@Query(value = MY_ROOM_QUERY_BASE
+				   + " GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.member_count, c.last_message_at, f.title, c.created_at", countQuery = MY_ROOM_QUERY_BASE_COUNT, nativeQuery = true)
 	Page<ChatRoomInfoDto> chatMyRoomList(String userId, String keyword, Pageable pageable);
 
 	/**
@@ -166,9 +171,15 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	@Modifying
 	@Transactional
 	@Query("DELETE FROM ChatRoom c "
-		+ "WHERE (c.lastMessageAt IS NOT NULL AND c.lastMessageAt < :cutoffTime) "
-		+ "OR (c.lastMessageAt IS NULL AND c.createdAt < :cutoffTime)")
+		   + "WHERE (c.lastMessageAt IS NOT NULL AND c.lastMessageAt < :cutoffTime) "
+		   + "OR (c.lastMessageAt IS NULL AND c.createdAt < :cutoffTime)")
 	int deleteByLastMessageAtBefore(@Param("cutoffTime") LocalDateTime cutoffTime);
+
+	// 마지막 대화 24시간 지난 방 ID 조회
+	@Query("SELECT c.chatRoomId FROM ChatRoom c "
+		   + "WHERE (c.lastMessageAt IS NOT NULL AND c.lastMessageAt < :cutoffTime) "
+		   + "OR (c.lastMessageAt IS NULL AND c.createdAt < :cutoffTime)")
+	List<String> findInactiveRoomIds(@Param("cutoffTime") LocalDateTime cutoffTime);
 
 	/**
 	 * 2. 참여자가 0명인 채팅방 삭제
@@ -181,6 +192,10 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	@Query(value = "DELETE FROM chat_rooms c WHERE c.member_count <= 0 AND c.created_at < :graceTime", nativeQuery = true)
 	int deleteEmptyRooms(@Param("graceTime") LocalDateTime graceTime);
 
+	// 참여자 0명인 방 ID 조회
+	@Query(value = "SELECT c.chat_room_id FROM chat_rooms c WHERE c.member_count <= 0 AND c.created_at < :graceTime", nativeQuery = true)
+	List<String> findEmptyRoomIds(@Param("graceTime") LocalDateTime graceTime);
+
 	/**
 	 * 3. 축제가 종료된 채팅방 삭제
 	 * 조건: ChatRoom과 연결된 Festival의 eventEndDate가 오늘 이전인 경우
@@ -190,4 +205,26 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	@Transactional
 	@Query("DELETE FROM ChatRoom c WHERE c.festival.festivalId IN (SELECT f.festivalId FROM Festival f WHERE f.eventEndDate < :today)")
 	int deleteByFestivalEnded(@Param("today") java.time.LocalDate today);
+
+	// 축제 종료된 방 ID 조회 (Festival은 이미 ON DELETE CASCADE이므로, 이 로직은 ChatRoom이 Festival 삭제에 연쇄적으로 삭제될 때 사용)
+	@Query("SELECT c.chatRoomId FROM ChatRoom c WHERE c.festival.eventEndDate < :today")
+	List<String> findRoomsByFestivalEnded(@Param("today") LocalDate today);
+
+	/**
+	 * 특정 사용자가 참여하는 채팅방 중, 주어진 Room ID 목록에 포함되는 방의 정보를 조회
+	 * ZSET 기반 정렬 후 PG에서 데이터 조회용 (roomIds: Redis에서 가져온 ID 목록 사용)
+	 * ZSET 기반 복합 정렬이 이미 되어있으므로 정렬할 필요가 없지만
+	 * PostgreSQL은 IN 절로 조회할 때 입력 리스트의 순서를 보장하지 않으므로, 이 순서를 강제하는 ORDER BY가 필요
+	 */
+	@Query(value = MY_ROOM_QUERY_BASE
+				   // 1. IN 절 조건 추가 (공백 주의)
+				   + " AND c.chat_room_id IN (:roomIds)"
+				   // 2. GROUP BY 추가 (공백 주의)
+				   + " GROUP BY c.chat_room_id, f.festival_id, c.title, c.position, c.member_count, c.last_message_at, f.title, c.created_at"
+				   // 3. PostgreSQL array_position을 사용하여 순서 강제
+				   //    Hibernate가 List를 PostgreSQL 배열 리터럴로 변환할 때, @Param을 사용하면 오류를 피할 수 있습니다.
+				   + " ORDER BY array_position(CAST(ARRAY[:roomIds] AS TEXT[]), c.chat_room_id)",
+		nativeQuery = true)
+	List<ChatRoomInfoDto> chatMyRoomListByRoomIds(@Param("userId") String userId,
+		@Param("roomIds") List<String> roomIds);
 }

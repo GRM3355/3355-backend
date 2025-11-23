@@ -41,7 +41,6 @@ public class FestivalDetailImageApiService {
 		this.festivalDetailImageBatchMapper = festivalDetailImageBatchMapper;
 	}
 
-
 	//상세이미지 저장
 	public void saveFestivalDetailImages(List<Festival> festivals) {
 		log.info("축제 상세 이미지 동기화 시작");

@@ -12,7 +12,7 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 public class RedisConfig {
 
 	/**
-	 * Batch Job (RedisToDbSyncJob)에서 사용할 문자열 전용 RedisTemplate
+	 * Batch Job (ChatRoomLastMsgAtSyncJob)에서 사용할 문자열 전용 RedisTemplate
 	 * - 'chatroom:participants:*'
 	 * - 'chatroom:last_msg_at:*'
 	 * - last_msg_content는 sync할 필요가 없음

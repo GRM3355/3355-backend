@@ -51,9 +51,8 @@ public class FestivalCreateRequest {
 	private double lon;
 
 	@Schema(description = "지역명", example = "SEOUL")
-	private String region;    // region enum 추후
+	private String region;
 
 	@Schema(description = "Content ID", example = "99999")
-	@NotNull(message = "contentId는 필수입니다.")
 	private int contentId;
 }

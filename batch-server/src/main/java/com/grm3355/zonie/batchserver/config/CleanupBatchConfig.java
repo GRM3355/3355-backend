@@ -24,16 +24,18 @@ import lombok.extern.slf4j.Slf4j;
 public class CleanupBatchConfig {
 
 	// 1. 기존 Job 로직 주입
-	private final ChatRoomRedisCleanupJob chatRoomRedisCleanupJob;
 	private final MessageLikeCleanupJob messageLikeCleanupJob;
 	private final ChatRoomDeletionJob chatRoomDeletionJob;
+	@Deprecated
+	private final ChatRoomRedisCleanupJob chatRoomRedisCleanupJob;
 
 	private final JobRepository jobRepository;
 	private final PlatformTransactionManager transactionManager;
 
-	// ======== Job 1: 채팅방 Redis 정리 ========
+	// ======== Job 1: 채팅방 참여자 수 Redis 정리 ========
 
 	@Bean
+	@Deprecated
 	public Job chatRoomCleanupBatchJob() {
 		return new JobBuilder("chatRoomCleanupBatchJob", jobRepository)    // JobBuilder 객체로 곧바로 Job 정의
 			.start(chatRoomCleanupStep())                                        // 1개만
@@ -41,6 +43,7 @@ public class CleanupBatchConfig {
 	}
 
 	@Bean
+	@Deprecated
 	public Step chatRoomCleanupStep() {
 		return new StepBuilder("chatRoomCleanupStep", jobRepository)    // Step 정의
 			.tasklet(chatRoomCleanupTasklet(), transactionManager)
@@ -48,6 +51,7 @@ public class CleanupBatchConfig {
 	}
 
 	@Bean
+	@Deprecated
 	public Tasklet chatRoomCleanupTasklet() {                                // Tasklet 정의
 		return (contribution, chunkContext) -> {
 			log.info(">>>>> Spring Batch: ChatRoomRedisCleanupJob 시작");
@@ -113,8 +117,8 @@ public class CleanupBatchConfig {
 	public Tasklet chatRoomDbDeletionTasklet() {
 		return (contribution, chunkContext) -> {
 			log.info(">>>>> Spring Batch: ChatRoomDbDeletionJob 시작");
-			// 여기서 ChatRoomDeletionJob의 비즈니스 로직 호출
-			chatRoomDeletionJob.executeDeletionLogic();
+			// 축제 기간이 종료된 채팅방만 여기서 삭제
+			chatRoomDeletionJob.cleanupEndedFestivalRooms();
 			log.info(">>>>> Spring Batch: ChatRoomDbDeletionJob 완료");
 			return RepeatStatus.FINISHED;
 		};

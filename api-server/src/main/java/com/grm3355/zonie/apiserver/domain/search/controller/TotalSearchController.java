@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomPageResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
+import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
+import com.grm3355.zonie.apiserver.domain.search.dto.KeywordSearchRequest;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchDto;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchResponse;
 import com.grm3355.zonie.apiserver.domain.search.service.TotalSearchService;
@@ -37,6 +40,10 @@ public class TotalSearchController {
 
 	private final TotalSearchService totalSearchService;
 
+	/**
+	 * 축제 + 채팅방 목록 검색 API
+	 */
+	@Deprecated
 	@Operation(summary = "통합 검색 (축제 + 채팅방)", description = "키워드로 축제 목록과 채팅방 목록을 함께 검색합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -59,6 +66,35 @@ public class TotalSearchController {
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}
 
+	/**
+	 * 축제 목록 검색 전용 API
+	 */
+	@Operation(summary = "검색 - 축제 목록", description = "검색 결과 중 축제 목록만 상세 조회합니다.")
+	@ApiResponses({
+		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록 조회 성공",
+			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class))
+		)
+	})
+	@ApiError400
+	@ApiError405
+	@ApiError415
+	@ApiError429
+	@GetMapping("/search/festivals")
+	public ResponseEntity<?> getFestivalSearch(@Valid @ModelAttribute KeywordSearchRequest request
+	) {
+		FestivalSearchRequest festivalSearch = FestivalSearchRequest.builder()
+			.keyword(request.getKeyword())
+			.page(request.getPage())
+			.pageSize(request.getPageSize())
+			.build();
+
+		Page<FestivalResponse> pageList = totalSearchService.getFestivalTotalSearch(festivalSearch);
+		return ResponseEntity.ok().body(ApiResponse.success(pageList));
+	}
+
+	/**
+	 * 채팅방 목록 검색 전용 API
+	 */
 	@Operation(summary = "검색 - 채팅방 목록", description = "검색 결과 중 내 채팅방 목록만 상세 조회합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "목록 조회 성공",
@@ -86,9 +122,15 @@ public class TotalSearchController {
 	@ApiError415
 	@ApiError429
 	@GetMapping("/search/chat-rooms")
-	public ResponseEntity<?> getChatroomTotalSearch(@Valid @ModelAttribute ChatRoomSearchRequest request
+	public ResponseEntity<?> getChatroomSearch(@Valid @ModelAttribute KeywordSearchRequest request
 	) {
-		Page<ChatRoomResponse> pageList = totalSearchService.getChatroomTotalSearch(request);
+		ChatRoomSearchRequest chatroomSearch = ChatRoomSearchRequest.builder()
+			.keyword(request.getKeyword())
+			.page(request.getPage())
+			.pageSize(request.getPageSize())
+			.build();
+
+		Page<ChatRoomResponse> pageList = totalSearchService.getChatroomTotalSearch(chatroomSearch);
 		ChatRoomPageResponse response = new ChatRoomPageResponse(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}

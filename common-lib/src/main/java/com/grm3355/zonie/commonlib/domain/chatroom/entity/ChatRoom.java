@@ -14,6 +14,8 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.locationtech.jts.geom.Point;
 
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
@@ -46,6 +48,7 @@ public class ChatRoom extends BaseTimeEntity {
 
 	@JoinColumn(name = "festival_id", referencedColumnName = "festival_id", nullable = false)
 	@ManyToOne
+	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Festival festival;
 
 	@JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)

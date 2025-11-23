@@ -3,8 +3,6 @@ package com.grm3355.zonie.chatserver.service;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
 import org.springframework.data.redis.core.ValueOperations;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomUserRepository;
@@ -27,7 +24,6 @@ import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;
 @ExtendWith(MockitoExtension.class)
 class ChatRoomServiceTest {
 
-	private static final Long MOCK_MAX_PARTICIPANTS = 300L;
 	private static final String KEY_PARTICIPANTS = "chatroom:participants:";
 	private static final String KEY_USER_ROOMS = "user:rooms:";
 	@Mock
@@ -51,12 +47,10 @@ class ChatRoomServiceTest {
 		// Setup RedisTemplate mocks
 		lenient().when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 		lenient().when(redisTemplate.opsForSet()).thenReturn(setOperations);
-
-		// @Value - Reflection
-		ReflectionTestUtils.setField(chatRoomService, "maxParticipants", MOCK_MAX_PARTICIPANTS);
 	}
 
-	@Test
+	// @Test
+	@Deprecated
 	@DisplayName("채팅방 입장은 Pub/Sub을 통해 호출되며, Redis Set에 userId를 추가한다")
 	void testJoinRoomUpdatesRedisSets() {
 		// given
@@ -77,7 +71,8 @@ class ChatRoomServiceTest {
 		verifyNoInteractions(chatRoomRepository, userRepository);
 	}
 
-	@Test
+	// @Test
+	@Deprecated
 	@DisplayName("채팅방 퇴장은 Pub/Sub을 통해 호출되며, Redis Set에서 userId를 제거한다")
 	void testLeaveRoomRemovesFromRedisSets() {
 		// given
@@ -104,26 +99,28 @@ class ChatRoomServiceTest {
 		String userId = "disconnected-user";
 		String roomId1 = "room-a";
 		String roomId2 = "room-b";
-		Set<Object> activeRooms = new HashSet<>();
-		activeRooms.add(roomId1);
-		activeRooms.add(roomId2);
+		Set<Object> activeRooms = Set.of(roomId1, roomId2);
 
-		when(redisTemplate.opsForSet().members(KEY_USER_ROOMS + userId)).thenReturn(activeRooms);
+		// redis 키 값 관련 코드 모두 제거: 관리 x로 기획 반영
+		// when(redisTemplate.opsForSet().members(KEY_USER_ROOMS + userId)).thenReturn(activeRooms);
 
 		// when
 		chatRoomService.disconnectUser(userId);
 
 		// then
 		// 1. 각 방의 참여자 Set에서 userId 제거
-		verify(setOperations, times(1)).remove(KEY_PARTICIPANTS + roomId1, userId);
-		verify(setOperations, times(1)).remove(KEY_PARTICIPANTS + roomId2, userId);
+		// -> 키값 관리하지 않으므로 호출되지 않음을 검증
+		verify(setOperations, never()).remove(anyString(), eq(userId));
+		verify(redisTemplate, never()).delete(KEY_USER_ROOMS + userId);
+		// verify(setOperations, times(1)).remove(KEY_PARTICIPANTS + roomId1, userId);
+		// verify(setOperations, times(1)).remove(KEY_PARTICIPANTS + roomId2, userId);
 
 		// 2. DB lastReadAt 갱신 (ChatRoomUserRepository)
 		ArgumentCaptor<LocalDateTime> timeCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
 		verify(chatRoomUserRepository, times(1)).updateLastReadAtByUserId(eq(userId), timeCaptor.capture());
 
 		// 3. 역방향 매핑 키 자체 삭제
-		verify(redisTemplate, times(1)).delete(KEY_USER_ROOMS + userId);
+		// verify(redisTemplate, times(1)).delete(KEY_USER_ROOMS + userId);
 	}
 
 	@Test
@@ -131,7 +128,7 @@ class ChatRoomServiceTest {
 	void testDisconnectUserNoActiveRooms() {
 		// given
 		String userId = "no-room-user";
-		when(redisTemplate.opsForSet().members(KEY_USER_ROOMS + userId)).thenReturn(Collections.emptySet());
+		// when(redisTemplate.opsForSet().members(KEY_USER_ROOMS + userId)).thenReturn(Collections.emptySet());
 
 		// when
 		chatRoomService.disconnectUser(userId);
@@ -141,6 +138,7 @@ class ChatRoomServiceTest {
 		verify(setOperations, never()).remove(anyString(), any());
 		verify(redisTemplate, never()).delete(anyString());
 		// DB lastReadAt 갱신 호출이 없었는지 검증
-		verify(chatRoomUserRepository, never()).updateLastReadAtByUserId(anyString(), any(LocalDateTime.class));
+		// 참여 중인 방이 없어도 DB는 갱신함
+		verify(chatRoomUserRepository, times(1)).updateLastReadAtByUserId(anyString(), any(LocalDateTime.class));
 	}
 }
