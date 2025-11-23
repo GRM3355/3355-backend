@@ -8,6 +8,7 @@ public record ChatRoomInfoDto(
 	Long lastMessageAt,            // SELECT c.last_message_at
 	String festivalTitle,       // SELECT f.title AS festival_title // 축제 이름
 	Double lat,
-	Double lon
+	Double lon,
+	Long createdAt                // Long 타입 Unix Timestamp
 ) {
 }

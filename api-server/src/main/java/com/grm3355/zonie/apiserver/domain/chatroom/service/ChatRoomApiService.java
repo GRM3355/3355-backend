@@ -1,6 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +40,7 @@ import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoomUser;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomUserRepository;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
+import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository;
 import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.domain.user.repository.UserRepository;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
@@ -55,24 +57,24 @@ import lombok.extern.slf4j.Slf4j;
 public class ChatRoomApiService {
 
 	private static final String PRE_FIX = "";
-	private static final String JOIN_EVENT_CHANNEL = "chat-events:join";
 	private final RedisTokenService redisTokenService;
 	private final FestivalInfoService festivalInfoService;
 	private final RedisScanService redisScanService;
 	private final ChatRoomRepository chatRoomRepository;
 	private final UserRepository userRepository;
 	private final ChatRoomUserRepository chatRoomUserRepository;
+	private final FestivalRepository festivalRepository;
 	private final StringRedisTemplate stringRedisTemplate;
 	private final RedisTemplate<String, Object> redisTemplate;
 	GeometryFactory geometryFactory = new GeometryFactory(); // GeometryFactory 생성 (보통 한 번만 만들어 재사용)
 	@Value("${chat.pre-create-day}")
-	private int preCreateDays;    //시작하기전 몇일전부터 생성가능
+	private int preCreateDays;    // 시작하기 n일 전부터 생성 가능
 	@Value("${chat.max-chat-person}")
-	private long maxParticipants;    //최대인원스
+	private long maxParticipants;    // 최대 인원 수
 	@Value("${chat.max-chat-room}")
-	private int maxRoom;    //최개 채팅방 갯수
+	private int maxRoom;    // 최대 채팅방 수
 	@Value("${chat.radius}")
-	private double maxRadius;   //최대km
+	private double maxRadius;   // 반경 km
 	@Value("${chat.nickname-start}")
 	private int nicknameStartNumber;
 
@@ -111,7 +113,7 @@ public class ChatRoomApiService {
 
 	/**
 	 * 채팅방 생성
-	 * : 유저조회, 축제조회, 위치검증, 토큰발급, 채팅방제한개수체크, 엔티티생성저장, Redis Pub/Sub join 이벤트 발행
+	 * : 유저조회, 축제조회, 위치검증, 토큰발급, 채팅방제한개수체크, 엔티티생성저장
 	 */
 	public ChatRoomCreateResponse setCreateChatRoom(long festivalId,
 		ChatRoomRequest request, UserDetailsImpl userDetails) {
@@ -131,16 +133,28 @@ public class ChatRoomApiService {
 			.lon(request.getLon())
 			.build();
 
-		// 3. 축제 거리계산하기 (PostGIS 반경 검증)
-		boolean isWithinRadius = festivalInfoService.isUserWithinFestivalRadius(
-			festivalId,
-			currentLocation.getLat(),
-			currentLocation.getLon(),
-			maxRadius
-		);
-		if (!isWithinRadius) {
-			// 축제 반경(max_radius)을 벗어났다면 예외 발생
-			throw new BusinessException(ErrorCode.BAD_REQUEST, "채팅방 개설 반경(" + maxRadius + "km)을 벗어났습니다.");
+		// 3. 축제 거리계산하기
+		String region = festival.getRegion();
+
+		// 동적 반경 로직 적용
+		final double dynamicRadiusLimit;
+		if ("SEOUL".equals(region)) {
+			dynamicRadiusLimit = maxRadius; // 서울: 설정값 (1km) 사용
+		} else {
+			dynamicRadiusLimit = maxRadius * 2; // 그 외 지역: 설정값의 2배 (2km) 사용
+		}
+
+		// PostGIS 반경 검증
+		double distanceKm = festivalRepository.findDistanceToFestival(festivalId,
+				currentLocation.getLon(), currentLocation.getLat())
+			.orElse(Double.MAX_VALUE);
+
+		if (distanceKm > dynamicRadiusLimit) {
+			// 축제 반경(dynamicRadiusLimit)을 벗어났다면 예외 발생 (Hard Check)
+			log.warn("Create Failed: User {} is outside the dynamic radius ({}km) for festival {}.",
+				userDetails.getUsername(), dynamicRadiusLimit, festivalId);
+			throw new BusinessException(ErrorCode.BAD_REQUEST,
+				"채팅방 개설 반경(" + dynamicRadiusLimit + "km)을 벗어났습니다.");
 		}
 
 		// 4. 위치 인증 토큰 발급/갱신 (반경 검증 통과 후 토큰 처리)
@@ -181,11 +195,18 @@ public class ChatRoomApiService {
 			.build();
 
 		ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
-		festivalInfoService.increaseChatRoomCount(festivalId);
+		festivalRepository.updateFestivalChatRoomCount(festivalId);
 
 		// 방장 닉네임 순번 획득 및 ChatRoomUser 엔티티 생성 및 DB 저장
 		String nickName = createAndSaveChatRoomUser(user, saveChatRoom);
 
+		// Composite Score 계산: 메세지가 없을 때 CreatedAt 순으로 정렬되도록 Last Message At은 0으로 간주하고, CreatedAt으로 초기 Score 설정
+		long createdAtLong = saveChatRoom.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+		double initialScore = (double)createdAtLong;
+		stringRedisTemplate.opsForZSet().add("chatroom:active_rooms", roomId, initialScore);
+
+		/*
+		// join 이벤트 발행 필요성 없어짐
 		try {
 			// 7. 이벤트 페이로드 생성
 			Map<String, String> joinEvent = Map.of(
@@ -203,8 +224,9 @@ public class ChatRoomApiService {
 				user.getUserId(), saveChatRoom.getChatRoomId(), e);
 			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "채팅방 생성 중 오류가 발생했습니다. (이벤트 발행 실패)");
 		}
+		 */
 
-		//dto 변환
+		// dto 변환
 		return ChatRoomCreateResponse.builder()
 			.chatRoomId(roomId)
 			.festivalId(festivalId)
@@ -282,21 +304,54 @@ public class ChatRoomApiService {
 		ChatRoomSearchRequest req) {
 		String userId = userDetails.getUsername();
 
-		// 1. 복합 정렬: ACTIVE_DESC 또는 정렬 요청이 없을 경우 (기본값)
-		Sort sort;
+		// ==================================================================================
+		// 1. ACTIVE_DESC(실시간 활성화 순) 또는 정렬 요청이 없을 경우 (default) 요청 시, ZSET 기반 처리
+		// ==================================================================================
 		if (req.getOrder() == OrderType.ACTIVE_DESC || req.getOrder() == null) {
-			sort = Sort.by(
-				Sort.Order.desc("last_message_at"),  // 1: 활성화순 ACTIVE_DESC
-				Sort.Order.desc("created_at")        // 2: 생성일순 DATE_DESC
-			);
-		} else {
-			// 2. 다른 정렬 타입이 요청된 경우 (예: DATE_DESC, PART_DESC 등)
-			sort = getSort(req.getOrder());
+
+			int page = req.getPage() - 1;
+			int pageSize = req.getPageSize();
+			long start = (long)page * pageSize;
+			long end = start + pageSize - 1;
+
+			// 1-1. Redis ZSET에서 활성화 시각 기준으로 정렬된 RoomId 목록 획득 (Composite Score 기반 정렬 완료)
+			// ZREVRANGE: Score가 DESC로 정렬되어 있으므로, ZSET에서 획득한 순서가 최종 순서
+			List<String> sortedRoomIds = redisScanService.getSortedRoomIds(start, end);
+			Long totalElements = redisScanService.countActiveRooms();
+
+			if (sortedRoomIds.isEmpty()) {
+				return new PageImpl<>(Collections.emptyList(), PageRequest.of(page, pageSize), totalElements);
+			}
+
+			// 1-2. PG에서 해당 RoomId 목록의 ChatRoomInfoDto 조회
+			List<ChatRoomInfoDto> infoDtoList = chatRoomRepository.chatMyRoomListByRoomIds(userId, sortedRoomIds);
+
+			// 1-3. PG 조회 결과를 ZSET 순위에 맞게 Map으로 변환
+			Map<String, ChatRoomInfoDto> infoDtoMap = infoDtoList.stream()
+				.collect(Collectors.toMap(ChatRoomInfoDto::chatRoomId, dto -> dto));
+
+			// 1-4. Redis Content/Timestamp 병합 및 응답 DTO 생성
+			List<ChatRoomResponse> finalDtoList = sortedRoomIds.stream()
+				.map(roomId -> {
+					ChatRoomInfoDto dto = infoDtoMap.get(roomId);
+					if (dto == null)
+						return null; // PG에 없는 방 필터링
+					return mergeSingleChatRoomData(dto); // Redis String 값 병합
+				})
+				.filter(Objects::nonNull)
+				.toList();
+
+			// totalElements는 ZSET의 크기를 사용
+			// finalDtoList는 이미 Redis ZSET 순서대로 정렬되어 있습니다.
+			return new PageImpl<>(finalDtoList, PageRequest.of(page, pageSize), totalElements);
 		}
 
+		// =========================================================================
+		// 2. 기타 정렬(PART_DESC, DATE_DESC 등) 요청 시, PG 정렬
+		// =========================================================================
+		// PG에서 기본 정보 조회
+		Sort sort = getSort(req.getOrder());
 		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), Objects.requireNonNull(sort));
-
-		// 2. PG에서 기본 정보 조회
 		Page<ChatRoomInfoDto> pageList = getMyRoomListTypeUser(userId, req, pageable);
 
 		// 3. Redis 실시간 데이터 조회 및 병합
@@ -313,20 +368,60 @@ public class ChatRoomApiService {
 	/**
 	 * 채팅방 가입 (DB 트랜잭션 기반 정원 검증 및 memberCount++)
 	 * @param roomId 가입할 채팅방 ID
+	 * @param locationDto 사용자 위치 정보
 	 * @param userDetails 사용자 정보
 	 * @return 가입 성공 시 ChatRoomUser 정보
 	 */
 	@Transactional
-	public String joinRoom(String roomId, UserDetailsImpl userDetails) {
+	public String joinRoom(String roomId, LocationDto locationDto, UserDetailsImpl userDetails) {
 		String userId = userDetails.getUsername();
 
-		// 1. User 조회
+		// 1. 엔티티 조회 및 PESSIMISTIC_WRITE 락 획득
+		// 1-1. User 조회
 		User user = userRepository.findByUserId(userId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자 정보가 유효하지 않습니다."));
 
-		// 2. ChatRoom 조회 및 PESSIMISTIC_WRITE 락 획득
+		// 1-2. ChatRoom 조회, PESSIMISTIC_WRITE 락 획득
 		ChatRoom room = chatRoomRepository.findByChatRoomIdWithLock(roomId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
+
+		// 2. 위치 검증 (입장을 막지는 않음) & 위치 토큰 발급/갱신
+		Long festivalId = room.getFestival().getFestivalId();
+		String contextId = String.valueOf(festivalId);
+		String region = room.getFestival().getRegion();
+
+		// 동적 반경 적용
+		final double dynamicRadiusLimit;
+		if ("SEOUL".equals(region)) {
+			dynamicRadiusLimit = maxRadius; // 서울: 설정값 (1km) 사용
+		} else {
+			dynamicRadiusLimit = maxRadius * 2; // 그 외 지역: 설정값의 2배 (2km) 사용
+		}
+
+		try {
+			double distanceKm = festivalRepository.findDistanceToFestival(festivalId, locationDto.getLon(),
+					locationDto.getLat())
+				.orElse(Double.MAX_VALUE);
+
+			if (distanceKm > dynamicRadiusLimit) {
+				// 반경 밖이어도 입장은 허용하며, 경고 로그만 남깁니다.
+				log.warn("Soft Check: User {} is outside the dynamic radius ({}km) for room {}. Entry allowed.",
+					userId, dynamicRadiusLimit, roomId);
+			}
+
+			// 위치 토큰 최초 발급/갱신: 위치 유효성 검증(TTL) 목적
+			redisTokenService.setToken(userId, contextId, locationDto);
+			log.info("Location token issued/updated by API Server for user {} in context {}. Lat/Lon: {}",
+				userId, contextId, locationDto);
+
+		} catch (BusinessException e) {
+			// festivalId를 찾을 수 없는 등 FestivalInfoService 내부에서 발생한 BusinessException은 전파
+			throw e;
+		} catch (Exception e) {
+			// Redis 또는 다른 예측 불가능한 오류는 로그 처리 후 예외 전파 (DB 트랜잭션 롤백 유도)
+			log.error("Failed to set location token for user {}. Transaction will rollback.", userId, e);
+			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "위치 인증 토큰 처리 중 오류가 발생했습니다.");
+		}
 
 		// 3. 재입장 방지 검증
 		if (chatRoomUserRepository.findByUserAndChatRoom(user, room).isPresent()) {
@@ -346,6 +441,7 @@ public class ChatRoomApiService {
 		chatRoomRepository.save(room);  // Dirty Checking | 명시적 save
 
 		// 7. Redis Pub/Sub 이벤트 발행 (Chat Server로 실시간 연결 알림)
+		/*
 		try {
 			Map<String, String> joinEvent = Map.of(
 				"userId", userId,
@@ -359,6 +455,7 @@ public class ChatRoomApiService {
 				userId, roomId, e);
 			// 이벤트 발행 실패는 롤백하지 않고 로그만 남김.
 		}
+		 */
 
 		return nickName;
 	}
@@ -410,6 +507,42 @@ public class ChatRoomApiService {
 	/**
 	 * 실시간 데이터를 조회하고 병합
 	 * getFestivalChatRoomList와 getMyRoomChatRoomList에서 사용할 공통 메서드
+	 * mergeChatRoomDataWithRedis 내부의 루프 로직을 단일 DTO 처리용으로 변경
+	 */
+	private ChatRoomResponse mergeSingleChatRoomData(ChatRoomInfoDto dto) {
+		String roomId = dto.chatRoomId();
+
+		// 1. Redis Last Content, Timestamp 단건 조회
+		String contentKey = "chatroom:last_msg_content:" + roomId;
+		String timestampKey = "chatroom:last_msg_at:" + roomId;
+
+		// StringRedisTemplate을 직접 사용하여 단건 조회 (MGET보다 단일 호출이 빠름)
+		String realTimeContent = stringRedisTemplate.opsForValue().get(contentKey);
+		String timestampStr = stringRedisTemplate.opsForValue().get(timestampKey);
+
+		// 2. Timestamp 파싱 및 비교
+		Long realTimeTimestamp = null;
+		if (timestampStr != null) {
+			String cleanTimestampStr = timestampStr.replaceAll("^\"|\"$", "");
+			try {
+				realTimeTimestamp = Long.parseLong(cleanTimestampStr);
+			} catch (NumberFormatException e) {
+				log.error("Failed to parse timestamp for room {}. Input string: {}", roomId, timestampStr, e);
+			}
+		}
+
+		Long finalTimestamp = dto.lastMessageAt();
+		if (realTimeTimestamp != null && (finalTimestamp == null || realTimeTimestamp > finalTimestamp)) {
+			finalTimestamp = realTimeTimestamp;
+		}
+
+		// 3. Response DTO 생성 (참여자 수는 PG의 memberCount 사용)
+		return ChatRoomResponse.fromDto(dto, realTimeContent, dto.participantCount(), finalTimestamp);
+	}
+
+	/**
+	 * 실시간 데이터를 조회하고 병합
+	 * getFestivalChatRoomList와 getMyRoomChatRoomList에서 사용할 공통 메서드
 	 */
 	private Page<ChatRoomResponse> mergeChatRoomDataWithRedis(Page<ChatRoomInfoDto> pageList, Pageable pageable) {
 		List<String> roomIds = pageList.getContent().stream().map(ChatRoomInfoDto::chatRoomId).toList();
@@ -417,10 +550,11 @@ public class ChatRoomApiService {
 			return new PageImpl<>(Collections.emptyList(), pageable, pageList.getTotalElements());
 		}
 
-		// 1. Redis 조회를 위한 Key Set 3개 생성
-		Set<String> participantKeys = roomIds.stream()
-			.map(id -> "chatroom:participants:" + id)
-			.collect(Collectors.toSet());
+		// 1. Redis 조회를 위한 Key Set 2개 생성
+		// 실시간 참여자 수는 관리하지 않아도 된다는 요구사항에 따라 삭제 (나중을 위해 주석처리만)
+		// Set<String> participantKeys = roomIds.stream()
+		// 	.map(id -> "chatroom:participants:" + id)
+		// 	.collect(Collectors.toSet());
 
 		Set<String> contentKeys = roomIds.stream()
 			.map(id -> "chatroom:last_msg_content:" + id)
@@ -431,8 +565,8 @@ public class ChatRoomApiService {
 			.collect(Collectors.toSet());
 
 		// 2. RedisScanService 메소드 호출
-		Map<String, Long> participantCountsMap = redisScanService.getParticipantCounts(
-			participantKeys);        // (1) 참여자 수 조회 (SCARD)
+		// Map<String, Long> participantCountsMap = redisScanService.getParticipantCounts(
+		// 	participantKeys);        // (1) 참여자 수 조회 (SCARD)
 		Map<String, String> lastContentsMap = redisScanService.multiGetLastMessageTimestamps(
 			contentKeys);        // (2) 마지막 대화 내용 조회 (MGET)
 		Map<String, String> lastTimestampsMap = redisScanService.multiGetLastMessageTimestamps(
@@ -444,9 +578,9 @@ public class ChatRoomApiService {
 				String roomId = dto.chatRoomId();
 
 				// 참여자 수 병합
-				Long realTimeCount = participantCountsMap.get("chatroom:participants:" + roomId);
-				// Long finalCount = (realTimeCount != null) ? realTimeCount : dto.participantCount();	// 실시간 참여자 수는 로깅 목적으로만 남김
-				Long finalCount = dto.participantCount();
+				// Long realTimeCount = participantCountsMap.get("chatroom:participants:" + roomId);
+				// Long finalCount = (realTimeCount != null) ? realTimeCount : dto.participantCount();
+				Long finalCount = dto.participantCount();    // PG의 memberCount
 
 				// 마지막 내용 병합
 				String realTimeContent = lastContentsMap.get("chatroom:last_msg_content:" + roomId);

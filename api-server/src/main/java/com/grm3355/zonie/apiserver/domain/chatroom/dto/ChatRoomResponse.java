@@ -37,6 +37,9 @@ public class ChatRoomResponse {
 	@Schema(description = "마지막 메시지", example = "마지막 메시지입니다.")
 	private String lastContent;
 
+	@Schema(description = "채팅방 생성 시각", example = "1678886400000")
+	private Long createdAt;
+
 	public static ChatRoomResponse fromDto(ChatRoomInfoDto dto, String lastContent, Long participantCount,
 		Long lastMessageAt) {
 		return ChatRoomResponse.builder()
@@ -49,6 +52,7 @@ public class ChatRoomResponse {
 			.participantCount(participantCount) // PG값: ChatRoomUser의 개수(Member Count)
 			.lastMessageAt(lastMessageAt)       // PG값이 아닌 실시간 값
 			.lastContent(lastContent)           // PG값이 아닌 실시간 값
+			.createdAt(dto.createdAt())
 			.build();
 	}
 
