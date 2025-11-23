@@ -216,6 +216,35 @@ public class ChatRoomApiService {
 	}
 
 	/**
+	 * 통합검색 채팅방 목록
+	 * 정렬 기본: 참여자 많은 순(PART_DESC)
+	 */
+	@Transactional
+	public Page<ChatRoomResponse> getTotalChatRoomList(ChatRoomSearchRequest req) {
+
+		// 정렬
+		if (req.getOrder() == null)
+			req.setOrder(OrderType.PART_DESC);
+
+		Sort sort = getSort(req.getOrder());
+		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), sort);
+
+		// 1. PG에서 기본 정보 조회: ListType 내용 가져오기
+		Page<ChatRoomInfoDto> pageList = getTotalChatRoomListTypeUser(req, pageable);
+
+		// 2. Redis 실시간 데이터 일괄 조회 및 병합
+		return mergeChatRoomDataWithRedis(pageList, pageable);
+	}
+
+	// 종합검색에서 채팅방 검색하기
+	public Page<ChatRoomInfoDto> getTotalChatRoomListTypeUser(
+		ChatRoomSearchRequest req, Pageable pageable) {
+		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
+		log.info("===============>totalSearch.keyword===>{}", keyword);
+		return chatRoomRepository.totalChatFestivalRoomList(keyword, pageable);
+	}
+
+	/**
 	 * 축제별 채팅방 목록
 	 * 정렬 기본: 참여자 많은 순(PART_DESC)
 	 */
