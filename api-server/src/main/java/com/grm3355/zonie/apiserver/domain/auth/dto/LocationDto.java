@@ -6,13 +6,17 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 @Setter
 @Getter
 @Builder
+@RequiredArgsConstructor
+@AllArgsConstructor
 public class LocationDto {
 
 	@Schema(description = "위도", example = "37")
@@ -27,20 +31,12 @@ public class LocationDto {
 	@DecimalMax(value = "180.0", message = "Longitude must be <= 180")
 	private Double lon;
 
-	public LocationDto() {
-	}
-
-	public LocationDto(Double lat, Double lon) {
-		this.lat = lat;
-		this.lon = lon;
-	}
-
 	@Override
 	public String toString() {
 		return "LocationDto{"
-			+ "lat=" + lat
-			+ ", lon=" + lon
-			+ '}';
+			   + "lat=" + lat
+			   + ", lon=" + lon
+			   + '}';
 	}
 
 	@AssertTrue(message = "위도, 경도 값이 0일 수 없습니다.")
