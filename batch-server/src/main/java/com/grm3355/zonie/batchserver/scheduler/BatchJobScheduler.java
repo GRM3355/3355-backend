@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
+// Spring Batch Job (cron 스케줄) 담당
 public class BatchJobScheduler {                // 시간 맞춰 Job을 실행하는 트리거 역할만
 
 	private final JobLauncher jobLauncher;        // Batch Job 실행기
@@ -45,7 +46,8 @@ public class BatchJobScheduler {                // 시간 맞춰 Job을 실행�
 	}
 
 	// 2. ChatRoomRedisCleanupJob
-	@Scheduled(cron = "0 30 4 * * ?")    // DB 삭제 30분 뒤
+	// @Scheduled(cron = "0 30 4 * * ?")    // DB 삭제 30분 뒤
+	@Deprecated
 	public void runChatRoomCleanupJob() throws Exception {
 		Job job = context.getBean("chatRoomCleanupBatchJob", Job.class);    // CleanupBatchConfig에 정의한 Bean 이름
 		JobParameters params = new JobParametersBuilder()

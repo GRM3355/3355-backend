@@ -43,4 +43,6 @@ public class Message {
 	private LocalDateTime createdAt;
 	private Integer likeCount;
 	private Set<String> likedByUserIds;
+	@Builder.Default
+	private LocalDateTime deletedAt = null; // Soft Delete 시각
 }
