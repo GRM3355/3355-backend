@@ -59,3 +59,4 @@ logs/
 /chat-server/logs/chat.log
 /api-server/logs/api.log
 /batch-server/logs/batch.log
+/test_vars.sh

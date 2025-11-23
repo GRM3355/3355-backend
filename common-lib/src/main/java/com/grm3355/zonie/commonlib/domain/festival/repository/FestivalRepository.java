@@ -182,8 +182,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	@Query(
 		value = """
 			SELECT f.region, COUNT(f) FROM festivals f
-			WHERE 
-			CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
+			WHERE CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
 			AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second')
 			GROUP BY f.region
 			""", nativeQuery = true)

@@ -23,6 +23,7 @@ import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 
 @Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
+
 	// 종합검색 > 채팅방 검색, 종합검색에서는 festivalId가 없어야한다.
 	String TOTAL_CHAT_QUERY_BASE = """
 		     SELECT
@@ -36,14 +37,15 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		,ST_X(c.position::geometry) AS lon
 		     FROM chat_rooms c
 		     LEFT JOIN festivals f ON f.festival_id = c.festival_id
-		     WHERE (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
+		     WHERE (:keyword IS NULL OR c.title ILIKE ('%' || :keyword || '%'))
 		""";
+
 	// 키워드가 포함된 채팅방의 개수를 세는 용도
 	// 축제 테이블(f)은 개수를 세는 조건에 영향을 주지 x -> 조인하지 않음
 	String TOTAL_CHAT_QUERY_BASE_COUNT = """
 		   SELECT count(*)
 		   FROM chat_rooms c
-		   WHERE (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
+		   WHERE (:keyword IS NULL OR c.title ILIKE ('%' || :keyword || '%'))
 		""";
 
 	// =========================================================================
@@ -64,14 +66,14 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		,ST_X(c.position::geometry) AS lon
 		     FROM chat_rooms c
 		     LEFT JOIN festivals f ON f.festival_id = c.festival_id
-		     WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
+		     WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title ILIKE ('%' || :keyword || '%'))
 		""";
 	// 키워드가 포함된 채팅방의 개수를 세는 용도
 	// 축제 테이블(f)은 개수를 세는 조건에 영향을 주지 x -> 조인하지 않음
 	String CHAT_QUERY_BASE_COUNT = """
 		   SELECT count(*)
 		   FROM chat_rooms c
-		   WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
+		   WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title ILIKE ('%' || :keyword || '%'))
 		""";
 	// chat_rooms c와 chat_room_user cru을 LEFT JOIN -> 한 채팅방에 여러 사용자가 있을 수 있음 & 다른 조인까지 함께 사용함
 	// -> 중복 행 발생 또는 유효하지 않은 쿼리 가능성 -> GROUP BY로 중복 제거 보장
@@ -168,8 +170,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	@Modifying
 	@Transactional
 	@Query("DELETE FROM ChatRoom c "
-		+ "WHERE (c.lastMessageAt IS NOT NULL AND c.lastMessageAt < :cutoffTime) "
-		+ "OR (c.lastMessageAt IS NULL AND c.createdAt < :cutoffTime)")
+		   + "WHERE (c.lastMessageAt IS NOT NULL AND c.lastMessageAt < :cutoffTime) "
+		   + "OR (c.lastMessageAt IS NULL AND c.createdAt < :cutoffTime)")
 	int deleteByLastMessageAtBefore(@Param("cutoffTime") LocalDateTime cutoffTime);
 
 	// 마지막 대화 24시간 지난 방 ID 조회

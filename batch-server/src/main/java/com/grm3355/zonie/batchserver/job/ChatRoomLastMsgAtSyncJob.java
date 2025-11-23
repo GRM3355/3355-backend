@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomSyncDto;
@@ -27,8 +26,11 @@ public class ChatRoomLastMsgAtSyncJob {
 
 	/**
 	 * 1분마다 실행되는 Redis to DB 동기화 Job
+	 * ChatRoom.lastMessageAt 필드를 갱신하여 PG 기반 정렬을 지원하는 목적
+	 * -> 동기화 필요가 없어져 비활성화합니다.
 	 */
-	@Scheduled(fixedRate = 60000) // fixedRate = 60000ms = 1분
+	// @Scheduled(fixedRate = 60000) // fixedRate = 60000ms = 1분
+	@Deprecated
 	public void syncRedisToDb() {
 		log.info("ChatRoomLastMsgAtSyncJob 시작: Redis 데이터(마지막 대화 시각)를 PostgreSQL로 동기화합니다.");
 

@@ -1,7 +1,5 @@
 package com.grm3355.zonie.chatserver.config;
 
-import java.util.Map;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -12,7 +10,6 @@ import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.chatserver.service.ChatRoomService;
 import com.grm3355.zonie.commonlib.domain.message.dto.LikeUpdatePushDto;
 import com.grm3355.zonie.commonlib.domain.message.dto.MessageBroadcastDto;
 import com.grm3355.zonie.commonlib.domain.message.entity.Message;
@@ -27,7 +24,7 @@ public class RedisSubscriberConfig {
 
 	private final SimpMessageSendingOperations messagingTemplate;
 	private final ObjectMapper objectMapper;
-	private final ChatRoomService chatRoomService;
+	// private final ChatRoomService chatRoomService;
 
 	// (2) 메시지 리스너 어댑터: 실제 핸들러(RedisSubscriber)를 연결
 	// (2-A) 실제 채팅용 메시지 리스너 어댑터
@@ -45,7 +42,8 @@ public class RedisSubscriberConfig {
 	}
 
 	// (2-C) 참여 이벤트 리스너 어댑터
-	@Bean
+	// @Bean
+	@Deprecated
 	MessageListenerAdapter joinEventListenerAdapter() {
 		// RedisSubscriber의 "handleJoinEvent" 메소드가 메시지를 처리하도록 설정
 		return new MessageListenerAdapter(new RedisSubscriber(), "handleJoinEvent");
@@ -59,7 +57,8 @@ public class RedisSubscriberConfig {
 	}
 
 	// (2-E) 퇴장 이벤트 리스너 어댑터
-	@Bean
+	// @Bean
+	@Deprecated
 	MessageListenerAdapter leaveEventListenerAdapter() {
 		// RedisSubscriber의 "handleLeaveEvent" 메소드가 메시지를 처리하도록 설정
 		return new MessageListenerAdapter(new RedisSubscriber(), "handleLeaveEvent");
@@ -70,9 +69,10 @@ public class RedisSubscriberConfig {
 	RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory,
 		MessageListenerAdapter chatListenerAdapter,
 		MessageListenerAdapter echoListenerAdapter,
-		MessageListenerAdapter joinEventListenerAdapter,
-		MessageListenerAdapter likeEventListenerAdapter,
-		MessageListenerAdapter leaveEventListenerAdapter) {
+		// MessageListenerAdapter joinEventListenerAdapter,
+		MessageListenerAdapter likeEventListenerAdapter
+		// , MessageListenerAdapter leaveEventListenerAdapter
+	) {
 
 		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
 		container.setConnectionFactory(connectionFactory);
@@ -84,13 +84,13 @@ public class RedisSubscriberConfig {
 		container.addMessageListener(echoListenerAdapter, new ChannelTopic("echo-channel"));
 
 		// "chat-events:join" 토픽을 구독 (joinEventListenerAdapter 사용)
-		container.addMessageListener(joinEventListenerAdapter, new ChannelTopic("chat-events:join"));
+		// container.addMessageListener(joinEventListenerAdapter, new ChannelTopic("chat-events:join"));
 
 		// "chat-events:like" 토픽을 구독 (likeEventListenerAdapter 사용)
 		container.addMessageListener(likeEventListenerAdapter, new ChannelTopic("chat-events:like"));
 
 		// "chat-events:leave" 토픽을 구독 (leaveEventListenerAdapter 사용)
-		container.addMessageListener(leaveEventListenerAdapter, new ChannelTopic("chat-events:leave"));
+		// container.addMessageListener(leaveEventListenerAdapter, new ChannelTopic("chat-events:leave"));
 
 		return container;
 	}
@@ -134,6 +134,7 @@ public class RedisSubscriberConfig {
 		/**
 		 * 'chat-events:join' 채널을 처리하는 핸들러 (자동 참여 이벤트)
 		 */
+		/*
 		public void handleJoinEvent(String messageJson) {
 			try {
 				// 1. JSON 파싱
@@ -157,6 +158,7 @@ public class RedisSubscriberConfig {
 				log.error("RedisSubscriber handleJoinEvent Error", e);
 			}
 		}
+		*/
 
 		/**
 		 * 'chat-events:like' 채널을 처리하는 핸들러 (좋아요 이벤트)
@@ -187,7 +189,7 @@ public class RedisSubscriberConfig {
 		/**
 		 * 'chat-events:leave' 채널을 처리하는 핸들러 (명시적 퇴장 이벤트)
 		 */
-		// 이 메서드는 MessageListenerAdapter를 통해 RedisSubscriber 클래스에서 호출될 것입니다.
+		/*
 		public void handleLeaveEvent(String messageJson) {
 			try {
 				// 1. JSON 파싱: join 이벤트와 동일하게 userId와 roomId를 추출한다고 가정
@@ -209,5 +211,6 @@ public class RedisSubscriberConfig {
 				log.error("RedisSubscriber handleLeaveEvent Error", e);
 			}
 		}
+		 */
 	}
 }

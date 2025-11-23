@@ -29,4 +29,4 @@ fi
 # -f (follow): 로그를 실시간으로 스트리밍합니다.
 # --tail 100: (선택) 마지막 100줄부터 보여줍니다 (너무 많은 과거 로그 방지)
 # $@: 스크립트에 전달된 모든 인자를 docker-compose logs 명령으로 그대로 넘깁니다.
-docker-compose logs -f --tail 300 $@
+docker-compose logs -f --tail 500 $@

@@ -257,37 +257,20 @@ public class FestivalService {
 			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "좌표 데이터 처리 오류");
 		}
 
-		long currentTime = System.currentTimeMillis();
-
-		// 1. contentId: 임의의 고유값 (현재 시간의 밀리초 사용)
-		int contentId = (int)(currentTime % 10000000);
-
-		// 2. addr1: 임의의 주소
-		String addr1 = "자동 생성된 임시 주소 (테스트)";
-
-		// 3. title: 임의의 제목
-		String title = "테스트 축제 #" + (currentTime % 10000);
-
-		// 4. region: 임의의 지역 (SEOUL로 고정)
-		String region = "SEOUL";
-
-		// 5. firstImage: 임의의 이미지 URL
-		String firstImage = "http://test.image.url/sample_" + contentId + ".jpg";
-
-		// 6. eventStartDate: 오늘부터 3일 전
-		LocalDate eventStartDate = LocalDate.now().minusDays(3);
-
-		// 7. eventEndDate: 오늘부터 3일 후
-		LocalDate eventEndDate = LocalDate.now().plusDays(3);
-
-		// 8. mapx, mapy: 위경도 문자열
+		int contentId = req.getContentId();
+		String addr1 = req.getAddr1();
+		String title = req.getTitle();
+		String region = req.getRegion();
+		String firstImage = req.getFirstImage();
+		LocalDate eventStartDate = req.getEventStartDate();
+		LocalDate eventEndDate = req.getEventEndDate();
 		String mapx = String.valueOf(req.getLon());
 		String mapy = String.valueOf(req.getLat());
 
-		// 9. status: 진행 중으로 설정
+		// status: 진행 중으로 설정
 		String status = FestivalStatus.ONGOING.toString();
 
-		// 10. areaCode: 임의의 숫자
+		// areaCode: 임의의 숫자
 		Integer areaCode = ThreadLocalRandom.current().nextInt(1, 30);
 
 		// Festival 엔티티 생성
