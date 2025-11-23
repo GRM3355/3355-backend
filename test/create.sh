@@ -14,7 +14,7 @@ FESTIVAL_RESPONSE=$(curl -s -X POST "${API_URL}/test-management/festivals" \
     "eventEndDate": "2025-12-31",
     "region": "SEOUL",
     "lat": 37.568131, "lon": 126.969649,
-    "contentId":9999999
+    "contentId":9
   }')
 echo "Festival created."
 

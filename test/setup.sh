@@ -1,10 +1,5 @@
-# 1단계 스크립트: setup.sh
-
 # API Server 포트: 8080
 API_URL="http://localhost:8080/api/v1"
-
-#echo "1. Redis Chat/Like Keys 초기화"
-curl -X DELETE "${API_URL}/test-management/redis/flush-chat-keys"
 
 echo -e "\n2. 게스트 유저 생성 및 토큰 획득"
 GUEST_RESPONSE=$(curl -s -X POST "${API_URL}/test-management/auth/tokens" \
