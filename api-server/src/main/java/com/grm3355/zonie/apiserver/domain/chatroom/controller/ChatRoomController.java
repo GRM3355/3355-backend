@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomCreateResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomPageResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomRequest;
@@ -158,9 +159,10 @@ public class ChatRoomController {
 	@SecurityRequirement(name = "Authorization")
 	@PostMapping("/chat-rooms/{roomId}/join")
 	public ResponseEntity<ApiResponse<String>> joinChatRoom(@PathVariable String roomId,
+		@RequestBody @Valid LocationDto locationDto,
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-		String nickName = chatRoomApiService.joinRoom(roomId, userDetails);
+		String nickName = chatRoomApiService.joinRoom(roomId, locationDto, userDetails);
 		return ResponseEntity.ok().body(ApiResponse.success(nickName)); // 닉네임을 응답으로 반환
 	}
 
