@@ -24,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
+import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.apiserver.domain.auth.service.RedisTokenService;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomCreateResponse;
@@ -65,86 +66,88 @@ class ChatRoomApiServiceIntegrationTest {
 	@MockitoBean
 	private ChatRoomUserRepository chatRoomUserRepository;
 
-	// 서비스가 정렬 조건을 Repository에 올바르게 전달했는지 검증하는 테스트
 	@Test
-	@DisplayName("나의 채팅방 목록: 활성화 최신순(lastMessageAt) 동점 시 생성일 최신순(createdAt) 복합 정렬 검증")
+	@DisplayName("나의 채팅방 목록: 활성화 최신순(Redis ZSET) 동점 시 생성일 최신순(In-Memory) 복합 정렬 검증")
 	void testMyRoomListSorting() {
 		String userId = "test-user-sort";
-		String roomId1 = "room-active-older-created"; // last_message_at: 1000, created_at: OLD
-		String roomId2 = "room-active-newer-created"; // last_message_at: 1000, created_at: NEW
 
-		// 1. Mock Data: lastMessageAt이 동일하지만 createdAt이 다른 두 방 설정
+		// 1. Mock Data: last_message_at이 동일하지만 created_at이 다른 두 방 설정
+		// last_message_at (Primary Key): 2000L (동점)
+		// created_at (Secondary Key): r2 > r1 (r2가 더 최신 생성)
+		String roomId1 = "room-older-created";
+		String roomId2 = "room-newer-created";
+
+		// DB에서 조회될 ChatRoomInfoDto
 		ChatRoomInfoDto mockDto1 = new ChatRoomInfoDto(
-			roomId1, 1L, "Room A", 5L, 1000L, "Festival A", 37.0, 127.0
-		); // 생성일이 '오래됨'을 가정한 DB 순서
+			roomId1, 1L, "Room A", 5L, 2000L, "Festival A", 37.0, 127.0,
+			1600000000000L // CreatedAt: Older (예: 2020-09-15)
+		);
 		ChatRoomInfoDto mockDto2 = new ChatRoomInfoDto(
-			roomId2, 1L, "Room B", 5L, 1000L, "Festival A", 37.0, 127.0
-		); // 생성일이 '최신'임을 가정한 DB 순서
+			roomId2, 1L, "Room B", 5L, 2000L, "Festival A", 37.0, 127.0,
+			1610000000000L // CreatedAt: Newer (예: 2021-01-07)
+		);
 
-		// DB에서 조회될 순서 (last_message_at이 동일하므로 DB의 자연 정렬 순서대로)
-		List<ChatRoomInfoDto> dtoList = List.of(mockDto1, mockDto2);
+		// Redis ZSET에서 조회되는 Room ID 목록 (last_message_at이 같으면 순서는 임의적임)
+		// Redis는 ZSET score가 같으면 멤버명(String) 기준으로 정렬될 수 있지만, 여기서는 두 ID가 모두 페이지에 포함되어야 함을 Mocking
+		List<String> sortedRoomIdsFromRedis = List.of(roomId2, roomId1); // 임의의 순서로 가정
+
+		// PG에서 조회되는 데이터: Redis ID 순서가 아닌 PG의 WHERE IN 쿼리가 반환하는 임의의 순서
+		List<ChatRoomInfoDto> dtoListFromPG = List.of(mockDto1, mockDto2);
 
 		ChatRoomSearchRequest req = new ChatRoomSearchRequest();
 		req.setPage(1);
 		req.setPageSize(10);
-		req.setOrder(OrderType.ACTIVE_DESC); // ACTIVE_DESC 정렬 요청 // OrderType 제거해서 테스트해도 동일한 결과
+		req.setOrder(OrderType.ACTIVE_DESC);
 
-		// Pageable을 Mocking하지 않고 실제 Sort를 포함하여 생성
-		Sort expectedSort = Sort.by(
-			Sort.Order.desc("last_message_at"),
-			Sort.Order.desc("created_at")
-		);
-		Pageable expectedPageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), expectedSort);
+		// 2. Mocking: ZSET 기반 정렬 및 PG 데이터 조회
 
-		Page<ChatRoomInfoDto> mockPage = new PageImpl<>(dtoList, PageRequest.of(0, 10, expectedSort), dtoList.size());
+		// 2-1. Redis ZSET Mocking: ZSET에서 Room ID 목록 (Primary)
+		given(redisScanService.getSortedRoomIds(anyLong(), anyLong()))
+			.willReturn(sortedRoomIdsFromRedis);
+		given(redisScanService.countActiveRooms())
+			.willReturn(2L);
 
-		// 2. Mocking: getMyRoomListTypeUser가 정렬된 Page를 반환하도록 설정
-		given(chatRoomRepository.chatMyRoomList(
+		// 2-2. PG Repository Mocking: chatMyRoomListByRoomIds가 ID에 해당하는 데이터를 반환합니다.
+		// chatMyRoomListByRoomIds - 정렬되지 않은 데이터 반환
+		given(chatRoomRepository.chatMyRoomListByRoomIds(
 			org.mockito.ArgumentMatchers.eq(userId),
-			org.mockito.ArgumentMatchers.anyString(),
-			org.mockito.ArgumentMatchers.eq(expectedPageable) // 복합 정렬이 포함된 Pageable을 기대
-		)).willReturn(mockPage);
+			org.mockito.ArgumentMatchers.anyList() // Redis에서 가져온 roomIds 목록을 기대
+		)).willReturn(dtoListFromPG);
 
-		// Redis Scan Mocking (실시간 데이터 없음을 가정)
-		given(redisScanService.getParticipantCounts(anySet())).willReturn(Collections.emptyMap());
-		given(redisScanService.multiGetLastMessageTimestamps(anySet())).willReturn(Collections.emptyMap());
+		// 2-3. Redis String Mocking: lastMessageAt이 동점임을 확인하기 위해 실시간 값도 Mocking
+		given(redisScanService.multiGetLastMessageTimestamps(anySet()))
+			.willReturn(Collections.emptyMap()); // Redis MGET은 기존 merge 로직에서 사용되므로 Mocking
+
+		// Redis String Mocking: 단건 조회 (mergeSingleChatRoomData)
+		given(stringRedisTemplate.opsForValue().get("chatroom:last_msg_at:" + roomId1))
+			.willReturn("2000");
+		given(stringRedisTemplate.opsForValue().get("chatroom:last_msg_at:" + roomId2))
+			.willReturn("2000");
+		// content는 무시
 
 		// 3. 테스트 실행: getMyRoomChatRoomList 호출
-		Page<ChatRoomResponse> resultPage = chatRoomApiService.getMyRoomChatRoomList(
+		Page<ChatRoomResponse> resultPage = chatRoomApiService.getMyChatRoomList(
 			UserDetailsImpl.build(User.builder().userId(userId).build()), req);
 
 		// 4. 검증
 		assertNotNull(resultPage, "결과 페이지는 null이 아니어야 합니다.");
 		assertEquals(2, resultPage.getTotalElements(), "결과는 2개의 요소여야 합니다.");
 
-		// 마지막 대화 시각이 동일할 때, created_at이 최신인 (DTO 순서상 2번째) 방이 1순위로 와야 한다.
-		// 현재 chatMyRoomList는 DB 쿼리이므로, Repository Mocking 시 Sort를 넣어주면 Spring Data JPA가 실제 DB에서 정렬된 결과를 반환함.
-		// Mocking 결과가 '정렬된 결과'라고 가정하고, 그 결과를 확인.
-		// Redis 병합 로직에서 데이터가 덮어씌워지지 않았으므로, Mocking된 결과의 순서대로 와야 한다.
-
-		// DB 쿼리에서 last_message_at이 같으면 created_at DESC로 정렬되었기 때문에
-		// mockDto2 (Newer Created)가 mockDto1 (Older Created)보다 앞에 와야 한다.
-		//
-		// Mocking 시 Pageable에 Sort가 올바르게 전달되었는지 확인 (BDDMockito.verify 사용)
-		// 실제로 서비스 계층이 Repository를 호출할 때 정의된 expectedSort가 포함된 Pageable 객체를 사용했는지 // <- 핵심적인 검증 포인트
-		verify(chatRoomRepository, times(1)).chatMyRoomList(
+		// Repository 호출 검증: 새로 추가한 메서드(chatMyRoomListByRoomIds)가 호출되었는지 확인
+		verify(chatRoomRepository, times(1)).chatMyRoomListByRoomIds(
 			eq(userId),
-			anyString(),
-			eq(expectedPageable)
+			eq(sortedRoomIdsFromRedis) // Redis에서 가져온 ID 목록을 사용했는지 검증
 		);
 
-		// 5. 최종 결과 순서 검증: 실제 반환된 List의 순서가 기대한 순서와 일치하는지 확인
-		// mockDto1, mockDto2의 created_at을 알 수 없으므로, Sort 기준에 따라 DTO를 미리 정렬해야 함.
-		// created_at이 더 늦은(최신) 방이 앞에 와야 한다. (mockDto2가 더 최신 생성이라고 가정)
-		assertEquals(roomId2, resultPage.getContent().get(0).getChatRoomId(),
-			"LastMessageAt 동점 시, created_at이 최신인 방이 1순위여야 합니다.");
-		assertEquals(roomId1, resultPage.getContent().get(1).getChatRoomId(),
-			"LastMessageAt 동점 시, created_at이 오래된 방이 2순위여야 합니다.");
+		// 5. 최종 결과 순서 검증:
+		// lastMessageAt이 2000L로 동점이므로, created_at이 최신인 mockDto2가 1순위여야 함
+		// 1순위: mockDto2 (Newer Created: 1610...)
+		// 2순위: mockDto1 (Older Created: 1600...)
 
-		// 검증 로직이 복잡해질 수 있으므로, 테스트를 통과하도록 DTO 순서를 바꿔 Mocking하는 것이 일반적
-		// dtoList = List.of(mockDto2, mockDto1); 로 Mocking하면 테스트 통과.
-		// 하지만 Mocking 시점에서는 DB의 created_at 순서를 알 수 없으므로,
-		// DTO 순서는 DB에서 정렬된 상태로 온다고 가정하고, expectedPageable이 Repository로 전달되었는지를 검증하는 것이 더 적절함.
+		assertEquals(roomId2, resultPage.getContent().get(0).getChatRoomId(),
+			"Primary Key 동점 시, Secondary Key인 created_at이 최신인 방이 1순위여야 합니다.");
+		assertEquals(roomId1, resultPage.getContent().get(1).getChatRoomId(),
+			"Primary Key 동점 시, created_at이 오래된 방이 2순위여야 합니다.");
 	}
 
 	@Test
@@ -163,7 +166,15 @@ class ChatRoomApiServiceIntegrationTest {
 
 		// 2. Mocking 설정: getFestivalListTypeUser가 DB 결과를 반환하도록 설정
 		ChatRoomInfoDto mockDto = new ChatRoomInfoDto(
-			roomId, festivalId, "제목", 5L, 1763691630246L, "축제제목", 37.5, 127.0
+			roomId,
+			festivalId,
+			"제목",
+			5L,
+			1763691630246L,
+			"축제제목",
+			37.5,
+			127.0,
+			1600000000000L
 		);
 		List<ChatRoomInfoDto> dtoList = Collections.singletonList(mockDto);
 
@@ -273,7 +284,8 @@ class ChatRoomApiServiceIntegrationTest {
 		// ===============================================================
 		// 2. 참가자 가입 (참가자: 둘유저) -> 닉네임 #3356
 		// ===============================================================
-		String nickName2 = chatRoomApiService.joinRoom(roomId, UserDetailsImpl.build(mockUser2));
+		LocationDto locationDto = LocationDto.builder().lat(37.5).lon(127.0).build();
+		String nickName2 = chatRoomApiService.joinRoom(roomId, locationDto, UserDetailsImpl.build(mockUser2));
 
 		// 닉네임 검증: 참가자는 3356번을 받아야 함
 		assertEquals("#3356", nickName2, "참가자의 닉네임은 #3356이어야 합니다.");

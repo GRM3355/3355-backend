@@ -5,7 +5,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomSyncDto;
@@ -18,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class RedisToDbSyncJob {
+public class ChatRoomLastMsgAtSyncJob {
 
 	private static final String LAST_MSG_AT_KEY_PATTERN = "chatroom:last_msg_at:*";
 
@@ -27,10 +26,13 @@ public class RedisToDbSyncJob {
 
 	/**
 	 * 1분마다 실행되는 Redis to DB 동기화 Job
+	 * ChatRoom.lastMessageAt 필드를 갱신하여 PG 기반 정렬을 지원하는 목적
+	 * -> 동기화 필요가 없어져 비활성화합니다.
 	 */
-	@Scheduled(fixedRate = 60000) // fixedRate = 60000ms = 1분
+	// @Scheduled(fixedRate = 60000) // fixedRate = 60000ms = 1분
+	@Deprecated
 	public void syncRedisToDb() {
-		log.info("RedisToDbSyncJob 시작: Redis 데이터(마지막 대화 시각)를 PostgreSQL로 동기화합니다.");
+		log.info("ChatRoomLastMsgAtSyncJob 시작: Redis 데이터(마지막 대화 시각)를 PostgreSQL로 동기화합니다.");
 
 		// 1. Redis 키 탐색: RedisScanService (SCAN)
 		Set<String> lastMsgAtKeys = redisScanService.scanKeys(LAST_MSG_AT_KEY_PATTERN);        // 마지막 대화 시각 키 스캔
@@ -79,7 +81,7 @@ public class RedisToDbSyncJob {
 			//   - last_message_at은 CASE 문으로 방어됨: ChatRoomSyncRepository 쿼리문 (타임스탬프 비교해 최신값일 때만 덮어씀)
 			log.error("DB 동기화는 성공했으나 Redis 키 삭제 중 오류 발생. 로그만 남깁니다.", e);
 		}
-		log.info("RedisToDbSyncJob 완료");
+		log.info("ChatRoomLastMsgAtSyncJob 완료");
 	}
 
 	/**

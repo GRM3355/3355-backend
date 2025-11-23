@@ -90,9 +90,7 @@ class TestManagementControllerTest {
 	@Test
 	@DisplayName("[AUTH] Guest 토큰 발급 성공")
 	void registerGuestSuccess() throws Exception {
-		LocationDto locationDto = new LocationDto();
-		locationDto.setLat(37.5665);
-		locationDto.setLon(126.9780);
+		LocationDto locationDto = new LocationDto(37.5665, 126.9780);
 
 		AuthResponse mockResponse = new AuthResponse("guest-access-token-123", null);
 		given(authService.register(any(LocationDto.class))).willReturn(mockResponse);

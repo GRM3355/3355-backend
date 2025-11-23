@@ -1,5 +1,6 @@
 package com.grm3355.zonie.commonlib.global.util;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -128,5 +129,34 @@ public class RedisScanService {
 			return;
 		}
 		stringRedisTemplate.delete(keys); // 내부적으로 여러 키 파이프라인 또는 단일 DEL 처리
+	}
+
+	/**
+	 * Redis Sorted Set에서 활성화 시각 기준 상위 N개의 채팅방 ID를 조회합니다. (ZREVRANGE)
+	 *
+	 * @param start 시작 인덱스 (0부터 시작)
+	 * @param end 종료 인덱스
+	 * @return 정렬된 채팅방 ID 목록 (List<String>)
+	 */
+	public List<String> getSortedRoomIds(long start, long end) {
+		String key = "chatroom:active_rooms"; // 정렬을 위한 ZSET 키
+
+		// ZREVRANGE: 점수(timestamp) 높은 순(desc)으로 start부터 end까지 멤버(RoomId) 조회 // 페이징
+		Set<String> roomIds = stringRedisTemplate.opsForZSet().reverseRange(key, start, end);
+
+		if (roomIds == null) {
+			return Collections.emptyList();
+		}
+		// Set -> List로 변환: 순서 보존
+		return List.copyOf(roomIds);
+	}
+
+	/**
+	 * Redis Sorted Set의 전체 멤버 개수를 조회합니다. (ZCARD)
+	 *
+	 * @return 전체 채팅방 개수 (Long)
+	 */
+	public Long countActiveRooms() {
+		return stringRedisTemplate.opsForZSet().size("chatroom:active_rooms");
 	}
 }

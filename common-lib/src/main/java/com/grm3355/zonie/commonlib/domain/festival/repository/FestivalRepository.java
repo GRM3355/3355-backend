@@ -34,7 +34,11 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	List<Festival> findByEventEndDateBefore(LocalDate date);
 
 	// 이벤트 종료일이 현재 날짜보다 이전인 축제를 삭제
-	long deleteByEventEndDateBefore(LocalDate date); // long으로 지정: JPA는 삭제된 레코드 수를 반환
+	// JPQL 벌크 DELETE
+	@Modifying
+	@Transactional
+	@Query("DELETE FROM Festival f WHERE f.eventEndDate < :date")
+	long deleteByEventEndDateBefore(@Param("date") LocalDate date); // long으로 지정: JPA는 삭제된 레코드 수를 반환
 
 	//채팅방 갯수 업데이트
 	@Modifying(clearAutomatically = true)
@@ -99,11 +103,11 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	// 3. 결과를 미터(m)에서 킬로미터(km)로 변환
 	@Query(value =
 		"SELECT ST_Distance("
-			+ "    f.position::geography, "
-			+ "    ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography "
-			+ ") / 1000.0 "
-			+ "FROM festivals f "
-			+ "WHERE f.festival_id = :festivalId",
+		+ "    f.position::geography, "
+		+ "    ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography "
+		+ ") / 1000.0 "
+		+ "FROM festivals f "
+		+ "WHERE f.festival_id = :festivalId",
 		nativeQuery = true)
 	Optional<Double> findDistanceToFestival(@Param("festivalId") long festivalId, @Param("lon") double lon,
 		@Param("lat") double lat);
@@ -178,8 +182,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	@Query(
 		value = """
 			SELECT f.region, COUNT(f) FROM festivals f
-			WHERE 
-			CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
+			WHERE CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
 			AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second')
 			GROUP BY f.region
 			""", nativeQuery = true)

@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Deprecated(since = "실시간 참여자 수 키를 관리할 필요가 없어져, 참여자 수 키 정리 로직도 사용하지 않습니다. //")
 public class ChatRoomRedisCleanupJob {
 
 	private static final String PARTICIPANTS_KEY_PATTERN = "chatroom:participants:*";

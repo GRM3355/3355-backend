@@ -23,9 +23,8 @@ public record KakaoUserInfo(
 				: null; // 필요하면 기본 이미지 URL 사용 가능
 
 		String email = (kakaoAccount.email() != null && !kakaoAccount.email().isBlank())
-			? kakaoAccount.email()
-			: null; // 이메일도 선택적 필드
-		
+			? kakaoAccount.email() : null; // 이메일도 선택적 필드
+
 		return UserInfo.builder()
 			.socialId(id)
 			.providerType(ProviderType.KAKAO)

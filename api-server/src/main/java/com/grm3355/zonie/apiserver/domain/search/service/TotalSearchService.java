@@ -55,7 +55,7 @@ public class TotalSearchService {
 			.build();
 		Pageable pageable2 = PageRequest.of(0, 10,
 			Sort.by(Sort.Order.desc("member_count")));
-		Page<ChatRoomInfoDto> chatroomPageList = chatRoomApiService.getFestivalListTypeUser(0,
+		Page<ChatRoomInfoDto> chatroomPageList = chatRoomApiService.getTotalChatRoomPageList(
 			searchRequest, pageable2);
 
 		//데이터 합치기
@@ -88,15 +88,14 @@ public class TotalSearchService {
 	 */
 	public Page<ChatRoomResponse> getChatroomTotalSearch(ChatRoomSearchRequest request) {
 
-		//키워드 체크
+		// 키워드 체크
 		checkKeyWord(request.getKeyword());
 
-		//채팅방 목록
-		//축제가 없으면 0으로 처리해서 전체 데이터를 가져온다.
+		// 채팅방 목록
 		return chatRoomApiService.getTotalChatRoomList(request);
 	}
 
-	//키워드 체크
+	// 키워드 체크
 	private void checkKeyWord(String keyword) {
 		if (keyword == null || keyword.isEmpty()) {
 			throw new BusinessException(ErrorCode.BAD_REQUEST, "검색어는 필수입니다.");

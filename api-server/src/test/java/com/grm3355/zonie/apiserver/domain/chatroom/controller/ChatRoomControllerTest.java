@@ -124,7 +124,7 @@ class ChatRoomControllerTest extends BaseIntegrationTest {
 		);
 
 		// 서비스 메서드 모킹
-		when(chatRoomApiService.getMyRoomChatRoomList(any(), any())).thenReturn(page);
+		when(chatRoomApiService.getMyChatRoomList(any(), any())).thenReturn(page);
 
 		// 요청
 		mockMvc.perform(get("/api/v1/chat-rooms/my-rooms")

@@ -1,6 +1,7 @@
 package com.grm3355.zonie.chatserver.service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -69,9 +70,26 @@ public class MessageService {
 			log.error("Message Pub/Sub 발행 실패", e);
 		}
 
-		// 4. Redis에 마지막 대화 시각 갱신 - String Template
-		stringRedisTemplate.opsForValue()
-			.set("chatroom:last_msg_at:" + roomId, String.valueOf(System.currentTimeMillis()));
+		// 4. 마지막 대화 시각
+		long createdAtLong = room.getCreatedAt()
+			.atZone(ZoneId.systemDefault())
+			.toInstant()
+			.toEpochMilli(); // LocalDateTime -> Long
+		Long lastMessageAtLong = System.currentTimeMillis();
+
+		// 4-1. Composite Score 계산 및 ZSET 갱신
+		// Score = Last Message At (정수부) + Created At (소수부)
+		// CreatedAt을 10^16으로 나누어 소수점 이하로 만듦 (정밀도 이슈 감수)
+		double compositeScore = lastMessageAtLong.doubleValue() + ((double)createdAtLong / 10000000000000000D);
+
+		// 4-1. Redis에 ZSET에 등록/갱신
+		// ZADD key score member
+		// 실시간 정렬 및 페이지네이션 (Score를 통한 랭킹 관리) 목적으로만 사용함
+		stringRedisTemplate.opsForZSet().add("chatroom:active_rooms", roomId, compositeScore);
+
+		// 4-2. Redis에 갱신
+		// 정확한 실시간 타임스탬프 원본 Long 값
+		stringRedisTemplate.opsForValue().set("chatroom:last_msg_at:" + roomId, String.valueOf(lastMessageAtLong));
 
 		// 5. Redis에 마지막 메시지 내용 갱신 - String Template
 		String lastContent = nickname + ": " + content;
