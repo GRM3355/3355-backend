@@ -252,16 +252,17 @@ public class ChatRoomApiService {
 		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), sort);
 
 		// 1. PG에서 기본 정보 조회: ListType 내용 가져오기
-		Page<ChatRoomInfoDto> pageList = getTotalChatRoomListTypeUser(req, pageable);
+		Page<ChatRoomInfoDto> pageList = getTotalChatRoomPageList(req, pageable);
 
 		// 2. Redis 실시간 데이터 일괄 조회 및 병합
 		return mergeChatRoomDataWithRedis(pageList, pageable);
 	}
 
-	// 종합검색에서 채팅방 검색하기
-	public Page<ChatRoomInfoDto> getTotalChatRoomListTypeUser(
+	// 통합검색에서 채팅방 검색하기
+	public Page<ChatRoomInfoDto> getTotalChatRoomPageList(
 		ChatRoomSearchRequest req, Pageable pageable) {
-		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
+		String keyword =
+			(req.getKeyword() != null && !req.getKeyword().isBlank()) ? "%" + req.getKeyword() + "%" : "%";
 		log.info("===============>totalSearch.keyword===>{}", keyword);
 		return chatRoomRepository.totalChatFestivalRoomList(keyword, pageable);
 	}
@@ -269,6 +270,7 @@ public class ChatRoomApiService {
 	/**
 	 * 축제별 채팅방 목록
 	 * 정렬 기본: 참여자 많은 순(PART_DESC)
+	 * 사용 x
 	 */
 	@Transactional
 	public Page<ChatRoomResponse> getFestivalChatRoomList(long festivalId, ChatRoomSearchRequest req) {
@@ -281,16 +283,17 @@ public class ChatRoomApiService {
 		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), sort);
 
 		// 1. PG에서 기본 정보 조회: ListType 내용 가져오기
-		Page<ChatRoomInfoDto> pageList = getFestivalListTypeUser(festivalId, req, pageable);
+		Page<ChatRoomInfoDto> pageList = getFestivalChatRoomPageList(festivalId, req, pageable);
 
 		// 2. Redis 실시간 데이터 일괄 조회 및 병합
 		return mergeChatRoomDataWithRedis(pageList, pageable);
 	}
 
 	// 축제별 채팅방 검색조건별 목록 가져오기
-	public Page<ChatRoomInfoDto> getFestivalListTypeUser(
+	public Page<ChatRoomInfoDto> getFestivalChatRoomPageList(
 		long festivalId, ChatRoomSearchRequest req, Pageable pageable) {
-		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
+		String keyword =
+			(req.getKeyword() != null && !req.getKeyword().isBlank()) ? "%" + req.getKeyword() + "%" : "%";
 		log.info("===============>ChatRoom.keyword===>{}", keyword);
 		return chatRoomRepository.chatFestivalRoomList(festivalId, keyword, pageable);
 	}
@@ -300,7 +303,7 @@ public class ChatRoomApiService {
 	 * 정렬: 최신 대화 순(ACTIVE_DESC) -> 동점 시 생성 최신순(DATE_DESC)
 	 */
 	@Transactional
-	public Page<ChatRoomResponse> getMyRoomChatRoomList(UserDetailsImpl userDetails,
+	public Page<ChatRoomResponse> getMyChatRoomList(UserDetailsImpl userDetails,
 		ChatRoomSearchRequest req) {
 		String userId = userDetails.getUsername();
 
@@ -352,15 +355,16 @@ public class ChatRoomApiService {
 		// PG에서 기본 정보 조회
 		Sort sort = getSort(req.getOrder());
 		Pageable pageable = PageRequest.of(req.getPage() - 1, req.getPageSize(), Objects.requireNonNull(sort));
-		Page<ChatRoomInfoDto> pageList = getMyRoomListTypeUser(userId, req, pageable);
+		Page<ChatRoomInfoDto> pageList = getMyChatRoomPageList(userId, req, pageable);
 
 		// 3. Redis 실시간 데이터 조회 및 병합
 		return mergeChatRoomDataWithRedis(pageList, pageable);
 	}
 
 	// 축제별 채팅방 검색조건별 목록 가져오기
-	private Page<ChatRoomInfoDto> getMyRoomListTypeUser(String userId, ChatRoomSearchRequest req, Pageable pageable) {
-		String keyword = (req.getKeyword() != null) ? req.getKeyword() : "";
+	private Page<ChatRoomInfoDto> getMyChatRoomPageList(String userId, ChatRoomSearchRequest req, Pageable pageable) {
+		String keyword =
+			(req.getKeyword() != null && !req.getKeyword().isBlank()) ? "%" + req.getKeyword() + "%" : "%";
 		log.info("===============>MyChatRoom.keyword===>{}", keyword);
 		return chatRoomRepository.chatMyRoomList(userId, keyword, pageable);
 	}

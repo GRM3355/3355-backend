@@ -32,12 +32,13 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     c.title,
 		     c.member_count as participantCount,
 		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt,
-		     f.title AS festivalTitle
-		,ST_Y(c.position::geometry) AS lat
-		,ST_X(c.position::geometry) AS lon
+		     f.title AS festivalTitle,
+		     ST_Y(c.position::geometry) AS lat,
+		     ST_X(c.position::geometry) AS lon,
+		     (EXTRACT(EPOCH FROM c.created_at) * 1000)::BIGINT AS createdAt
 		     FROM chat_rooms c
 		     LEFT JOIN festivals f ON f.festival_id = c.festival_id
-		     WHERE (:keyword IS NULL OR c.title ILIKE ('%' || :keyword || '%'))
+		     WHERE (:keyword IS NULL OR c.title ILIKE :keyword)
 		""";
 
 	// 키워드가 포함된 채팅방의 개수를 세는 용도
@@ -45,7 +46,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	String TOTAL_CHAT_QUERY_BASE_COUNT = """
 		   SELECT count(*)
 		   FROM chat_rooms c
-		   WHERE (:keyword IS NULL OR c.title ILIKE ('%' || :keyword || '%'))
+		   WHERE (:keyword IS NULL OR c.title ILIKE :keyword)
 		""";
 
 	// =========================================================================
@@ -66,14 +67,14 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		,ST_X(c.position::geometry) AS lon
 		     FROM chat_rooms c
 		     LEFT JOIN festivals f ON f.festival_id = c.festival_id
-		     WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title ILIKE ('%' || :keyword || '%'))
+		     WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title ILIKE :keyword)
 		""";
 	// 키워드가 포함된 채팅방의 개수를 세는 용도
 	// 축제 테이블(f)은 개수를 세는 조건에 영향을 주지 x -> 조인하지 않음
 	String CHAT_QUERY_BASE_COUNT = """
 		   SELECT count(*)
 		   FROM chat_rooms c
-		   WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title ILIKE ('%' || :keyword || '%'))
+		   WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title ILIKE :keyword)
 		""";
 	// chat_rooms c와 chat_room_user cru을 LEFT JOIN -> 한 채팅방에 여러 사용자가 있을 수 있음 & 다른 조인까지 함께 사용함
 	// -> 중복 행 발생 또는 유효하지 않은 쿼리 가능성 -> GROUP BY로 중복 제거 보장

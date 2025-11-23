@@ -143,7 +143,7 @@ public class ChatRoomController {
 		@Valid @ModelAttribute ChatRoomSearchRequest request,
 		@AuthenticationPrincipal UserDetailsImpl userDetails
 	) {
-		Page<ChatRoomResponse> pageList = chatRoomApiService.getMyRoomChatRoomList(userDetails, request);
+		Page<ChatRoomResponse> pageList = chatRoomApiService.getMyChatRoomList(userDetails, request);
 		ChatRoomPageResponse response = new ChatRoomPageResponse(pageList, request.getPageSize());
 		return ResponseEntity.ok().body(ApiResponse.success(response));
 	}

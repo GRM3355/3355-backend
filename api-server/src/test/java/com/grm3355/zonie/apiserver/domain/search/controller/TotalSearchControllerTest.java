@@ -86,7 +86,7 @@ class TotalSearchControllerTest {
 
 	@Test
 	@DisplayName("검색 - 채팅방 목록 GET 요청 성공 테스트")
-	void testGetChatroomTotalSearchSuccess() throws Exception {
+	void testGetChatroomSearchSuccess() throws Exception {
 		// given
 		// 서비스는 Page<T>를 반환합니다.
 		ChatRoomResponse chatRoom = ChatRoomResponse.builder().chatRoomId("1L").title("테스트방").build();

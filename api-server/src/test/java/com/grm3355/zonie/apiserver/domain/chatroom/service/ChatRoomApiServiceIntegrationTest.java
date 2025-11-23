@@ -126,7 +126,7 @@ class ChatRoomApiServiceIntegrationTest {
 		// content는 무시
 
 		// 3. 테스트 실행: getMyRoomChatRoomList 호출
-		Page<ChatRoomResponse> resultPage = chatRoomApiService.getMyRoomChatRoomList(
+		Page<ChatRoomResponse> resultPage = chatRoomApiService.getMyChatRoomList(
 			UserDetailsImpl.build(User.builder().userId(userId).build()), req);
 
 		// 4. 검증

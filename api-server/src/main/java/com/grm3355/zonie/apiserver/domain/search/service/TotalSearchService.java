@@ -55,7 +55,7 @@ public class TotalSearchService {
 			.build();
 		Pageable pageable2 = PageRequest.of(0, 10,
 			Sort.by(Sort.Order.desc("member_count")));
-		Page<ChatRoomInfoDto> chatroomPageList = chatRoomApiService.getFestivalListTypeUser(0,
+		Page<ChatRoomInfoDto> chatroomPageList = chatRoomApiService.getTotalChatRoomPageList(
 			searchRequest, pageable2);
 
 		//데이터 합치기
