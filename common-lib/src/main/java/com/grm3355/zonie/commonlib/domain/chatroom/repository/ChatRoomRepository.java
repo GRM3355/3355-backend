@@ -22,6 +22,28 @@ import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
 
 @Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
+	// 종합검색 > 채팅방 검색, 종합검색에서는 festivalId가 없어야한다.
+	String TOTAL_CHAT_QUERY_BASE = """
+		     SELECT
+		     c.chat_room_id as chatRoomId,
+		     f.festival_id as festivalId,
+		     c.title,
+		     c.member_count as participantCount,
+		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt,
+		     f.title AS festivalTitle
+		,ST_Y(c.position::geometry) AS lat
+		,ST_X(c.position::geometry) AS lon
+		     FROM chat_rooms c
+		     LEFT JOIN festivals f ON f.festival_id = c.festival_id
+		     WHERE (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
+		""";
+	// 키워드가 포함된 채팅방의 개수를 세는 용도
+	// 축제 테이블(f)은 개수를 세는 조건에 영향을 주지 x -> 조인하지 않음
+	String TOTAL_CHAT_QUERY_BASE_COUNT = """
+		   SELECT count(*)
+		   FROM chat_rooms c
+		   WHERE (:keyword IS NULL OR c.title LIKE ('%' || :keyword || '%'))
+		""";
 
 	// =========================================================================
 	// 공통 축제별 목록 조회 쿼리, 내 채팅방 목록 조회 쿼리
@@ -91,6 +113,13 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	Optional<ChatRoom> findByChatRoomIdWithLock(@Param("chatRoomId") String chatRoomId);
 
 	/**
+	 * 종합검색에서 채팅방 검색 채팅 관련 Native Query (festivalId로 조회)
+	 */
+	// 종합 쿼리문
+	@Query(value = TOTAL_CHAT_QUERY_BASE, countQuery = TOTAL_CHAT_QUERY_BASE_COUNT, nativeQuery = true)
+	Page<ChatRoomInfoDto> totalChatFestivalRoomList(String keyword, Pageable pageable);
+
+	/**
 	 * 축제별 채팅 관련 Native Query (festivalId로 조회)
 	 */
 	// 종합 쿼리문
@@ -137,8 +166,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	@Modifying
 	@Transactional
 	@Query("DELETE FROM ChatRoom c "
-		   + "WHERE (c.lastMessageAt IS NOT NULL AND c.lastMessageAt < :cutoffTime) "
-		   + "OR (c.lastMessageAt IS NULL AND c.createdAt < :cutoffTime)")
+		+ "WHERE (c.lastMessageAt IS NOT NULL AND c.lastMessageAt < :cutoffTime) "
+		+ "OR (c.lastMessageAt IS NULL AND c.createdAt < :cutoffTime)")
 	int deleteByLastMessageAtBefore(@Param("cutoffTime") LocalDateTime cutoffTime);
 
 	/**

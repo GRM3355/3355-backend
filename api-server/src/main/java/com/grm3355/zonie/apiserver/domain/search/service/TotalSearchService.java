@@ -93,7 +93,7 @@ public class TotalSearchService {
 
 		//채팅방 목록
 		//축제가 없으면 0으로 처리해서 전체 데이터를 가져온다.
-		return chatRoomApiService.getFestivalChatRoomList(0, request);
+		return chatRoomApiService.getTotalChatRoomList(request);
 	}
 
 	//키워드 체크
