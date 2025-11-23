@@ -62,9 +62,10 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 		     c.title,
 		     c.member_count as participantCount,
 		     (EXTRACT(EPOCH FROM c.last_message_at) * 1000)::BIGINT AS lastMessageAt,
-		     f.title AS festivalTitle
-		,ST_Y(c.position::geometry) AS lat
-		,ST_X(c.position::geometry) AS lon
+		     f.title AS festivalTitle,
+		     ST_Y(c.position::geometry) AS lat,
+		     ST_X(c.position::geometry) AS lon,
+		     (EXTRACT(EPOCH FROM c.created_at) * 1000)::BIGINT AS createdAt
 		     FROM chat_rooms c
 		     LEFT JOIN festivals f ON f.festival_id = c.festival_id
 		     WHERE c.festival_id = :festivalId AND (:keyword IS NULL OR c.title ILIKE :keyword)
