@@ -49,6 +49,7 @@ public class ChatRoomCleanupService {
 			keysToDelete.add(LAST_MSG_CONTENT_KEY_PREFIX + roomId);
 			keysToDelete.add(NICKNAME_SEQ_KEY_PREFIX + roomId);
 		});
+		log.info("keysToDelete.size: {}", keysToDelete.size());
 
 		// Redis 키 일괄 삭제
 		if (!keysToDelete.isEmpty()) {

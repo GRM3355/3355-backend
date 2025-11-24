@@ -6,8 +6,12 @@ spring:
     password: ${DB_PROD_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
-  # --- ElastiCache (Redis) (운영용) ---
   data:
+    # --- MongoDB Atlas (운영용) ---
+    mongodb:
+      uri: ${MONGO_PROD_URI} # 환경 변수 또는 외부 설정 파일에서 주입
+      database: zonie-database
+    # --- ElastiCache (Redis) (운영용) ---
     redis:
       host: ${REDIS_PROD_HOST}
       port: 6379
