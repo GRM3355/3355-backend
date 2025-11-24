@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.grm3355.zonie.batchserver.service.ChatRoomCleanupService;
 import com.grm3355.zonie.commonlib.domain.chatroom.repository.ChatRoomRepository;
+import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +24,7 @@ public class ChatRoomDeletionJob {
 
 	private final ChatRoomRepository chatRoomRepository;
 	private final ChatRoomCleanupService chatRoomCleanupService;
+	private final FestivalRepository festivalRepository;
 
 	/**
 	 * [Job 1]: 참여자가 0명인 채팅방 삭제 (빈 방)
@@ -38,19 +40,28 @@ public class ChatRoomDeletionJob {
 		// KST(Asia/Seoul) 시간대 기준 현재 시각
 		ZoneId seoulZone = ZoneId.of("Asia/Seoul");
 		LocalDateTime nowKst = ZonedDateTime.now(seoulZone).toLocalDateTime();
-		
+
 		// KST 기준으로 1분 전 시간 계산 -> DB의 KST 값과 비교
 		LocalDateTime graceTime = nowKst.minusMinutes(1);
 
-		// 1. ID 조회
+		// 1. 삭제될(빈) 채팅방 ID 조회
 		List<String> emptyRoomIds = chatRoomRepository.findEmptyRoomIds(graceTime);
 		log.info("emptyRoomIds.size() = {}", emptyRoomIds.size());
 
 		if (!emptyRoomIds.isEmpty()) {
+			// 삭제될 채팅방들이 속한 축제 ID를 미리 조회
+			List<Long> affectedFestivalIds = chatRoomRepository.findFestivalIdsByRoomIds(emptyRoomIds);
+
 			// 2. PG DB 삭제 (ON DELETE CASCADE로 ChatRoomUser 동시 삭제)
 			// 해당 JPQL 메서드가 내부적으로 @Transactional을 가짐
 			long deletedCount = chatRoomRepository.deleteEmptyChatRoomsInPgTx(emptyRoomIds);
 			log.info("[삭제] 참여자 0명인 채팅방 {}개 삭제됨", deletedCount);
+
+			if (!affectedFestivalIds.isEmpty()) {
+				// 영향을 받은 축제들의 chat_room_count를 재집계하여 업데이트
+				int syncCount = festivalRepository.syncChatRoomCounts(affectedFestivalIds);
+				log.info("[갱신] festivals.chat_room_count {}건 처리", syncCount);
+			}
 
 			// 3. Redis/Mongo 정리
 			chatRoomCleanupService.cleanupDeletedRoomData(emptyRoomIds);
