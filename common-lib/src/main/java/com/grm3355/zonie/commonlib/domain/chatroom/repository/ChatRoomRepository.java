@@ -164,6 +164,13 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	@Query("DELETE FROM ChatRoom c WHERE c.chatRoomId IN :chatRoomIds")
 	long deleteByChatRoomIdIn(@Param("chatRoomIds") List<String> chatRoomIds);
 
+	// 빈 방 정리
+	// JPQL DELETE 문은 반드시 @Modifying과 @Transactional이 필요
+	@Modifying
+	@Transactional // 트랜잭션을 여기에 적용하여 Job 실패 시 롤백 방지
+	@Query("DELETE FROM ChatRoom c WHERE c.chatRoomId IN :chatRoomIds")
+	long deleteEmptyChatRoomsInPgTx(@Param("chatRoomIds") List<String> chatRoomIds);
+
 	/**
 	 * 1. 마지막 대화가 24시간 지난 채팅방 삭제
 	 * 조건: lastMessageAt이 기준 시간보다 이전인 경우
