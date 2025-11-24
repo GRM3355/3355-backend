@@ -486,6 +486,7 @@ public class ChatRoomApiService {
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "해당 채팅방에 입장되어 있지 않습니다."));
 
 		// 4. ChatRoomUser 삭제 (퇴장)
+		
 		//채팅방 삭제문제로 인해서 추가
 		boolean exists = chatRoomUserRepository.existsByUserAndChatRoom(user, room);
 

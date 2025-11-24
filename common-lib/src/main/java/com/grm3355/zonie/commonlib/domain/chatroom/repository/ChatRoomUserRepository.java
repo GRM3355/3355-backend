@@ -36,5 +36,4 @@ public interface ChatRoomUserRepository extends JpaRepository<ChatRoomUser, Long
 
 	//존재여부체크
 	boolean existsByUserAndChatRoom(User user, ChatRoom room);
-
 }

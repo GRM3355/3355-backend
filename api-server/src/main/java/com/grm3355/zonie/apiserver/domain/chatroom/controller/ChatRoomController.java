@@ -181,7 +181,6 @@ public class ChatRoomController {
 	public ResponseEntity<?> leaveChatRoom(@PathVariable String roomId,
 		@AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-		log.info("====================>leaveChatRoom controller");
 		chatRoomApiService.leaveRoom(roomId, userDetails);
 		return ResponseEntity.noContent().build();
 	}
