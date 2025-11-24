@@ -33,4 +33,8 @@ public interface ChatRoomUserRepository extends JpaRepository<ChatRoomUser, Long
 	@Modifying
 	@Query("DELETE FROM ChatRoomUser cru WHERE cru.chatRoom.chatRoomId IN :chatRoomIds")
 	long deleteByChatRoomChatRoomIdIn(@Param("chatRoomIds") List<String> chatRoomIds);
+
+	//존재여부체크
+	boolean existsByUserAndChatRoom(User user, ChatRoom room);
+
 }
