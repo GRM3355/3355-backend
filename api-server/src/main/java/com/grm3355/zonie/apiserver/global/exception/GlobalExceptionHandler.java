@@ -224,7 +224,7 @@ public class GlobalExceptionHandler {
 			ApiResponse.of(false, code.getCode(), message, null);
 
 		//return body.toResponseEntity(HttpStatus.valueOf(code.getCode()));
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+		return ResponseEntity.status(HttpStatus.valueOf(code.getCode())).body(body);
 	}
 
 	/**
