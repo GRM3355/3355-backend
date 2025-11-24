@@ -2,6 +2,8 @@ package com.grm3355.zonie.batchserver.job;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import org.springframework.scheduling.annotation.Scheduled;
@@ -32,8 +34,13 @@ public class ChatRoomDeletionJob {
 	// @Transactional
 	public void cleanupEmptyRooms() {
 		log.info("CleanupEmptyRoomsJob 시작");
-		LocalDateTime now = LocalDateTime.now();
-		LocalDateTime graceTime = now.minusMinutes(1);
+
+		// KST(Asia/Seoul) 시간대 기준 현재 시각
+		ZoneId seoulZone = ZoneId.of("Asia/Seoul");
+		LocalDateTime nowKst = ZonedDateTime.now(seoulZone).toLocalDateTime();
+		
+		// KST 기준으로 1분 전 시간 계산 -> DB의 KST 값과 비교
+		LocalDateTime graceTime = nowKst.minusMinutes(1);
 
 		// 1. ID 조회
 		List<String> emptyRoomIds = chatRoomRepository.findEmptyRoomIds(graceTime);
