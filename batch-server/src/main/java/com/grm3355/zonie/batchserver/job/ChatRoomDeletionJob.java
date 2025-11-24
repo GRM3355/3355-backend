@@ -29,7 +29,7 @@ public class ChatRoomDeletionJob {
 	 * 채팅방 생성 트랜잭션과 방장 Join 트랜잭션은 밀리초 단위로 발생하기 때문에 1분으로 설정함
 	 * 근데 배치 작업 때문에, 추후 삭제할 채팅방이 많아진다면 1분으로 부족할 수도 있어서, 고려해볼 사항임
 	 */
-	@Transactional
+	// @Transactional
 	public void cleanupEmptyRooms() {
 		log.info("CleanupEmptyRoomsJob 시작");
 		LocalDateTime now = LocalDateTime.now();
@@ -37,10 +37,12 @@ public class ChatRoomDeletionJob {
 
 		// 1. ID 조회
 		List<String> emptyRoomIds = chatRoomRepository.findEmptyRoomIds(graceTime);
+		log.info("emptyRoomIds.size() = {}", emptyRoomIds.size());
 
 		if (!emptyRoomIds.isEmpty()) {
 			// 2. PG DB 삭제 (ON DELETE CASCADE로 ChatRoomUser 동시 삭제)
-			long deletedCount = chatRoomRepository.deleteByChatRoomIdIn(emptyRoomIds);
+			// 해당 JPQL 메서드가 내부적으로 @Transactional을 가짐
+			long deletedCount = chatRoomRepository.deleteEmptyChatRoomsInPgTx(emptyRoomIds);
 			log.info("[삭제] 참여자 0명인 채팅방 {}개 삭제됨", deletedCount);
 
 			// 3. Redis/Mongo 정리
@@ -53,7 +55,7 @@ public class ChatRoomDeletionJob {
 	 * 스케줄: 6시간마다
 	 */
 	@Scheduled(cron = "0 0 0/6 * * ?") // 0시, 6시, 12시, 18시에 실행
-	@Transactional
+	// @Transactional
 	public void cleanupInactiveRooms() {
 		log.info("CleanupInactiveRoomsJob 시작");
 		LocalDateTime now = LocalDateTime.now();
@@ -64,7 +66,7 @@ public class ChatRoomDeletionJob {
 
 		if (!inactiveRoomIds.isEmpty()) {
 			// 2. PG DB 삭제
-			long deletedCount = chatRoomRepository.deleteByChatRoomIdIn(inactiveRoomIds);
+			long deletedCount = chatRoomRepository.deleteEmptyChatRoomsInPgTx(inactiveRoomIds);
 			log.info("[삭제] 24시간 이상 대화 없는 채팅방 {}개 삭제됨", deletedCount);
 
 			// 3. Redis/Mongo 정리
