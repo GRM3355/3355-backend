@@ -45,7 +45,6 @@ import lombok.extern.slf4j.Slf4j;
 @Tag(name = "ChatRooms", description = "채팅방 생성 api와, 축제별 채팅방 목록 및 내 채팅방 목록 조회 api를 제공합니다.")
 @RequestMapping("/api/v1")
 @RequiredArgsConstructor
-@Slf4j
 public class ChatRoomController {
 	private final ChatRoomApiService chatRoomApiService;
 
