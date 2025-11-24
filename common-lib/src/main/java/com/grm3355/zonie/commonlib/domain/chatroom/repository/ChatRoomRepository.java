@@ -205,6 +205,13 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 	List<String> findEmptyRoomIds(@Param("graceTime") LocalDateTime graceTime);
 
 	/**
+	 * 주어진 채팅방 ID 목록에 연결된 유효한 축제 ID를 중복 없이 조회
+	 * (채팅방 삭제 전, 영향을 받는 Festival을 파악하기 위해 사용)
+	 */
+	@Query(value = "SELECT DISTINCT c.festival_id FROM chat_rooms c WHERE c.chat_room_id IN :roomIds AND c.festival_id IS NOT NULL", nativeQuery = true)
+	List<Long> findFestivalIdsByRoomIds(@Param("roomIds") List<String> roomIds);
+
+	/**
 	 * 3. 축제가 종료된 채팅방 삭제
 	 * 조건: ChatRoom과 연결된 Festival의 eventEndDate가 오늘 이전인 경우
 	 * JPQL은 연관 관계를 타고 삭제할 수 없으므로, 서브쿼리나 ID 리스트를 사용해야 함.

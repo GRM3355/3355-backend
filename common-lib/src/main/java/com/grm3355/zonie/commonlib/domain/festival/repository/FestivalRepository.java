@@ -45,6 +45,11 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	@Query("UPDATE Festival f SET f.chatRoomCount = f.chatRoomCount+1 WHERE f.festivalId = :festivalId")
 	void updateFestivalChatRoomCount(Long festivalId);
 
+	// 채팅방 수 감소
+	@Modifying(clearAutomatically = true)
+	@Query("UPDATE Festival f SET f.chatRoomCount = f.chatRoomCount-1 WHERE f.festivalId = :festivalId")
+	void decrementFestivalChatRoomCount(Long festivalId);
+
 	/**
 	 * 축제 목록보기
 	 */
@@ -173,6 +178,28 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 		)
 		""", nativeQuery = true)
 	int syncTotalParticipantCounts();
+
+	/**
+	 * [배치 최적화] 특정 축제 ID 목록에 대해 chat_rooms의 수를 재집계하여
+	 * festivals.chat_room_count 필드를 일괄 업데이트합니다. (UPDATE ... FROM)
+	 */
+	@Modifying
+	@Transactional
+	@Query(value = """
+		UPDATE festivals f
+		SET chat_room_count = COALESCE(sub.room_count, 0)
+		FROM (
+		    SELECT
+		        cr.festival_id,
+		        COUNT(cr.chat_room_id) AS room_count
+		    FROM chat_rooms cr
+		    WHERE cr.festival_id IN (:festivalIds)
+		    GROUP BY cr.festival_id
+		) AS sub
+		WHERE f.festival_id = sub.festival_id
+		  AND f.festival_id IN (:festivalIds)
+		""", nativeQuery = true)
+	int syncChatRoomCounts(@Param("festivalIds") List<Long> festivalIds);
 
 	Festival findByContentId(int contentId);
 

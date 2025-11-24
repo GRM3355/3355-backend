@@ -490,8 +490,14 @@ public class ChatRoomApiService {
 
 		// 5. ChatRoom.memberCount--
 		if (room.getMemberCount() > 0) {
-			room.setMemberCount(room.getMemberCount() - 1);
+			long newCount = room.getMemberCount() - 1;
+			room.setMemberCount(newCount);
 			chatRoomRepository.save(room); // Dirty Checking | 명시적 save
+
+			if (newCount == 0 && room.getFestival() != null) {
+				Long festivalId = room.getFestival().getFestivalId();
+				festivalRepository.decrementFestivalChatRoomCount(festivalId);
+			}
 		}
 
 		// 6. Redis Pub/Sub 이벤트 발행 (Chat Server로 실시간 연결 알림)
