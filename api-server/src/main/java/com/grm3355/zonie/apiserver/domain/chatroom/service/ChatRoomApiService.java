@@ -105,6 +105,7 @@ public class ChatRoomApiService {
 			.chatRoom(chatRoom)
 			.nickName(nickName)
 			.lastReadAt(LocalDateTime.now())
+			.isOwner(true)
 			.build();
 		chatRoomUserRepository.save(participant);
 
@@ -172,13 +173,6 @@ public class ChatRoomApiService {
 		}
 
 		// 6. 채팅방 저장
-		// 채팅방의 위치(Point)는 갱신된(혹은 새로 생성된) 토큰의 위치를 사용합니다.
-
-		// 사용자 위치 - 사용할수 있으므로 주석처리
-		//Point point = geometryFactory.createPoint(
-		//	new Coordinate(userTokenDto.getLon(), userTokenDto.getLat())); // lon=X, lat=Y
-
-		// 축제위치
 		Point point = geometryFactory.createPoint(
 			new Coordinate(festival.getPosition().getX(), festival.getPosition().getY())); // lon=X, lat=Y
 
@@ -186,7 +180,7 @@ public class ChatRoomApiService {
 		ChatRoom chatRoom = ChatRoom.builder()
 			.chatRoomId(roomId)
 			.festival(festival)
-			.user(user)
+			// .user(user)
 			.title(request.getTitle())
 			.maxParticipants(maxParticipants)
 			.radius(maxRadius)
@@ -196,6 +190,7 @@ public class ChatRoomApiService {
 
 		ChatRoom saveChatRoom = chatRoomRepository.save(chatRoom);
 		festivalRepository.updateFestivalChatRoomCount(festivalId);
+		log.info("채팅방 생성 완료:  User {}, Room {}", user.getUserId(), saveChatRoom.getChatRoomId());
 
 		// 방장 닉네임 순번 획득 및 ChatRoomUser 엔티티 생성 및 DB 저장
 		String nickName = createAndSaveChatRoomUser(user, saveChatRoom);
@@ -482,11 +477,19 @@ public class ChatRoomApiService {
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "채팅방을 찾을 수 없습니다."));
 
 		// 3. ChatRoomUser 찾기 (퇴장 대상)
-		ChatRoomUser participant = chatRoomUserRepository.findByUserAndChatRoom(user, room)
-			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "해당 채팅방에 입장되어 있지 않습니다."));
+		// ChatRoomUser participant = chatRoomUserRepository.findByUserAndChatRoom(user, room)
+		// 	.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "해당 채팅방에 입장되어 있지 않습니다."));
 
 		// 4. ChatRoomUser 삭제 (퇴장)
-		chatRoomUserRepository.delete(participant);
+		// chatRoomUserRepository.delete(participant);
+		long deleted = chatRoomUserRepository.deleteByUserAndChatRoom(user, room);
+		if (deleted == 0) {
+			// 퇴장 대상 레코드를 찾을 수 없거나 삭제 실패
+			log.error("Leave Failed: No ChatRoomUser record found/deleted for User {} in Room {}", userId, roomId);
+			throw new BusinessException(ErrorCode.NOT_FOUND, "해당 채팅방에 입장되어 있지 않습니다.");
+		} else {
+			log.info("Deleted user {} from chat room {}: deleted = {}", userId, roomId, deleted);
+		}
 
 		// 5. ChatRoom.memberCount--
 		if (room.getMemberCount() > 0) {

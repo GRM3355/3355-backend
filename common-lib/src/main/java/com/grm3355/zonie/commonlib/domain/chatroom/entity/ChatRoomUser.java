@@ -60,4 +60,7 @@ public class ChatRoomUser extends BaseTimeEntity {
 	@Column(name = "last_read_at", nullable = false)
 	private LocalDateTime lastReadAt;
 
+	@Column(name = "is_owner", nullable = false)
+	@Builder.Default
+	private Boolean isOwner = false;
 }
