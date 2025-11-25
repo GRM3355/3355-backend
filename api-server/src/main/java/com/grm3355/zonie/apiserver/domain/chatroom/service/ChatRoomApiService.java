@@ -503,7 +503,7 @@ public class ChatRoomApiService {
 			}
 		}
 
-		// 6. Redis Pub/Sub 이벤트 발행 (Chat Server로 실시간 연결 알림)
+		/*// 6. Redis Pub/Sub 이벤트 발행 (Chat Server로 실시간 연결 알림)
 		try {
 			Map<String, String> leaveEvent = Map.of(
 				"userId", userId,
@@ -514,7 +514,7 @@ public class ChatRoomApiService {
 			log.info("Published leave event for User {} from Room {}", userId, roomId);
 		} catch (Exception e) {
 			log.error("Failed to publish leave event after successful DB leave.", e);
-		}
+		}*/
 	}
 
 	/**
