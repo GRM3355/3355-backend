@@ -29,6 +29,7 @@ import com.grm3355.zonie.apiserver.global.swagger.ApiError415;
 import com.grm3355.zonie.apiserver.global.swagger.ApiError429;
 import com.grm3355.zonie.commonlib.global.response.ApiResponse;
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -43,6 +44,7 @@ import lombok.RequiredArgsConstructor;
  */
 // @Profile("!prod") // prod 환경 -> 비활성화 (이 빈을 로드하지 않음) // 추후 주석 제거 예정
 @RestController
+@Hidden
 @Tag(name = "Test Management (Dev)", description = "개발 및 QA용 데이터 강제 생성/삭제 API (테스트용; 운영 시 삭제 예정)")
 @RequestMapping("/api/v1/test-management")
 @RequiredArgsConstructor
@@ -58,7 +60,7 @@ public class TestManagementController {
 
 	@Operation(summary = "[AUTH] 테스트 유저 로그인 (OAuth 생략)",
 		description = "테스트용 유저 ID (e.g., test_user_01_kakao)로 즉시 JWT 토큰을 발급받습니다.<br>"
-			+ "'nonExpiring=true'로 요청 시, 비만료(10년 만기)의 토큰을 발급합니다."
+					  + "'nonExpiring=true'로 요청 시, 비만료(10년 만기)의 토큰을 발급합니다."
 	)
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -132,8 +134,8 @@ public class TestManagementController {
 
 	@Operation(summary = "[FESTIVAL] 축제 강제 삭제 (채팅방, 메시지 포함)",
 		description = "축제 및 관련 데이터를 강제로 삭제합니다.<br>"
-			+ "- **mode=ERROR (default)**: 관련된 채팅방이 1개라도 있으면 에러를 반환합니다. (400 Bad Request)<br>"
-			+ "- **mode=CASCADE**: 축제와 관련된 모든 채팅방(JPA), 참여자(JPA), 메시지(MongoDB)를 연쇄적으로 삭제합니다. <b>(DB 부하 주의)</b>"
+					  + "- **mode=ERROR (default)**: 관련된 채팅방이 1개라도 있으면 에러를 반환합니다. (400 Bad Request)<br>"
+					  + "- **mode=CASCADE**: 축제와 관련된 모든 채팅방(JPA), 참여자(JPA), 메시지(MongoDB)를 연쇄적으로 삭제합니다. <b>(DB 부하 주의)</b>"
 	)
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", ref = "#/components/responses/NoContent"),
@@ -156,7 +158,7 @@ public class TestManagementController {
 
 	@Operation(summary = "[CHAT] 채팅방 강제 삭제 (메시지 포함)",
 		description = "채팅방 및 관련 데이터를 강제로 삭제합니다.<br>"
-			+ "채팅방(JPA), 참여자(JPA), 메시지(MongoDB)를 연쇄적으로 삭제합니다. <b>(DB 부하 주의)</b>"
+					  + "채팅방(JPA), 참여자(JPA), 메시지(MongoDB)를 연쇄적으로 삭제합니다. <b>(DB 부하 주의)</b>"
 	)
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "204", ref = "#/components/responses/NoContent"),
@@ -174,9 +176,9 @@ public class TestManagementController {
 
 	@Operation(summary = "[REDIS] 채팅/좋아요 관련 Redis 키 전체 삭제",
 		description = "테스트 환경에서 쌓인 Redis의 가비지 데이터를 삭제합니다.<br>"
-			+ "- `message:*` (좋아요, 좋아요 수)<br>"
-			+ "- `chatroom:*` (참여자 수, 마지막 대화 등)<br>"
-			+ "<b>(주의: 세션(refreshToken) 및 위치(locationToken) 키는 삭제하지 않습니다.)</b>"
+					  + "- `message:*` (좋아요, 좋아요 수)<br>"
+					  + "- `chatroom:*` (참여자 수, 마지막 대화 등)<br>"
+					  + "<b>(주의: 세션(refreshToken) 및 위치(locationToken) 키는 삭제하지 않습니다.)</b>"
 	)
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
