@@ -7,9 +7,9 @@ name: Zonie Backend CI (Build & Test)
 # 'main' 브랜치로 향하는 Pull Request가 생성/수정될 때 실행
 on:
   push:
-    branches: [ "main", "dev" ]
+    branches: [ "dev" ]
   pull_request:
-    branches: [ "main", "dev" ]
+    branches: [ "dev" ]
 
 # 2. 작업 (Jobs)
 jobs:

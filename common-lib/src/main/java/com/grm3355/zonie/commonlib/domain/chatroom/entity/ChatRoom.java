@@ -19,7 +19,6 @@ import org.hibernate.annotations.OnDeleteAction;
 import org.locationtech.jts.geom.Point;
 
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
-import com.grm3355.zonie.commonlib.domain.user.entity.User;
 import com.grm3355.zonie.commonlib.global.entity.BaseTimeEntity;
 
 import lombok.AccessLevel;
@@ -51,9 +50,9 @@ public class ChatRoom extends BaseTimeEntity {
 	@OnDelete(action = OnDeleteAction.CASCADE)
 	private Festival festival;
 
-	@JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
-	@ManyToOne
-	private User user;
+	// @JoinColumn(name = "user_id", referencedColumnName = "user_id", nullable = false)
+	// @ManyToOne
+	// private User user;
 
 	@OneToMany(mappedBy = "chatRoom")
 	private List<ChatRoomUser> participants;
