@@ -6,9 +6,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
-import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomService;
+import com.grm3355.zonie.apiserver.domain.chatroom.service.ChatRoomApiService;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalResponse;
 import com.grm3355.zonie.apiserver.domain.festival.dto.FestivalSearchRequest;
 import com.grm3355.zonie.apiserver.domain.festival.service.FestivalService;
@@ -25,11 +25,11 @@ import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
 public class TotalSearchService {
 
 	private final FestivalService festivalService;
-	private final ChatRoomService chatRoomService;
+	private final ChatRoomApiService chatRoomApiService;
 
-	public TotalSearchService(FestivalService festivalService, ChatRoomService chatRoomService) {
+	public TotalSearchService(FestivalService festivalService, ChatRoomApiService chatRoomApiService) {
 		this.festivalService = festivalService;
-		this.chatRoomService = chatRoomService;
+		this.chatRoomApiService = chatRoomApiService;
 	}
 
 	/**
@@ -41,7 +41,7 @@ public class TotalSearchService {
 
 		String keyword = req.getKeyword();
 
-		//축제목록
+		// 축제목록
 		FestivalSearchRequest festival = FestivalSearchRequest.builder()
 			.keyword(keyword)
 			.build();
@@ -49,13 +49,13 @@ public class TotalSearchService {
 			Sort.by(Sort.Order.asc("created_at")));
 		Page<Festival> festivalPageList = festivalService.getFestivalListType(festival, pageable);
 
-		//채팅방 목록
+		// 채팅방 목록
 		ChatRoomSearchRequest searchRequest = ChatRoomSearchRequest.builder()
 			.keyword(keyword)
 			.build();
 		Pageable pageable2 = PageRequest.of(0, 10,
-			Sort.by(Sort.Order.desc("participant_count")));
-		Page<ChatRoomInfoDto> chatroomPageList = chatRoomService.getFestivalListTypeUser(0,
+			Sort.by(Sort.Order.desc("member_count")));
+		Page<ChatRoomInfoDto> chatroomPageList = chatRoomApiService.getTotalChatRoomPageList(
 			searchRequest, pageable2);
 
 		//데이터 합치기
@@ -86,17 +86,16 @@ public class TotalSearchService {
 	 * @param request 검색dto
 	 * @return Page<MyChatRoomResponse>
 	 */
-	public Page<MyChatRoomResponse> getChatroomTotalSearch(ChatRoomSearchRequest request) {
+	public Page<ChatRoomResponse> getChatroomTotalSearch(ChatRoomSearchRequest request) {
 
-		//키워드 체크
+		// 키워드 체크
 		checkKeyWord(request.getKeyword());
 
-		//채팅방 목록
-		//축제가 없으면 0으로 처리해서 전체 데이터를 가져온다.
-		return chatRoomService.getFestivalChatRoomList(0, request);
+		// 채팅방 목록
+		return chatRoomApiService.getTotalChatRoomList(request);
 	}
 
-	//키워드 체크
+	// 키워드 체크
 	private void checkKeyWord(String keyword) {
 		if (keyword == null || keyword.isEmpty()) {
 			throw new BusinessException(ErrorCode.BAD_REQUEST, "검색어는 필수입니다.");

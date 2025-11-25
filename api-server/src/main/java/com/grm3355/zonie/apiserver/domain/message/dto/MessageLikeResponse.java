@@ -1,5 +1,6 @@
 package com.grm3355.zonie.apiserver.domain.message.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -10,6 +11,8 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class MessageLikeResponse {
+	@Schema(description = "사용자의 좋아요 여부", example = "true")
 	private boolean liked;
+	@Schema(description = "메세지의 좋아요 수", example = "11")
 	private long likeCount;
 }

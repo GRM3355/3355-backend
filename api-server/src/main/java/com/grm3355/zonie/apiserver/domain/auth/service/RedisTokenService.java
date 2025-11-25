@@ -13,13 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 import com.grm3355.zonie.apiserver.domain.auth.dto.LocationDto;
 import com.grm3355.zonie.apiserver.domain.auth.dto.UserTokenDto;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
 import com.grm3355.zonie.commonlib.global.exception.ErrorCode;
+import com.grm3355.zonie.commonlib.global.util.JwtTokenProvider;
 
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -34,6 +35,7 @@ public class RedisTokenService {
 	private final JwtTokenProvider jwtTokenProvider;
 	private final ObjectMapper objectMapper;
 
+	@Setter    // TestManagement: 비만료 토큰 발급 - TTL을 임시로 변경하기 위해 Setter 설정
 	@Value("${jwt.refresh-token-expiration-time}")
 	private long refreshTokenExpirationTime;
 
@@ -68,7 +70,7 @@ public class RedisTokenService {
 			redisTemplate.opsForValue().set(redisKey, infoJson, Duration.ofMillis(refreshTokenExpirationTime));
 			redisTemplate.opsForSet().add(userTokensKey, token);
 			redisTemplate.expire(userTokensKey, Duration.ofMillis(refreshTokenExpirationTime));
-			log.info("사용자 {}를 위해 Redis에 리프레시 토큰을 생성하고 저장했습니다: {}", userId, redisKey);
+			log.info("사용자 {}를 위해 Redis에 리프레시 토큰을 생성하고 저장했습니다 : {}", userId, redisKey.substring(0, 30));
 		} catch (JsonProcessingException e) {
 			log.error("Redis를 위한 RefreshTokenInfo 직렬화에 실패했습니다: {}", e.getMessage());
 			throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "리프레시 토큰 저장 중 오류가 발생했습니다.");
@@ -76,22 +78,20 @@ public class RedisTokenService {
 		return token;
 	}
 
-	public record RefreshTokenInfo(String userId, boolean used) {
-	}
-
 	// locationToken 발행 및 Redis에 clientIp, device, lat, lon 저장
 	public void generateLocationToken(UserTokenDto info, String contextId) {
 		String redisKey = buildKey(info.getUserId(), contextId);
 
-		log.info("====================>generateLocationToken="+redisKey);
+		log.info("====================>generateLocationToken=" + redisKey);
 		try {
-			String infoJson = buildLocationJson(info.getUserId(), "", "", info.getLat(), info.getLon());
+			String infoJson = buildLocationJson(info.getUserId(), info.getLat(), info.getLon());
 			redisTemplate.opsForValue().set(redisKey, infoJson, this.tokenTtl); // 15분 TTL
 
 			// getLocationInfo 호출 시에도 contextId가 필요
 			UserTokenDto userTokenDto = getLocationInfo(info.getUserId(), contextId);
 
-			log.info("====================>generateLocationToken true" + userTokenDto.getLat() + "___" + userTokenDto.getLon());
+			log.info("====================>generateLocationToken true" + userTokenDto.getLat() + "___"
+					 + userTokenDto.getLon());
 		} catch (Exception e) {
 			throw new RuntimeException("Redis 저장 중 오류 발생", e);
 		}
@@ -114,27 +114,18 @@ public class RedisTokenService {
 		}
 	}
 
+	//리프레시 토큰 값 체크
+	public boolean validateRefreshToken(String token) {
+		String redisKey = getRefreshTokenKey(token);
+		String savedValue = redisTemplate.opsForValue().get(redisKey);
+		return savedValue != null && !savedValue.isBlank();
+	}
+
 	//토큰 값 체크
 	public boolean validateLocationToken(String userId, String contextId) {
 		String token = redisTemplate.opsForValue().get(buildKey(userId, contextId));
 		return token != null && !token.isBlank();
 	}
-
-	/**
-	 * 위치 + 디바이스 정보 업데이트 (TTL 갱신 포함)
-	 */
-	public boolean updateUserLocationInfo(LocationDto locationDto, String userId) {
-		String redisKey = buildKey(userId);
-		try {
-			String infoJson = buildLocationJson(userId, locationDto.getLat(), locationDto.getLon());
-			redisTemplate.opsForValue().set(redisKey, infoJson, this.tokenTtl); // 15분 TTL
-		} catch (Exception e) {
-			throw new RuntimeException("Redis 저장 중 오류 발생", e);
-		}
-		return true;
-	}
-
-
 
 	/**
 	 * 위치 + 디바이스 정보 업데이트 (TTL 갱신 포함)
@@ -151,10 +142,10 @@ public class RedisTokenService {
 
 		// 기존 정보 유지 + 좌표만 갱신
 		// userId는 파라미터로 받은 값 사용
-		String clientIp = extractValue(oldValue, "clientIp");
-		String device = extractValue(oldValue, "device");
+		// String clientIp = extractValue(oldValue, "clientIp");
+		// String device = extractValue(oldValue, "device");
 
-		String newValue = buildLocationJson(userId, clientIp, device, locationDto.getLat(), locationDto.getLon());
+		String newValue = buildLocationJson(userId, /*clientIp, device,*/ locationDto.getLat(), locationDto.getLon());
 		redisTemplate.opsForValue().set(key, newValue, this.tokenTtl);
 
 		return true;
@@ -166,6 +157,12 @@ public class RedisTokenService {
 	 * @return 생성/갱신된 위치 정보 (UserTokenDto)
 	 */
 	public UserTokenDto setToken(String userId, String contextId, LocationDto locationDto) {
+
+		if (locationDto == null) {
+			log.error("LocationDto cannot be null during token setting for user {}", userId);
+			throw new IllegalArgumentException("Location information is missing.");
+		}
+
 		// 1. 토큰이 이미 존재하는지 확인하고, 존재하면 갱신
 		boolean updated = updateLocationInfo(locationDto, userId, contextId);
 
@@ -185,8 +182,6 @@ public class RedisTokenService {
 
 	/**
 	 * 토큰 정보 읽기
-	 * @param token
-	 * @return
 	 */
 	private Optional<RedisTokenService.RefreshTokenInfo> readTokenInfo(String token) {
 		String redisKey = getRefreshTokenKey(token);
@@ -204,8 +199,6 @@ public class RedisTokenService {
 
 	/**
 	 * 토큰 정보 찾기
-	 * @param token
-	 * @return
 	 */
 	public Optional<RedisTokenService.RefreshTokenInfo> findByToken(String token) {
 		Optional<RedisTokenService.RefreshTokenInfo> tokenInfoOpt = readTokenInfo(token);
@@ -231,7 +224,6 @@ public class RedisTokenService {
 
 	/**
 	 * 토큰 삭제
-	 * @param token
 	 */
 	@Transactional
 	public void deleteByToken(String token) {
@@ -267,23 +259,29 @@ public class RedisTokenService {
 	}
 
 	private String buildKey(String userId, String contextId) {
+		if (contextId == null || contextId.isBlank()) {
+			log.warn("buildKey 호출 시 contextId가 null이거나 비어있습니다. UserId: {}", userId);
+			// 혹은 예외: // throw new IllegalArgumentException("ContextId는 필수입니다.");
+			// 임시로 UserId만 사용한 키를 반환하나, 이는 버그의 원인이 될 수 있음
+			return "locationToken:" + userId + ":(unknown_context)";
+		}
 		return "locationToken:" + userId + ":" + contextId;
 	}
-	private String buildKey(String userId) {
-		return "locationToken:" + userId;
-	}
+
 	private String buildLocationJson(String userId, String clientIp, String device, double lat, double lon) {
 		return String.format(
 			"{\"userId\":\"%s\",\"clientIp\":\"%s\",\"device\":\"%s\",\"lat\":%.6f,\"lon\":%.6f,\"timestamp\":%d}",
 			userId, clientIp, device, lat, lon, System.currentTimeMillis()
 		);
 	}
+
 	private String buildLocationJson(String userId, double lat, double lon) {
 		return String.format(
 			"{\"userId\":\"%s\",\"lat\":%.6f,\"lon\":%.6f,\"timestamp\":%d}",
 			userId, lat, lon, System.currentTimeMillis()
 		);
 	}
+
 	private String extractValue(String json, String field) {
 		String search = "\"" + field + "\":\"";
 		int start = json.indexOf(search);
@@ -292,5 +290,8 @@ public class RedisTokenService {
 		start += search.length();
 		int end = json.indexOf("\"", start);
 		return json.substring(start, end);
+	}
+
+	public record RefreshTokenInfo(String userId, boolean used) {
 	}
 }

@@ -1,10 +1,12 @@
 package com.grm3355.zonie.commonlib.global.util;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Map;
+import java.util.Set;
+
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.StringRedisConnection;
 import org.springframework.data.redis.core.Cursor;
@@ -67,7 +69,7 @@ public class RedisScanService {
 		Map<String, Long> countMap = new HashMap<>();
 		int i = 0;
 		for (String key : keys) {
-			countMap.put(key, (Long) results.get(i++));
+			countMap.put(key, (Long)results.get(i++));
 		}
 
 		return countMap;
@@ -80,7 +82,7 @@ public class RedisScanService {
 	 * @return Map<String, String> (예: {"chatroom:last_msg_at:1": "1678886400000", ...})
 	 */
 	public Map<String, String> multiGetLastMessageTimestamps(Set<String> keys) {
-		List<String> values = stringRedisTemplate.opsForValue().multiGet(keys);		// MGET: 파이프라인과 유사한 동작
+		List<String> values = stringRedisTemplate.opsForValue().multiGet(keys);        // MGET: 파이프라인과 유사한 동작
 
 		Map<String, String> timestampMap = new HashMap<>();
 		int i = 0;
@@ -98,11 +100,11 @@ public class RedisScanService {
 	 * likedByKeys 키(Set) 목록을 받아, 각 키의 모든 멤버를 파이프라인으로 일괄 조회합니다. (SMEMBERS)
 	 *
 	 * @param keys (예: "message:liked_by:msg1", "message:liked_by:msg2", ...)
-	 * @return Map<String, Set<String>> (예: {"message:liked_by:msg1": {"user1", "user2"}, ...})
+	 * @return Map<String, Set < String>> (예: {"message:liked_by:msg1": {"user1", "user2"}, ...})
 	 */
 	public Map<String, Set<String>> getSetMembers(Set<String> keys) {
 		List<Object> results = stringRedisTemplate.executePipelined((RedisConnection connection) -> {
-			StringRedisConnection stringConnection = (StringRedisConnection) connection;
+			StringRedisConnection stringConnection = (StringRedisConnection)connection;
 			for (String key : keys) {
 				stringConnection.sMembers(key);
 			}
@@ -112,7 +114,7 @@ public class RedisScanService {
 		Map<String, Set<String>> membersMap = new HashMap<>();
 		int i = 0;
 		for (String key : keys) {
-			membersMap.put(key, (Set<String>) results.get(i++));
+			membersMap.put(key, (Set<String>)results.get(i++));
 		}
 		return membersMap;
 	}
@@ -127,5 +129,34 @@ public class RedisScanService {
 			return;
 		}
 		stringRedisTemplate.delete(keys); // 내부적으로 여러 키 파이프라인 또는 단일 DEL 처리
+	}
+
+	/**
+	 * Redis Sorted Set에서 활성화 시각 기준 상위 N개의 채팅방 ID를 조회합니다. (ZREVRANGE)
+	 *
+	 * @param start 시작 인덱스 (0부터 시작)
+	 * @param end 종료 인덱스
+	 * @return 정렬된 채팅방 ID 목록 (List<String>)
+	 */
+	public List<String> getSortedRoomIds(long start, long end) {
+		String key = "chatroom:active_rooms"; // 정렬을 위한 ZSET 키
+
+		// ZREVRANGE: 점수(timestamp) 높은 순(desc)으로 start부터 end까지 멤버(RoomId) 조회 // 페이징
+		Set<String> roomIds = stringRedisTemplate.opsForZSet().reverseRange(key, start, end);
+
+		if (roomIds == null) {
+			return Collections.emptyList();
+		}
+		// Set -> List로 변환: 순서 보존
+		return List.copyOf(roomIds);
+	}
+
+	/**
+	 * Redis Sorted Set의 전체 멤버 개수를 조회합니다. (ZCARD)
+	 *
+	 * @return 전체 채팅방 개수 (Long)
+	 */
+	public Long countActiveRooms() {
+		return stringRedisTemplate.opsForZSet().size("chatroom:active_rooms");
 	}
 }

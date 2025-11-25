@@ -1,24 +1,24 @@
 package com.grm3355.zonie.chatserver.handler;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.Map;
 
 import org.springframework.context.ApplicationListener;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
-import java.util.Map;
-
 import com.grm3355.zonie.chatserver.service.ChatRoomService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class StompDisconnectEventHandler implements ApplicationListener<SessionDisconnectEvent> {
 
-	private final ChatRoomService chatRoomService;
 	private static final String USER_ID_ATTR = "userId";
+	private final ChatRoomService chatRoomService;
 
 	@Override
 	public void onApplicationEvent(SessionDisconnectEvent event) {
@@ -30,7 +30,7 @@ public class StompDisconnectEventHandler implements ApplicationListener<SessionD
 			return;
 		}
 
-		String userId = (String) sessionAttributes.get(USER_ID_ATTR);
+		String userId = (String)sessionAttributes.get(USER_ID_ATTR);
 
 		if (userId != null) {
 			log.info("STOMP Session Disconnected: UserId={}", userId);

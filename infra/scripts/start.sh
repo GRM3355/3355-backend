@@ -4,16 +4,29 @@
 # 인자가 없으면 (./start.sh): 모든 서비스를 빌드하고 띄움
 # 인자가 있으면 (./start.sh api-server): 'api-server' 서비스만 빌드하고 띄움
 
+echo "============================================="
+echo " Starting Zonie (3355) Local Dev Environment "
+echo "============================================="
+
+echo "Running Gradle Build (Skipping Tests)..."
+# ./gradlew clean build -x test
+# - clean: 이전 빌드 산출물 제거
+# - build: 프로젝트 빌드 (bootJar 생성 등)
+# - -x test: 테스트 실행 생략
+./gradlew clean build
+# 빌드 실패 시 스크립트 중단 (Docker 실행 안 함)
+if [ $? -ne 0 ]; then
+  echo "Gradle Build Failed! Aborting..."
+  exit 1
+fi
+echo "Gradle Build Success!"
+
 # 부모 디렉토리(infra)로 이동합니다.
 cd "$(dirname "$0")/.."
 
 # 스크립트에 전달된 인자를 변수에 저장 (서비스명)
 # 예: ./start.sh api-server
 SERVICE_NAMES="$@"
-
-echo "============================================="
-echo " Starting Zonie (3355) Local Dev Environment "
-echo "============================================="
 
 # Spring Boot 프로필을 'local'로 명시적으로 설정
 export SPRING_PROFILES_ACTIVE=local

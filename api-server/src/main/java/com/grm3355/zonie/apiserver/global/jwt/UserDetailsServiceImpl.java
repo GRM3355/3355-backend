@@ -17,11 +17,11 @@ public class UserDetailsServiceImpl implements org.springframework.security.core
 	private final UserRepository userRepository;
 
 	@Override
-	public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(String id) throws
+	public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(String userId) throws
 		UsernameNotFoundException {
 		try {
-			User user = userRepository.findByUserIdAndDeletedAtIsNull(id)
-				.orElseThrow(() -> new UsernameNotFoundException("아이디를 찾을 수 없습니다: " + id));
+			User user = userRepository.findByUserIdAndDeletedAtIsNull(userId)
+				.orElseThrow(() -> new UsernameNotFoundException("아이디를 찾을 수 없습니다: " + userId));
 			return UserDetailsImpl.build(user);
 		} catch (UsernameNotFoundException e) {
 			// 사용자 없음

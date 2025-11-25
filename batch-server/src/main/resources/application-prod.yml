@@ -6,8 +6,12 @@ spring:
     password: ${DB_PROD_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
-  # --- ElastiCache (Redis) (운영용) ---
   data:
+    # --- MongoDB Atlas (운영용) ---
+    mongodb:
+      uri: ${MONGO_PROD_URI} # 환경 변수 또는 외부 설정 파일에서 주입
+      database: zonie-database
+    # --- ElastiCache (Redis) (운영용) ---
     redis:
       host: ${REDIS_PROD_HOST}
       port: 6379
@@ -43,7 +47,7 @@ openapi:
   serviceKey: ${OPENAPI_SERVICE_KEY}
 
 chat:
-  max-chat-person: 300
+  max-chat-person: 100
   max-chat-room: 30
   radius: 1.0 #km
   pre-create-day: 7 #7일전부터 생성 가능

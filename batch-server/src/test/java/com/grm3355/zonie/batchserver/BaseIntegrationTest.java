@@ -2,7 +2,6 @@ package com.grm3355.zonie.batchserver;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.time.Duration;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -11,7 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
+import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
@@ -30,8 +29,6 @@ public abstract class BaseIntegrationTest {
 			.withEnv("POSTGRES_DB", "testdb")
 			.withEnv("POSTGRES_USER", "testuser")
 			.withEnv("POSTGRES_PASSWORD", "testpass");
-			 //.withCreateContainerCmdModifier(cmd -> cmd.withPlatform("linux/amd64"))
-			// .waitingFor(Wait.forLogMessage(".*database system is ready to accept connections.*\\n", 1).withStartupTimeout(Duration.ofSeconds(60)));
 
 	// === 2. Redis 컨테이너 ===
 	@Container
@@ -39,9 +36,14 @@ public abstract class BaseIntegrationTest {
 		new GenericContainer<>(DockerImageName.parse("redis:7-alpine"))
 			.withExposedPorts(6379);
 
-	// === 3. PostGIS 확장 설치 (테스트 시작 전 1회) ===
+	// === 3. MongoDB 컨테이너 ===
+	@Container
+	static MongoDBContainer mongoContainer =
+		new MongoDBContainer(DockerImageName.parse("mongo:7.0"));
+
+	// === 4. PostGIS 확장 설치 (테스트 시작 전 1회) ===
 	@BeforeAll
-	static void setupPostGIS() throws SQLException {
+	static void setupPostgis() throws SQLException {
 		String jdbcUrl = String.format(
 			"jdbc:postgresql://%s:%d/testdb?sslmode=disable",
 			postgresContainer.getHost(),
@@ -54,7 +56,7 @@ public abstract class BaseIntegrationTest {
 		}
 	}
 
-	// === 4. Spring Boot에 컨테이너 정보 동적 주입 ===
+	// === 5. Spring Boot에 컨테이너 정보 동적 주입 ===
 	@DynamicPropertySource
 	static void registerProperties(DynamicPropertyRegistry registry) {
 
@@ -72,6 +74,9 @@ public abstract class BaseIntegrationTest {
 		// Redis
 		registry.add("spring.data.redis.host", redisContainer::getHost);
 		registry.add("spring.data.redis.port", () -> redisContainer.getFirstMappedPort());
+
+		// MongoDB
+		registry.add("spring.data.mongodb.uri", mongoContainer::getReplicaSetUrl);
 
 		// JWT
 		String testJwtSecret = "VGVzdFNlY3JldEtleUZvckpXVEludGVncmF0aW9uVGVzdGluZzEyMzQ1Njc4OQ==";

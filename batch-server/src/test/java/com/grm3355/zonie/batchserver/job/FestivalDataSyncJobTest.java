@@ -21,12 +21,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.grm3355.zonie.batchserver.dto.ApiFestivalDto;
 import com.grm3355.zonie.batchserver.service.FestivalApiService;
 import com.grm3355.zonie.batchserver.service.FestivalBatchMapper;
+import com.grm3355.zonie.batchserver.service.FestivalDetailImageApiService;
 import com.grm3355.zonie.commonlib.domain.festival.entity.Festival;
+import com.grm3355.zonie.commonlib.domain.festival.entity.FestivalDetailImage;
+import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalDetailImageRepository;
 import com.grm3355.zonie.commonlib.domain.festival.repository.FestivalRepository;
 
 @ExtendWith(MockitoExtension.class)
 class FestivalDataSyncJobTest {
 
+	private final int testBatchDate = 7;
 	@Mock
 	private FestivalApiService festivalApiService;
 	@Mock
@@ -40,26 +44,34 @@ class FestivalDataSyncJobTest {
 	@Mock // RedisTemplate.opsForValue()가 반환할 Mock 객체
 	private ValueOperations<String, String> valueOperations;
 
+	@Mock
+	private FestivalDetailImageRepository festivalDetailImageRepository;
+
+	@Mock
+	private FestivalDetailImage festivalDetailImage;
+
+	@Mock
+	private FestivalDetailImageApiService festivalDetailImageService;
+
 	@InjectMocks // @Mock 객체들을 주입받을 대상
 	private FestivalDataSyncJob festivalDataSyncJob;
-
-	private final int TEST_BATCH_DATE = 7;
 
 	@BeforeEach
 	void setUp() {
 		// @Value 필드 수동 주입
-		ReflectionTestUtils.setField(festivalDataSyncJob, "FESTIVAL_BATCH_DATE", TEST_BATCH_DATE);
+		ReflectionTestUtils.setField(festivalDataSyncJob, "festivalBatchDate", testBatchDate);
 		when(redisTemplate.opsForValue()).thenReturn(valueOperations); // mock ValueOperations
 	}
 
 	@Test
 	@DisplayName("축제 동기화 Job 로직 전체 테스트")
-	void syncFestivalData_Success() throws Exception {
+	void syncFestivalDataSuccess() throws Exception {
 		// given: 테스트용 데이터 준비
 		LocalDate syncDate = LocalDate.now();
-		LocalDate expectedEndDate = syncDate.plusDays(TEST_BATCH_DATE);
+		LocalDate expectedEndDate = syncDate.plusDays(testBatchDate);
 
 		ApiFestivalDto dto = new ApiFestivalDto(); // 테스트용 DTO
+		dto.setContentid("1"); // contentId 존재
 		Festival entity = Festival.builder().festivalId(1L).build(); // 테스트용 Entity
 		String entityAsJson = "{\"festivalId\":1}"; // 캐싱될 JSON
 		long deletedCount = 5L; // 삭제 건수
@@ -87,7 +99,7 @@ class FestivalDataSyncJobTest {
 
 	@Test
 	@DisplayName("API 호출 실패 시 RuntimeException 발생")
-	void syncFestivalData_ApiFails() {
+	void syncFestivalDataApiFails() {
 		// given
 		LocalDate syncDate = LocalDate.now();
 		when(festivalApiService.fetchAndParseFestivals(any(), any()))

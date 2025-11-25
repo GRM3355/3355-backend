@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -35,7 +36,7 @@ public class LocationController {
 
 	private final LocationService locationService;
 
-	@Operation(summary = "축제 위치 인증 및 토큰 발급", description = "사용자의 현재 위도/경도를 축제 반경과 비교하여 위치 인증 토큰(15분)을 발급받습니다.")
+	@Operation(summary = "축제 위치 인증 및 토큰 발급", description = "사용자의 현재 위도/경도를 축제 반경과 비교하여 위치 인증 토큰(15분)을 발급받아 서버에 저장합니다.")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200",
@@ -75,7 +76,7 @@ public class LocationController {
 		),
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "404",
-			description = "축제 정보를 찾을 수 없음",	 // 404 Not Found (고유한 설명 사용)
+			description = "축제 정보를 찾을 수 없음",     // 404 Not Found (고유한 설명 사용)
 			content = @Content(
 				mediaType = "application/json",
 				schema = @Schema(implementation = ApiResponse.class),
@@ -89,6 +90,7 @@ public class LocationController {
 	@ApiError405 // (Method Not Allowed - POST에 GET 요청 등)
 	@ApiError415
 	@ApiError429
+	@SecurityRequirement(name = "Authorization")
 	@PostMapping("/verification/festivals/{festivalId}")
 	public ResponseEntity<?> verifyFestivalLocation(
 		@AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -100,15 +102,4 @@ public class LocationController {
 		);
 		return ResponseEntity.ok(ApiResponse.success(response));
 	}
-
-
-	@PostMapping("/update")
-	public ResponseEntity<?> updateLocation(@AuthenticationPrincipal UserDetailsImpl userDetails,
-		@Valid @RequestBody LocationDto locationDto) {
-		//10분 단위로 호출함.
-		LocationTokenResponse response = locationService.update(locationDto, userDetails);
-		return ResponseEntity.ok(ApiResponse.success(response));
-	}
-
-
 }

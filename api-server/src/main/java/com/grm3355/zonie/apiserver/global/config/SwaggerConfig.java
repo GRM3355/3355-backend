@@ -22,7 +22,7 @@ import io.swagger.v3.oas.models.media.Schema;
  */
 @OpenAPIDefinition(
 	servers = {
-		@Server(url = "https://www.zony.kro.kr", description = "운영 서버"),
+		@Server(url = "https://api.zony.kro.kr", description = "운영 서버"),
 		@Server(url = "http://localhost:8080", description = "로컬 서버")
 	})
 @Configuration
@@ -91,8 +91,8 @@ public class SwaggerConfig {
 	private Info apiInfo() {
 		return new Info()
 			.title("Swagger")
-			.description("Zonie REST API")
-			.version("1.0.1");
+			.description("Zony REST API")
+			.version("1.0.2");
 	}
 
 	/**

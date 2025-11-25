@@ -224,14 +224,14 @@ public class GlobalExceptionHandler {
 			ApiResponse.of(false, code.getCode(), message, null);
 
 		//return body.toResponseEntity(HttpStatus.valueOf(code.getCode()));
-		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(body);
+		return ResponseEntity.status(HttpStatus.valueOf(code.getCode())).body(body);
 	}
 
 	/**
 	 * service에서 잘못입력된 부분을 400번 에러로 처리한다.
 	 */
 	@ExceptionHandler(CustomValidationException.class)
-	public ResponseEntity<ApiResponse<Object>> CustomValidationException(CustomValidationException ex,
+	public ResponseEntity<ApiResponse<Object>> customValidationException(CustomValidationException ex,
 		HttpServletRequest req) {
 		log.error("=================================> CustomValidationException.class 에러 로그 찍기", ex); // 예외 로그 찍기
 

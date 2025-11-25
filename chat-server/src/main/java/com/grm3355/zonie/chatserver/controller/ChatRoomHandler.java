@@ -12,10 +12,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
-import com.grm3355.zonie.chatserver.dto.ChatUserLocationDto;
+import com.grm3355.zonie.chatserver.dto.ChatLocationDto;
 import com.grm3355.zonie.chatserver.dto.MessageSendRequest;
 import com.grm3355.zonie.chatserver.service.ChatLocationService;
-import com.grm3355.zonie.chatserver.service.ChatRoomService;
 import com.grm3355.zonie.chatserver.service.MessageService;
 import com.grm3355.zonie.commonlib.global.exception.ApiErrorPayload;
 import com.grm3355.zonie.commonlib.global.exception.BusinessException;
@@ -29,11 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ChatRoomHandler {
 
-	private final ChatRoomService chatRoomService;
+	private static final String USER_ID_ATTR = "userId";
 	private final MessageService messageService;
 	private final ChatLocationService chatLocationService;
 	private final SimpMessagingTemplate messagingTemplate;
-	private static final String USER_ID_ATTR = "userId";
 
 	/**
 	 * 세션 속성에서 userId를 가져오는 헬퍼 메소드
@@ -45,10 +43,11 @@ public class ChatRoomHandler {
 			throw new RuntimeException("Session attributes are null.");
 		}
 
-		String userId = (String) sessionAttributes.get(USER_ID_ATTR);
+		String userId = (String)sessionAttributes.get(USER_ID_ATTR);
 		if (userId == null) {
 			log.warn("Cannot find userId in session attributes for session: {}", accessor.getSessionId());
-			throw new RuntimeException("User not authenticated for this operation."); // WebSocketAnnotationMethodMessageHandler
+			throw new RuntimeException(
+				"User not authenticated for this operation."); // WebSocketAnnotationMethodMessageHandler
 		}
 
 		return userId;
@@ -60,23 +59,27 @@ public class ChatRoomHandler {
 	@MessageMapping("/chat-rooms/{roomId}/join")
 	public void joinRoom(
 		@DestinationVariable String roomId,
-		@Payload @Valid ChatUserLocationDto locationPayload,
+		@Payload @Valid ChatLocationDto locationPayload,
 		StompHeaderAccessor accessor
 	) {
 		String userId = getUserIdFromSession(accessor);
 		log.info(">>> STOMP RECV /app/chat-rooms/{}/join [User: {}]", roomId, userId);
 
-		// 위치 토큰 갱신/발급 시도
-		// (반경 밖일 경우 토큰 발급만 건너뛰고, 예외는 던지지 않아 입장을 막지 않음.)
-		chatLocationService.setLocationTokenOnJoin(
-			userId,
-			roomId,
-			locationPayload.getLat(),
-			locationPayload.getLon()
-		);
-		// 참여 로직 실행 (닉네임 생성, Redis Set 추가, DB 저장) (위치 인증 성공 여부와 관계x; 항상 실행)
-		String nickname = chatRoomService.joinRoom(userId, roomId);
-
+		// 위치 토큰 TTL/위치 갱신 시도
+		try {
+			// 반경 밖이라도 예외를 던지지 않고 토큰 발급만 건너뛰고, 예외는 던지지 않아 입장을 막지 않음
+			chatLocationService.setLocationTokenOnJoin(
+				userId,
+				roomId,
+				locationPayload.getLat(),
+				locationPayload.getLon()
+			);
+		} catch (Exception e) {
+			// 로그만 남김
+			// 참여 로직 (닉네임 생성, Redis Set 추가, DB 저장) (위치 인증 성공 여부와 관계x; 항상 실행) -> API Server 대체
+			// 클라이언트는 API Server의 POST /join을 먼저 호출하고 STOMP 연결을 시도해야 함.
+			log.error("Failed to update location token on STOMP join for user {}.", userId, e);
+		}
 	}
 
 	/**
@@ -85,14 +88,13 @@ public class ChatRoomHandler {
 	@MessageMapping("/chat-rooms/{roomId}/leave")
 	public void leaveRoom(
 		@DestinationVariable String roomId,
-		// @AuthenticationPrincipal Principal principal,
 		StompHeaderAccessor accessor
 	) {
 		String userId = getUserIdFromSession(accessor);
 		log.info(">>> STOMP RECV /app/chat-rooms/{}/leave [User: {}]", roomId, userId);
 
-		// 퇴장 로직 실행 (Redis Set 제거, DB 삭제)
-		chatRoomService.leaveRoom(userId, roomId);
+		// 퇴장 로직 (Redis Set 제거, DB 삭제) -> API Server 대체
+		// 클라이언트는 API Server의 POST /join을 먼저 호출하고 STOMP 연결을 시도해야 함.
 	}
 
 	/**

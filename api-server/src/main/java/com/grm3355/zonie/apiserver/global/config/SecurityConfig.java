@@ -39,12 +39,14 @@ public class SecurityConfig {
 		"/health",    //health check
 		"/actuator/health",    //health check
 		"/actuator/info",    //health info
-		"/api/auth/**",    //health info
-		"/api/v1/auth/**",    // Auth API
-		"/api/v1/location/**",  // location API
+		"/api/v1/test-management/**",    // Test Management API
+		"/api/auth/kakao/callback",
+		"/api/auth/refresh",
 		"/api/v1/batch/**",        //batch
-		"/api/v1/chat-rooms/**", //chat-rooms
-		"/api/v1/festivals/**",  //festival
+		"/api/v1/festivals",              // list
+		"/api/v1/festivals/*",           // 단건 조회 (ID)
+		"/api/v1/festivals/regions",    //지역목록
+		"/api/v1/festivals/count",
 		"/api/v1/search/**", //통합검색
 		"/static/**",    // 정적 이미지 경로
 		"/swagger-ui/**",     // Swagger UI
@@ -133,7 +135,14 @@ public class SecurityConfig {
 			// - requestMatchers(WHITE_LIST).permitAll(): WHITE_LIST에 정의된 URL은 인증 없이 접근 허용
 			// - anyRequest().authenticated(): 그 외 모든 요청은 인증된 사용자만 접근 허용
 			.authorizeHttpRequests(auth -> auth
-				//requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
+				// === GET 은 permitAll ===
+				.requestMatchers(HttpMethod.GET, "/api/v1/festivals/*/chat-rooms")
+				.permitAll()
+
+				// === POST 는 인증 필요 ===
+				.requestMatchers(HttpMethod.POST, "/api/v1/festivals/*/chat-rooms")
+				.authenticated()
+
 				.requestMatchers(WHITE_LIST).permitAll()
 				.requestMatchers(HttpMethod.OPTIONS).permitAll()
 				.anyRequest().authenticated()

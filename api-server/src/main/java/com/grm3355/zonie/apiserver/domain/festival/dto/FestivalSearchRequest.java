@@ -29,7 +29,6 @@ public class FestivalSearchRequest {
 
 	@Schema(description = "페이지번호", example = "1")
 	@Digits(integer = 2, fraction = 0, message = "숫자만 가능합니다.")
-	//@NotNull(message = "페이지 번호는 필수입니다.")
 	@ColumnDefault("'1'")
 	private Integer page;
 
@@ -37,13 +36,12 @@ public class FestivalSearchRequest {
 	@Digits(integer = 3, fraction = 0, message = "숫자만 가능합니다.")
 	@Min(value = 0, message = "0 이상이어야 합니다.")
 	@Max(value = 200, message = "200 이하이어야 합니다.")
-	//@NotNull(message = "페이지 갯수 필수입니다.")
 	@ColumnDefault("'10'")
 	private Integer pageSize;
 
-	@Schema(description = "정렬이름")
+	@Schema(description = "정렬 타입")
 	@Builder.Default
-	private FestivalOrderType order = FestivalOrderType.DATE_ASC;
+	private FestivalOrderType order = FestivalOrderType.DATE_DESC;
 
 	@Schema(description = "지역선택")
 	private Region region;
@@ -78,7 +76,7 @@ public class FestivalSearchRequest {
 		return page != null ? page : 1;
 	}
 
-	public Integer getPageSize() {
+	public int getPageSize() {
 		return pageSize != null ? pageSize : 10;
 	}
 

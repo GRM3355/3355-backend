@@ -14,7 +14,7 @@ import lombok.Getter;
 
 public class UserDetailsImpl implements UserDetails {
 	@Getter
-	private final String id;
+	private final String userId;
 	private final String username; // email
 
 	@JsonIgnore
@@ -26,10 +26,10 @@ public class UserDetailsImpl implements UserDetails {
 	private final boolean isAccountNonLocked;
 
 
-	public UserDetailsImpl(String id, String username, String password,
+	public UserDetailsImpl(String userId, String username, String password,
 		Collection<? extends GrantedAuthority> authorities,
 		boolean isEnabled, boolean isAccountNonLocked) {
-		this.id = id;
+		this.userId = userId;
 		this.username = username;
 		this.password = password;
 		this.authorities = authorities;

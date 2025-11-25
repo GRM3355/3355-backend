@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
 
+import com.grm3355.zonie.batchserver.job.ChatRoomDeletionJob;
 import com.grm3355.zonie.batchserver.job.ChatRoomRedisCleanupJob;
 import com.grm3355.zonie.batchserver.job.MessageLikeCleanupJob;
 
@@ -23,30 +24,35 @@ import lombok.extern.slf4j.Slf4j;
 public class CleanupBatchConfig {
 
 	// 1. 기존 Job 로직 주입
-	private final ChatRoomRedisCleanupJob chatRoomRedisCleanupJob;
 	private final MessageLikeCleanupJob messageLikeCleanupJob;
+	private final ChatRoomDeletionJob chatRoomDeletionJob;
+	@Deprecated
+	private final ChatRoomRedisCleanupJob chatRoomRedisCleanupJob;
 
 	private final JobRepository jobRepository;
 	private final PlatformTransactionManager transactionManager;
 
-	// ======== Job 1: 채팅방 Redis 정리 ========
+	// ======== Job 1: 채팅방 참여자 수 Redis 정리 ========
 
 	@Bean
+	@Deprecated
 	public Job chatRoomCleanupBatchJob() {
-		return new JobBuilder("chatRoomCleanupBatchJob", jobRepository) 	// JobBuilder 객체로 곧바로 Job 정의
-			.start(chatRoomCleanupStep())										// 1개만
+		return new JobBuilder("chatRoomCleanupBatchJob", jobRepository)    // JobBuilder 객체로 곧바로 Job 정의
+			.start(chatRoomCleanupStep())                                        // 1개만
 			.build();
 	}
 
 	@Bean
+	@Deprecated
 	public Step chatRoomCleanupStep() {
-		return new StepBuilder("chatRoomCleanupStep", jobRepository)	// Step 정의
+		return new StepBuilder("chatRoomCleanupStep", jobRepository)    // Step 정의
 			.tasklet(chatRoomCleanupTasklet(), transactionManager)
 			.build();
 	}
 
 	@Bean
-	public Tasklet chatRoomCleanupTasklet() {								// Tasklet 정의
+	@Deprecated
+	public Tasklet chatRoomCleanupTasklet() {                                // Tasklet 정의
 		return (contribution, chunkContext) -> {
 			log.info(">>>>> Spring Batch: ChatRoomRedisCleanupJob 시작");
 			try {
@@ -88,6 +94,33 @@ public class CleanupBatchConfig {
 				log.error(">>>>> Spring Batch: MessageLikeCleanupJob 실패", e);
 				throw e; // FAILED 상태로 기록
 			}
+		};
+	}
+
+	// ======== Job 3: 채팅방 DB 삭제 (24시간 경과/0명/축제종료) ========
+
+	@Bean
+	public Job chatRoomDbDeletionBatchJob() {
+		return new JobBuilder("chatRoomDbDeletionBatchJob", jobRepository)
+			.start(chatRoomDbDeletionStep())
+			.build();
+	}
+
+	@Bean
+	public Step chatRoomDbDeletionStep() {
+		return new StepBuilder("chatRoomDbDeletionStep", jobRepository)
+			.tasklet(chatRoomDbDeletionTasklet(), transactionManager)
+			.build();
+	}
+
+	@Bean
+	public Tasklet chatRoomDbDeletionTasklet() {
+		return (contribution, chunkContext) -> {
+			log.info(">>>>> Spring Batch: ChatRoomDbDeletionJob 시작");
+			// 축제 기간이 종료된 채팅방만 여기서 삭제
+			chatRoomDeletionJob.cleanupEndedFestivalRooms();
+			log.info(">>>>> Spring Batch: ChatRoomDbDeletionJob 완료");
+			return RepeatStatus.FINISHED;
 		};
 	}
 }

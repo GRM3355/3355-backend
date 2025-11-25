@@ -22,8 +22,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.chatroom.dto.ChatRoomSearchRequest;
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchDto;
 import com.grm3355.zonie.apiserver.domain.search.dto.TotalSearchResponse;
 import com.grm3355.zonie.apiserver.domain.search.service.TotalSearchService;
@@ -65,7 +65,7 @@ class TotalSearchControllerTest {
 
 	@Test
 	@DisplayName("통합검색 GET 요청 성공 테스트")
-	void testGetTotalSearch_success() throws Exception {
+	void testGetTotalSearchSuccess() throws Exception {
 		// given
 		TotalSearchResponse dummyResponse = new TotalSearchResponse(null, null);
 		Mockito.when(totalSearchService.getTotalSearch(any(TotalSearchDto.class)))
@@ -86,11 +86,11 @@ class TotalSearchControllerTest {
 
 	@Test
 	@DisplayName("검색 - 채팅방 목록 GET 요청 성공 테스트")
-	void testGetChatroomTotalSearch_success() throws Exception {
+	void testGetChatroomSearchSuccess() throws Exception {
 		// given
 		// 서비스는 Page<T>를 반환합니다.
-		MyChatRoomResponse chatRoom = MyChatRoomResponse.builder().chatRoomId("1L").title("테스트방").build();
-		Page<MyChatRoomResponse> mockPage = new PageImpl<>(List.of(chatRoom), PageRequest.of(0, 10), 1);
+		ChatRoomResponse chatRoom = ChatRoomResponse.builder().chatRoomId("1L").title("테스트방").build();
+		Page<ChatRoomResponse> mockPage = new PageImpl<>(List.of(chatRoom), PageRequest.of(0, 10), 1);
 
 		Mockito.when(totalSearchService.getChatroomTotalSearch(any(ChatRoomSearchRequest.class)))
 			.thenReturn(mockPage);

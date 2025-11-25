@@ -1,6 +1,7 @@
 package com.grm3355.zonie.commonlib.domain.festival.repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -23,20 +24,31 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	@Query(
 		value = """
 			SELECT * FROM festivals f
-			WHERE f.festival_id = :festivalId 
+			WHERE f.festival_id = :festivalId
 			AND CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
 			AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second')
-			""",
-		nativeQuery = true)
+			""", nativeQuery = true)
 	Optional<Festival> findByIsValidFestival(long festivalId, int dayNum);
 
+	// 이벤트 종료일이 현재 날짜보다 이전인 축제를 목록 가져오기
+	List<Festival> findByEventEndDateBefore(LocalDate date);
+
 	// 이벤트 종료일이 현재 날짜보다 이전인 축제를 삭제
-	long deleteByEventEndDateBefore(LocalDate date); // long으로 지정: JPA는 삭제된 레코드 수를 반환
+	// JPQL 벌크 DELETE
+	@Modifying
+	@Transactional
+	@Query("DELETE FROM Festival f WHERE f.eventEndDate < :date")
+	long deleteByEventEndDateBefore(@Param("date") LocalDate date); // long으로 지정: JPA는 삭제된 레코드 수를 반환
 
 	//채팅방 갯수 업데이트
 	@Modifying(clearAutomatically = true)
 	@Query("UPDATE Festival f SET f.chatRoomCount = f.chatRoomCount+1 WHERE f.festivalId = :festivalId")
 	void updateFestivalChatRoomCount(Long festivalId);
+
+	// 채팅방 수 감소
+	@Modifying(clearAutomatically = true)
+	@Query("UPDATE Festival f SET f.chatRoomCount = f.chatRoomCount-1 WHERE f.festivalId = :festivalId")
+	void decrementFestivalChatRoomCount(Long festivalId);
 
 	/**
 	 * 축제 목록보기
@@ -48,28 +60,37 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			      WHERE f.festival_id is not null
 			      AND (:region is null or f.region = :region)
 			      	AND (:keyword is null OR f.title ILIKE '%' || :keyword || '%')
-			    AND (CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum)) 
-					             AND CURRENT_TIMESTAMP <= f.event_end_date)
-				AND (
-					:status = 'ALL' or :status is null
-					OR (:status = 'ONGOING' AND f.event_start_date <= CURRENT_DATE AND f.event_end_date >= CURRENT_DATE)
-					OR (:status = 'UPCOMING' AND f.event_start_date > CURRENT_DATE)
-				  )
-			""",
-		countQuery = """
-			SELECT COUNT(*)
-			      FROM festivals f
-			      WHERE f.festival_id is not null
-			      AND (:region is null or f.region = :region)
-			      	AND (:keyword is null or f.title ILIKE '%' || :keyword || '%')
-			    AND (CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
-					             AND CURRENT_TIMESTAMP <= f.event_end_date)
-				AND (
-					:status = 'ALL' or :status is null
-					OR (:status = 'ONGOING' AND f.event_start_date <= CURRENT_DATE AND f.event_end_date >= CURRENT_DATE)
-					OR (:status = 'UPCOMING' AND f.event_start_date > CURRENT_DATE)
-				  )
-			""",
+			    AND (
+			        -- 기간 필터링 조건
+			        :dayNum = -1 OR (
+			            CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
+			            AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second')
+			        )
+			      )
+			    AND (
+			        :status = 'ALL' or :status is null
+			        OR (:status = 'ONGOING' AND f.event_start_date <= CURRENT_DATE AND f.event_end_date >= CURRENT_DATE)
+			        OR (:status = 'UPCOMING' AND f.event_start_date > CURRENT_DATE)
+			      )
+			""", countQuery = """
+		SELECT COUNT(*)
+		      FROM festivals f
+		      WHERE f.festival_id is not null
+		      AND (:region is null or f.region = :region)
+		      	AND (:keyword is null or f.title ILIKE '%' || :keyword || '%')
+		    AND (
+		        -- 기간 필터링 조건
+		        :dayNum = -1 OR (
+		            CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
+		            AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second')
+		        )
+		      )
+		    AND (
+		        :status = 'ALL' or :status is null
+		        OR (:status = 'ONGOING' AND f.event_start_date <= CURRENT_DATE AND f.event_end_date >= CURRENT_DATE)
+		        OR (:status = 'UPCOMING' AND f.event_start_date > CURRENT_DATE)
+		      )
+		""",
 		nativeQuery = true)
 	Page<Festival> getFestivalList(String region, String status, String keyword,
 		int dayNum, Pageable pageable);
@@ -82,15 +103,19 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	 * @param lat 사용자 위도 (Latitude)
 	 * @return 거리(km). 일치하는 축제가 없으면 Optional.empty()
 	 */
+	// 1. DB에 저장된 축제 위치 (geography 타입으로 캐스팅)
+	// 2. 사용자의 현재 위치 (lon, lat)로 geography 생성
+	// 3. 결과를 미터(m)에서 킬로미터(km)로 변환
 	@Query(value =
-		"SELECT ST_Distance(" +
-			"    f.position::geography, " + 									// 1. DB에 저장된 축제 위치 (geography 타입으로 캐스팅)
-			"    ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography " + 		// 2. 사용자의 현재 위치 (lon, lat)로 geography 생성
-			") / 1000.0 " + 													// 3. 결과를 미터(m)에서 킬로미터(km)로 변환
-			"FROM festivals f " +
-			"WHERE f.festival_id = :festivalId",
+		"SELECT ST_Distance("
+		+ "    f.position::geography, "
+		+ "    ST_SetSRID(ST_MakePoint(:lon, :lat), 4326)::geography "
+		+ ") / 1000.0 "
+		+ "FROM festivals f "
+		+ "WHERE f.festival_id = :festivalId",
 		nativeQuery = true)
-	Optional<Double> findDistanceToFestival(@Param("festivalId") long festivalId, @Param("lon") double lon, @Param("lat") double lat);
+	Optional<Double> findDistanceToFestival(@Param("festivalId") long festivalId, @Param("lon") double lon,
+		@Param("lat") double lat);
 
 	/**
 	 * 위치기반 축제 목록보기
@@ -101,7 +126,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			FROM festivals f
 			WHERE f.festival_id is not null
 			    AND (CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
-				AND CURRENT_TIMESTAMP <= f.event_end_date)
+				AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second'))
 				AND (ST_DWithin(f.position::geography, ST_MakePoint(:lon, :lat)::geography,:radius))
 			""",
 		countQuery = """
@@ -109,7 +134,7 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			FROM festivals f
 			WHERE f.festival_id is not null
 			    AND (CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
-				AND CURRENT_TIMESTAMP <= f.event_end_date)
+				AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second'))
 				AND (ST_DWithin(f.position::geography, ST_MakePoint(:lon, :lat)::geography,:radius))
 			""",
 		nativeQuery = true)
@@ -125,12 +150,11 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 			FROM festivals f
 			WHERE f.region = :region
 			AND (CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
-			     AND CURRENT_TIMESTAMP <= f.event_end_date)
+			     AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second'))
 			""",
 		nativeQuery = true
 	)
 	long countFestivalsByRegion(@Param("region") String region, @Param("dayNum") int dayNum);
-
 
 	/**
 	 * chat_rooms 테이블의 참여자 수를 합산하여
@@ -139,17 +163,56 @@ public interface FestivalRepository extends JpaRepository<Festival, Long> {
 	@Modifying
 	@Transactional
 	@Query(value = """
-        UPDATE festivals f
-        SET total_participant_count = COALESCE(sub.total_count, 0)
-        FROM (
-            SELECT 
-                cr.festival_id, 
-                SUM(cr.participant_count) AS total_count
-            FROM chat_rooms cr
-            WHERE cr.festival_id IS NOT NULL
-            GROUP BY cr.festival_id
-        ) AS sub
-        WHERE f.festival_id = sub.festival_id
-        """, nativeQuery = true)
-	void syncTotalParticipantCounts();
+		UPDATE festivals f
+		SET total_participant_count = (
+		    SELECT
+		        COALESCE(COUNT(DISTINCT cru.user_id), 0)
+		    FROM chat_rooms cr
+		    JOIN chat_room_user cru ON cr.chat_room_id = cru.chat_room_id
+		    WHERE cr.festival_id = f.festival_id
+		)
+		WHERE f.festival_id IN (
+		    SELECT cr.festival_id
+		    FROM chat_rooms cr
+		    WHERE cr.festival_id IS NOT NULL
+		)
+		""", nativeQuery = true)
+	int syncTotalParticipantCounts();
+
+	/**
+	 * [배치 최적화] 특정 축제 ID 목록에 대해 chat_rooms의 수를 재집계하여
+	 * festivals.chat_room_count 필드를 일괄 업데이트합니다. (UPDATE ... FROM)
+	 */
+	@Modifying
+	@Transactional
+	@Query(value = """
+		UPDATE festivals f
+		SET chat_room_count = COALESCE(sub.room_count, 0)
+		FROM (
+		    SELECT
+		        cr.festival_id,
+		        COUNT(cr.chat_room_id) AS room_count
+		    FROM chat_rooms cr
+		    WHERE cr.festival_id IN (:festivalIds)
+		    GROUP BY cr.festival_id
+		) AS sub
+		WHERE f.festival_id = sub.festival_id
+		  AND f.festival_id IN (:festivalIds)
+		""", nativeQuery = true)
+	int syncChatRoomCounts(@Param("festivalIds") List<Long> festivalIds);
+
+	Festival findByContentId(int contentId);
+
+	List<Festival> findByContentIdIn(List<Integer> contentIds);
+
+	//지역별 축제갯수
+	@Query(
+		value = """
+			SELECT f.region, COUNT(f) FROM festivals f
+			WHERE CURRENT_TIMESTAMP >= (f.event_start_date - make_interval(days => :dayNum))
+			AND CURRENT_TIMESTAMP <= (f.event_end_date + interval '1 day' - interval '1 second')
+			GROUP BY f.region
+			""", nativeQuery = true)
+	List<Object[]> countByRegionGroup(int dayNum);
+
 }

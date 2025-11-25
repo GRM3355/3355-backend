@@ -1,6 +1,5 @@
 package com.grm3355.zonie.apiserver.domain.search.dto;
 
-import com.grm3355.zonie.apiserver.domain.chatroom.dto.MyChatRoomResponse;
 import com.grm3355.zonie.commonlib.domain.chatroom.dto.ChatRoomInfoDto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,7 +21,7 @@ public class TotalSearchChatRoomResponse {
 	@Schema(description = "제목", example = "채팅방 제목입니다.")
 	private String title;
 
-	@Schema(description = "위도", example = "(123.233, 26.223)")
+	@Schema(description = "위도", example = "26.223")
 	private double lat;
 
 	@Schema(description = "경도", example = "123.233")
@@ -34,12 +33,10 @@ public class TotalSearchChatRoomResponse {
 	@Schema(description = "참석자수", example = "234")
 	private Long participantCount;
 
-
 	public static TotalSearchChatRoomResponse fromDto(ChatRoomInfoDto dto) {
 		return TotalSearchChatRoomResponse.builder()
 			.chatRoomId(dto.chatRoomId())
 			.festivalId(dto.festivalId())
-			// .userId(dto.chatRoom().getUser().getUserId())
 			.title(dto.title())
 			.lat(dto.lat())
 			.lon(dto.lon())

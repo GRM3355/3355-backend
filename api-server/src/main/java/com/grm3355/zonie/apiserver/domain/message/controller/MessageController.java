@@ -31,6 +31,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
@@ -43,24 +44,20 @@ public class MessageController {
 	private final MessageLikeService messageLikeService;
 	private final MessageQueryService messageQueryService;
 
-	@Operation(summary = "메시지 '좋아요' 토글", description = "메시지 '좋아요'를 누르거나 취소합니다. (위치 인증 필요)")
+	@Operation(summary = "메시지 '좋아요' 토글", description = "메시지 '좋아요'를 누르거나 취소합니다. (미연결 TODO: 위치 인증 필요)")
 	@ApiResponses({
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(
 			responseCode = "200", description = "좋아요 토글 성공",
 			content = @Content(mediaType = "application/json",
 				schema = @Schema(implementation = MessageLikeResponse.class),
-			examples = {
-				@ExampleObject(name = "좋아요 누르기 성공",
-					value = "{\"success\":true,\"data\":{\"liked\":true,\"likeCount\":6},\"error\":null,\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"),
-				@ExampleObject(name = "좋아요 취소 성공",
-					value = "{\"success\":true,\"data\":{\"liked\":false,\"likeCount\":5},\"error\":null,\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}")
-			}
-		)),
-		// 400, 401, 403, 404 ( -> 고유한 설명 사용)
-		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "입력값 유효성 검증 실패 (e.g., messageId 형식 오류)", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
-			examples = @ExampleObject(name = "BAD_REQUEST",
-				value = "{\"success\":false,\"error\":{\"code\":\"BAD_REQUEST\",\"message\":\"잘못된 요청입니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}")
-		)),
+				examples = {
+					@ExampleObject(name = "좋아요 누르기 성공",
+						value = "{\"success\":true,\"data\":{\"liked\":true,\"likeCount\":6},\"error\":null,\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}"),
+					@ExampleObject(name = "좋아요 취소 성공",
+						value = "{\"success\":true,\"data\":{\"liked\":false,\"likeCount\":5},\"error\":null,\"timestamp\":\"2025-09-02T10:30:00.123456Z\"}")
+				}
+			)),
+		// 401, 403, 404 (-> 고유한 설명 사용)
 		@io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "인증되지 않은 사용자", content = @Content(mediaType = "application/json", schema = @Schema(implementation = ApiResponse.class),
 			examples = @ExampleObject(name = "UNAUTHORIZED",
 				value = "{\"success\":false,\"error\":{\"code\":\"UNAUTHORIZED\",\"message\":\"인증에 실패했습니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}")
@@ -74,9 +71,11 @@ public class MessageController {
 				value = "{\"success\":false,\"error\":{\"code\":\"NOT_FOUND\",\"message\":\"메시지를 찾을 수 없습니다.\"},\"timestamp\":\"2025-09-02T10:35:00.987654Z\"}")
 		))
 	})
+	@ApiError400
 	@ApiError405
 	@ApiError415
 	@ApiError429
+	@SecurityRequirement(name = "Authorization")
 	@PostMapping("/messages/{messageId}/like")
 	@PreAuthorize("hasAnyRole('GUEST', 'USER')")
 	public ResponseEntity<ApiResponse<MessageLikeResponse>> toggleLike(
@@ -86,8 +85,8 @@ public class MessageController {
 		String userId = userDetails.getUsername();
 		Map<String, Object> result = messageLikeService.toggleLike(userId, messageId);
 		MessageLikeResponse response = new MessageLikeResponse(
-			(Boolean) result.get("liked"),
-			((Number) result.get("likeCount")).longValue() // Integer든 Long이든 long으로 변환
+			(Boolean)result.get("liked"),
+			((Number)result.get("likeCount")).longValue() // Integer든 Long이든 long으로 변환
 		);
 		return ResponseEntity.ok(ApiResponse.success(response));
 	}
@@ -108,6 +107,7 @@ public class MessageController {
 	@ApiError404
 	@ApiError405
 	@ApiError429
+	@SecurityRequirement(name = "Authorization")
 	@GetMapping("/chat-rooms/{roomId}/messages")
 	@PreAuthorize("hasAnyRole('GUEST', 'USER')")
 	public ResponseEntity<ApiResponse<MessageSliceResponse>> getMessages(

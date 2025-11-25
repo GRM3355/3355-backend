@@ -8,11 +8,31 @@ spring:
           client-id: "test-client-id" # 더미 값
           client-secret: "test-client-secret" # 더미값
           redirect-uri: "https://localhost/test-callback"
+          client-redirect-uri: http://localhost/kakao/login
           authorization-grant-type: authorization_code
           client-authentication-method: POST
           client-name: Kakao
           scope:
             - profile_nickname
+
+  datasource:
+    hikari:
+      max-lifetime: 15000 # 15초로 설정 (PostgreSQL 서버가 내려갔을 때 빠르게 정리)
+      connection-timeout: 3000
+
+  #카카오 로그인후 쿠키값 저장
+  set-cookie:
+    httpOnly: true
+    secure: false  #local:false, cd:true
+    path: "/"
+    maxAge: 604800  #60 * 60 * 24 * 7
+    sameSite: "Lax"  #local : Lax, cd : None
+    domain: "zony.or.kr"    # 서브도메인 간 공유
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
 logging:
   level:
     com.grm3355.zonie: DEBUG
@@ -29,14 +49,18 @@ openapi:
   serviceKey: TEST_KEY_REQUIRED_FOR_CONTEXT_LOAD
 
 chat:
-  max-chat-person:  500 #최대인원수
-  max-chat-room:  30  #생성 채팅룸 갯수
+  max-chat-person: 500 #최대인원수
+  max-chat-room: 30  #생성 채팅룸 갯수
   radius: 1.0 #km
   pre-create-day: 7 #7일전부터 생성 가능
-  pre-view-day: 7 #7일전부터 축제보기 가능
+  pre-view-day: 7 #7일전부터 축제보기 가능 #test 환경 구분
 
 location:
   token:
     ttl-minutes: 15
   radius:
     limit: 1.0
+
+# encrypt
+aes:
+  key: dGhpcy1pcy1hLWxvY2FsLXRlc3Qtc2VjcmV0LWtleS1mb3ItYWxsLW1vZHVsZXMtMzItYnl0ZXMK

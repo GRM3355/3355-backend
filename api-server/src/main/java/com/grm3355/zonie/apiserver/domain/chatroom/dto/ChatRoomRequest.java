@@ -1,5 +1,7 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.dto;
 
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -15,12 +17,16 @@ public class ChatRoomRequest {
 	@NotBlank(message = "채팅방 제목은 필수입니다.")
 	private String title;
 
-	@Schema(description = "위도", example = "37.5894939323")
-	@NotNull(message = "위도 값은 필수입니다.")
+	@Schema(description = "위도", example = "37")
+	@NotNull(message = "위치정보가 필요합니다.")
+	@DecimalMin(value = "-90.0", message = "Latitude must be >= -90")
+	@DecimalMax(value = "90.0", message = "Latitude must be <= 90")
 	private double lat;
 
-	@Schema(description = "경도", example = "127.0167863252")
-	@NotNull(message = "경도 값은 필수입니다.")
+	@Schema(description = "경도", example = "127")
+	@NotNull(message = "위치정보가 필요합니다.")
+	@DecimalMin(value = "-180.0", message = "Longitude must be >= -180")
+	@DecimalMax(value = "180.0", message = "Longitude must be <= 180")
 	private double lon;
 
 }

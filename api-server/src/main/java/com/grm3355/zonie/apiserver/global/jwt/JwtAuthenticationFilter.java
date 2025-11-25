@@ -66,7 +66,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 				log.warn("유효하지 않은 JWT 토큰: {}", e.getMessage());
 			}
 		}
-
 		filterChain.doFilter(request, response);
 	}
 

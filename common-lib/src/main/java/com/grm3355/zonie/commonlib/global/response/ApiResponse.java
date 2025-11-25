@@ -53,8 +53,4 @@ public class ApiResponse<T> {
 	public static <T> ApiResponse<T> of(boolean success, String errorCode, String message, T data) {
 		return new ApiResponse<>(success, data, new ErrorResponse(errorCode, message), LocalDateTime.now());
 	}
-
-	//public ResponseEntity<ApiResponse<T>> toResponseEntity(HttpStatus status) {
-	//	return ResponseEntity.status(status).body(this);
-	//}
 }
