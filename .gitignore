@@ -60,3 +60,14 @@ logs/
 /api-server/logs/api.log
 /batch-server/logs/batch.log
 /test_vars.sh
+
+*-.log
+api-server/logs
+batch-server/logs
+chat-server/logs
+
+**/.DS_Store
+.DS_Store
+api-server/src/main/.DS_Store
+batch-server/src/main/.DS_Store
+chat-server/src/main/.DS_Store
