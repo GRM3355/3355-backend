@@ -1,7 +1,5 @@
 package com.grm3355.zonie.apiserver.domain.chatroom.dto;
 
-import com.grm3355.zonie.commonlib.domain.chatroom.entity.ChatRoom;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,16 +27,5 @@ public class ChatRoomCreateResponse { // 채팅방 생성 시점에서의 채팅
 
 	@Schema(description = "경도", example = "123.233")
 	private double lon;
-
-	public static ChatRoomCreateResponse fromEntity(ChatRoom chatRoom) {
-		return new ChatRoomCreateResponse(
-			chatRoom.getChatRoomId(),
-			chatRoom.getFestival().getFestivalId(),
-			chatRoom.getUser().getUserId(),
-			chatRoom.getTitle(),
-			chatRoom.getPosition().getY(),
-			chatRoom.getPosition().getX()
-		);
-	}
 
 }
