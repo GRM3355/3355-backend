@@ -39,9 +39,9 @@ public class FestivalSearchRequest {
 	@ColumnDefault("'10'")
 	private Integer pageSize;
 
-	@Schema(description = "정렬이름")
+	@Schema(description = "정렬 타입")
 	@Builder.Default
-	private FestivalOrderType order = FestivalOrderType.DATE_ASC;
+	private FestivalOrderType order = FestivalOrderType.DATE_DESC;
 
 	@Schema(description = "지역선택")
 	private Region region;
@@ -76,7 +76,7 @@ public class FestivalSearchRequest {
 		return page != null ? page : 1;
 	}
 
-	public Integer getPageSize() {
+	public int getPageSize() {
 		return pageSize != null ? pageSize : 10;
 	}
 

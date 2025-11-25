@@ -76,48 +76,37 @@ public class FestivalService {
 		}
 
 		Sort sort;
+		Sort statusGroupSort = getStatusGroupSort();
 
-		if (req.getOrder() == FestivalOrderType.DATE_ASC || req.getOrder() == null) {
-			// DATE_ASC 또는 기본값일 때, (Ongoing -> Upcoming -> Ended)
-
-			// 1: 상태 그룹 정렬 (Ongoing: 0, Upcoming: 1, Ended: 2)
-			// Native Query에 사용되는 컬럼명(event_start_date, event_end_date)을 직접 사용
-			// f. 별칭을 사용하여 PostGIS Native 쿼리 환경에서 커스텀 정렬이 무시되지 않도록 함
-			Sort statusGroupSort = JpaSort.unsafe(Sort.Direction.ASC,
-				"""
-					(CASE
-						WHEN f.event_start_date <= CURRENT_DATE AND f.event_end_date >= CURRENT_DATE THEN 0
-						WHEN f.event_start_date > CURRENT_DATE THEN 1
-						ELSE 2
-					END)
-					""");
-			Sort dateSort = Sort.by(Sort.Direction.ASC, "event_start_date");      // 2: 시작일 빠른 순
-			Sort titleSort = Sort.by(Sort.Direction.ASC, "title");                // 3: 제목 가나다 순
-
+		// 기본 정렬 (req.getOrder() == null)은 DATE_DESC로 간주
+		if (req.getOrder() == FestivalOrderType.DATE_DESC || req.getOrder() == null) {
+			// 기본 정렬: 상태 정렬 ASC (Ongoing -> Upcoming -> Ended), 날짜 내림차순, 제목 오름차순
+			Sort dateSort = Sort.by(Sort.Direction.DESC, "event_start_date");
+			Sort titleSort = Sort.by(Sort.Direction.ASC, "title");
 			sort = statusGroupSort.and(dateSort).and(titleSort);
 
-		} else if (req.getOrder() == FestivalOrderType.DATE_DESC) {
-			sort = Sort.by(
-				Sort.Order.desc("event_start_date"),
-				Sort.Order.asc("title")
-			);
-		} else if (req.getOrder() == FestivalOrderType.TITLE_ASC) {
-			sort = Sort.by(Sort.Order.asc("title"));
-		} else if (req.getOrder() == FestivalOrderType.TITLE_DESC) {
-			sort = Sort.by(Sort.Order.desc("title"));
-		} else {
-			// 그 외의 경우
-			Sort statusGroupSort = JpaSort.unsafe(Sort.Direction.ASC,
-				"""
-					(CASE
-						WHEN f.event_start_date <= CURRENT_DATE AND f.event_end_date >= CURRENT_DATE THEN 0
-						WHEN f.event_start_date > CURRENT_DATE THEN 1
-						ELSE 2
-					END)
-					""");
+		} else if (req.getOrder() == FestivalOrderType.DATE_ASC) {
+			// 시작일 오름차순: 상태 정렬 ASC, 날짜 오름차순, 제목 오름차순
 			Sort dateSort = Sort.by(Sort.Direction.ASC, "event_start_date");
 			Sort titleSort = Sort.by(Sort.Direction.ASC, "title");
+			sort = statusGroupSort.and(dateSort).and(titleSort);
 
+		} else if (req.getOrder() == FestivalOrderType.TITLE_ASC) {
+			// 제목 가나다순: 상태 정렬 ASC, 제목 오름차순, 날짜 오름차순 (동일 제목일 경우 날짜로)
+			Sort dateSort = Sort.by(Sort.Direction.ASC, "event_start_date");
+			Sort titleSort = Sort.by(Sort.Direction.ASC, "title");
+			sort = statusGroupSort.and(titleSort).and(dateSort);
+
+		} else if (req.getOrder() == FestivalOrderType.TITLE_DESC) {
+			// 제목 역순: 상태 정렬 ASC, 제목 내림차순, 날짜 오름차순 (동일 제목일 경우 날짜로)
+			Sort dateSort = Sort.by(Sort.Direction.ASC, "event_start_date");
+			Sort titleSort = Sort.by(Sort.Direction.DESC, "title");
+			sort = statusGroupSort.and(titleSort).and(dateSort);
+
+		} else {
+			// 그 외의 경우 (발생하면 안 되지만, 안정성을 위해 기본값 적용)
+			Sort dateSort = Sort.by(Sort.Direction.DESC, "event_start_date");
+			Sort titleSort = Sort.by(Sort.Direction.ASC, "title");
 			sort = statusGroupSort.and(dateSort).and(titleSort);
 		}
 
@@ -131,6 +120,23 @@ public class FestivalService {
 			.collect(Collectors.toList());
 
 		return new PageImpl<>(dtoPage, pageable, pageList.getTotalElements());
+	}
+
+	/**
+	 * 상태 정렬은 모든 정렬의 최우선 순위가 되어야 함
+	 */
+	private Sort getStatusGroupSort() {
+		// 상태 그룹 정렬 (Ongoing: 0, Upcoming: 1, Ended: 2)
+		// Native Query에 사용되는 컬럼명(event_start_date, event_end_date)을 직접 사용
+		// f. 별칭을 사용하여 PostGIS Native 쿼리 환경에서 커스텀 정렬이 무시되지 않도록 함
+		return JpaSort.unsafe(Sort.Direction.ASC,
+			"""
+				(CASE
+					WHEN f.event_start_date <= CURRENT_DATE AND f.event_end_date >= CURRENT_DATE THEN 0
+					WHEN f.event_start_date > CURRENT_DATE THEN 1
+					ELSE 2
+				END)
+				""");
 	}
 
 	// 축제별 채팅방 검색조건별 목록 가져오기
