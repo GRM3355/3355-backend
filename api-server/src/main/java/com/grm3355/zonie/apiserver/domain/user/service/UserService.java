@@ -39,9 +39,14 @@ public class UserService {
 		User user = userRepository.findByUserIdAndDeletedAtIsNull(userId)
 			.orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND, "사용자를 찾을 수 없습니다."));
 
+		String decryptedEmail = null;
+		if (user.getAccountEmail() != null) {
+			decryptedEmail = aesUtil.decrypt(user.getAccountEmail());
+		}
+
 		return new UserProfileResponse(
 			user.getUserId(),
-			aesUtil.decrypt(user.getAccountEmail()),
+			decryptedEmail,
 			user.getCreatedAt()
 		);
 	}
@@ -58,11 +63,4 @@ public class UserService {
 		redisTokenService.deleteAllTokensForUser(userId);
 		log.info("정상적으로 탈퇴처리되었습니다.");
 	}
-
-	//todo 휴대전화 컬럼 필요
-	//    @Transactional
-	//    public void updatePhoneNumber(String userId, PhoneNumberUpdateRequest request) {
-	//        User user = userRepository.getOrThrow(userId);
-	//        user.updatePhoneNumber(request.phoneNumber());
-	//    }
 }
