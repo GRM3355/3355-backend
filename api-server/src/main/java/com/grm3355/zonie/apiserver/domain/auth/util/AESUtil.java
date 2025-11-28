@@ -78,9 +78,14 @@ public class AESUtil {
 		// 1. Base64 디코딩
 		byte[] decodedBytes = Base64.getDecoder().decode(encryptedText);
 
-		if (decodedBytes.length < GCM_IV_LENGTH) {
-			// 데이터 길이가 IV 길이보다 작으면 에러
-			throw new IllegalArgumentException("암호화된 데이터가 너무 짧습니다.");
+		// if (decodedBytes.length < GCM_IV_LENGTH) {
+		// 	// 데이터 길이가 IV 길이보다 작으면 에러
+		// 	throw new IllegalArgumentException("암호화된 데이터가 너무 짧습니다.");
+		// }
+
+		if (decodedBytes.length < GCM_IV_LENGTH + GCM_TAG_LENGTH) {
+			log.warn("구 버전(ECB) 데이터로 추정, decryptECB로 복호화 시도.");
+			return decryptEcb(encryptedText);
 		}
 
 		// 2. IV와 암호화 데이터 분리
