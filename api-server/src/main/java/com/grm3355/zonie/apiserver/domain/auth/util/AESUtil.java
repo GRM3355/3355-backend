@@ -101,4 +101,18 @@ public class AESUtil {
 
 		return new String(plainTextBytes, StandardCharsets.UTF_8);
 	}
+
+	/**
+	 * [임시] 구 버전 AES/ECB/PKCS5Padding 방식으로 복호화합니다.
+	 * : 데이터 마이그레이션 완료 후 삭제될 예정입니다.
+	 */
+	public String decryptEcb(String encryptedText) throws Exception {
+		Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+		cipher.init(Cipher.DECRYPT_MODE, this.secretKeySpec);
+
+		byte[] decodedBytes = Base64.getDecoder().decode(encryptedText);
+		byte[] decryptedBytes = cipher.doFinal(decodedBytes);
+
+		return new String(decryptedBytes, StandardCharsets.UTF_8);
+	}
 }
