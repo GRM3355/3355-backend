@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.grm3355.zonie.apiserver.domain.auth.domain.UserInfo;
-import com.grm3355.zonie.apiserver.domain.auth.dto.auth.KakaoUserInfo;
+import com.grm3355.zonie.apiserver.domain.auth.dto.KakaoUserInfo;
 
 @Component
 public class KakaoOAuth2UserInfoClient {
