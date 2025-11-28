@@ -1,4 +1,4 @@
-package com.grm3355.zonie.apiserver.domain.auth.dto.auth;
+package com.grm3355.zonie.apiserver.domain.auth.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
