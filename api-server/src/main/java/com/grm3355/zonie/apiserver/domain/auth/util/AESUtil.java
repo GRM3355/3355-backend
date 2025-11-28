@@ -92,7 +92,7 @@ public class AESUtil {
 
 		// 3. Cipher 초기화
 		Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-		GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH, iv);
+		GCMParameterSpec gcmSpec = new GCMParameterSpec(GCM_TAG_LENGTH * 8, iv);
 		cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, gcmSpec);
 
 		// 4. 복호화 실행
