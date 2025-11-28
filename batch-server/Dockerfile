@@ -11,4 +11,4 @@ COPY batch-server/build/libs/batch-server-*.jar app.jar
 
 # 컨테이너 시작 시 실행할 명령어
 # 배치 서버는 대용량 데이터 처리 시 OOM 위험이 있어서 4기가로 설정함
-ENTRYPOINT ["java", "-Xms4g", "-Xmx4g", "-Xlog:gc*:file=/app/logs/gc.log:time,level,tags", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xms4g", "-Xmx4g", "-Xlog:gc*:stdout:time,level,tags", "-jar", "app.jar"]
