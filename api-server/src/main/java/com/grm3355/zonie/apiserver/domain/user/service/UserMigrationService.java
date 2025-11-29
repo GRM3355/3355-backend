@@ -37,9 +37,9 @@ public class UserMigrationService {
 		for (User user : users) {
 			String encryptedEmail = user.getAccountEmail();
 
-			// 2. 이미 신 버전으로 암호화되었거나, 이메일이 없는 경우 스킵
-			//    (신 버전 암호화는 복잡도가 높고 길이가 길어 구버전과 구별 가능해야 함)
-			if (encryptedEmail == null || encryptedEmail.length() > 50) { // 길이 기반의 임시 구분
+			// 2. 이미 신 버전으로 암호화되었거나, 이메일이 유효하지 않은 스킵
+			if (encryptedEmail == null || encryptedEmail.trim().isEmpty() || encryptedEmail.length() < 10
+				|| encryptedEmail.length() > 50) {
 				continue;
 			}
 
@@ -64,6 +64,9 @@ public class UserMigrationService {
 		}
 
 		log.warn("=== [SECURITY] MIGRATION COMPLETED: {} users updated ===", migratedCount);
+
 		return migratedCount;
+
 	}
+
 }

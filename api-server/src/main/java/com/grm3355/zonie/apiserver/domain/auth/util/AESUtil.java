@@ -26,6 +26,7 @@ public class AESUtil {
 	private static final int GCM_IV_LENGTH = 12; // 12 bytes (96 bits)
 	private static final int GCM_TAG_LENGTH = 16; // 16 bytes (128 bits)
 	private final SecretKeySpec secretKeySpec;
+	private final String keyString;    // 구 버전 복호화용
 
 	public AESUtil(@Value("${aes.key}") String base64Key) {
 		// Base64로 인코딩된 키를 디코딩해 사용
@@ -34,6 +35,7 @@ public class AESUtil {
 			log.error("AES 키 길이가 유효하지 않습니다. 현재 길이: {} 바이트. 16, 24, 32 바이트 중 하나를 사용해야 합니다.", keyBytes.length);
 		}
 		this.secretKeySpec = new SecretKeySpec(keyBytes, ALGORITHM);
+		this.keyString = base64Key;
 	}
 
 	/**
@@ -78,13 +80,14 @@ public class AESUtil {
 		// 1. Base64 디코딩
 		byte[] decodedBytes = Base64.getDecoder().decode(encryptedText);
 
-		// if (decodedBytes.length < GCM_IV_LENGTH) {
-		// 	// 데이터 길이가 IV 길이보다 작으면 에러
-		// 	throw new IllegalArgumentException("암호화된 데이터가 너무 짧습니다.");
-		// }
+		if (decodedBytes.length < GCM_IV_LENGTH) {
+			// 데이터 길이가 IV 길이보다 작으면 에러
+			// throw new IllegalArgumentException("암호화된 데이터가 너무 짧습니다.");
+			log.info("[decrypt] 암호화된 데이터가 너무 짧습니다.");
+		}
 
 		if (decodedBytes.length < GCM_IV_LENGTH + GCM_TAG_LENGTH) {
-			log.warn("구 버전(ECB) 데이터로 추정, decryptECB로 복호화 시도.");
+			log.warn("[decrypt] 구 버전(ECB) 데이터로 추정, decryptECB로 복호화 시도.");
 			return decryptEcb(encryptedText);
 		}
 
@@ -112,12 +115,10 @@ public class AESUtil {
 	 * : 데이터 마이그레이션 완료 후 삭제될 예정입니다.
 	 */
 	public String decryptEcb(String encryptedText) throws Exception {
-		Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-		cipher.init(Cipher.DECRYPT_MODE, this.secretKeySpec);
-
-		byte[] decodedBytes = Base64.getDecoder().decode(encryptedText);
-		byte[] decryptedBytes = cipher.doFinal(decodedBytes);
-
-		return new String(decryptedBytes, StandardCharsets.UTF_8);
+		SecretKeySpec keySpec = new SecretKeySpec(keyString.getBytes(), ALGORITHM);
+		Cipher cipher = Cipher.getInstance("AES");
+		cipher.init(Cipher.DECRYPT_MODE, keySpec);
+		byte[] decoded = Base64.getDecoder().decode(encryptedText);
+		return new String(cipher.doFinal(decoded));
 	}
 }
