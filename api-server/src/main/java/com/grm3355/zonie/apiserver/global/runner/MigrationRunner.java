@@ -1,5 +1,7 @@
 package com.grm3355.zonie.apiserver.global.runner;
 
+import java.util.Arrays;
+
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.env.Environment;
@@ -19,14 +21,10 @@ public class MigrationRunner implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-		log.warn("!!! [CRITICAL] 마이그레이션 프로필 활성화. 데이터 마이그레이션 시작. !!!");
-		long migratedCount = migrationService.migrateUserEmailsToGcm();
-		log.warn("!!! [CRITICAL] MIGRATION COMPLETED: {} users updated !!!", migratedCount);
-
-		// if (Arrays.asList(environment.getActiveProfiles()).contains("migrate")) {    // 일회성으로 prod에서 활성화
-		// 	log.warn("!!! [CRITICAL] 마이그레이션 프로필 활성화. 데이터 마이그레이션 시작. !!!");
-		// 	long migratedCount = migrationService.migrateUserEmailsToGcm();
-		// 	log.warn("!!! [CRITICAL] MIGRATION COMPLETED: {} users updated !!!", migratedCount);
-		// }
+		if (Arrays.asList(environment.getActiveProfiles()).contains("migrate")) {
+			log.warn("!!! [CRITICAL] 마이그레이션 프로필 활성화. 데이터 마이그레이션 시작. !!!");
+			long migratedCount = migrationService.migrateUserEmailsToGcm();
+			log.warn("!!! [CRITICAL] MIGRATION COMPLETED: {} users updated !!!", migratedCount);
+		}
 	}
 }
