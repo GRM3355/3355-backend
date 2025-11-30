@@ -9,6 +9,10 @@ spring:
     group:
       "dev": "dev,local"
       "prod": "prod"
+  datasource:
+    hikari:
+      maximum-pool-size: 5  # 최대 커넥션 수
+      connection-timeout: 60000  # 커넥션을 얻기 위해 대기하는 시간: 60초
 management:
   endpoints:
     web:
