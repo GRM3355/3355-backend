@@ -9,6 +9,11 @@ spring:
     group:
       "dev": "dev,local"
       "prod": "prod"
+  datasource:
+    hikari:
+      # 일시적으로 최대 커넥션 수를 50개로 증설
+      maximum-pool-size: 50
+      connection-timeout: 60000  # 커넥션을 얻기 위해 대기하는 시간: 60초
 management:
   endpoints:
     web:
@@ -26,7 +31,7 @@ chat:
   pre-create-day: 7 #7일전부터 생성 가능
   pre-view-day: 7 #7일전부터 축제보기 가능
   nickname-start: 3355
-  
+
 location:
   token:
     ttl-minutes: 15
