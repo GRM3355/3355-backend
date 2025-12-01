@@ -47,6 +47,7 @@ public class SecurityConfig {
 		"/api/v1/festivals/*",           // 단건 조회 (ID)
 		"/api/v1/festivals/regions",    //지역목록
 		"/api/v1/festivals/count",
+		"/api/v1/festivals/*/chat-rooms", // GET 축제별 채팅방 목록
 		"/api/v1/search/**", //통합검색
 		"/static/**",    // 정적 이미지 경로
 		"/swagger-ui/**",     // Swagger UI
