@@ -5,8 +5,8 @@
   "requiresCompatibilities": [
     "FARGATE"
   ],
-  "cpu": "2048",
-  "memory": "4096",
+  "cpu": "512",
+  "memory": "1024",
   "containerDefinitions": [
     {
       "name": "zonie-api-server",
