@@ -159,7 +159,7 @@ public class RateLimitingFilter extends OncePerRequestFilter {
 	 * @param patterns List<String>으로 정의된 패턴 목록
 	 * @return 매칭되는 패턴이 있으면 해당 패턴 문자열, 없으면 null
 	 */
-	private String findMatchingPattern(String requestUri, List<String> patterns) { // 수정된 부분
+	private String findMatchingPattern(String requestUri, List<String> patterns) { 
 		return patterns.stream()
 			.filter(pattern -> pathMatcher.match(pattern, requestUri))
 			.findFirst()
